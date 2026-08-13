@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Pagamento — Relógio e Cia</title><link rel="stylesheet" href="style.css"></head>
+<body><header class="site-header"><nav class="nav"><a href="index.html" class="brand-mark"><span class="sq"></span><span class="word">Relógio e Cia<small>Relojoaria desde 2003</small></span></a><a href="produtos.html" class="nav-cta">Continuar comprando</a></nav></header>
+<main style="max-width:760px;margin:80px auto;padding:0 28px"><div class="account-box" id="resultado"><p class="eyebrow">Pagamento</p><h1 id="titulo">Verificando seu pedido…</h1><p id="texto">Estamos consultando o status do pagamento.</p><a class="btn btn-primary" href="index.html">Voltar para a loja</a></div></main>
+<script>
+(async()=>{const q=new URLSearchParams(location.search),s=q.get('status'),id=q.get('pedido');const t=document.getElementById('titulo'),x=document.getElementById('texto');
+if(s==='success'){t.textContent='Pagamento aprovado!';x.textContent='Seu pagamento foi aprovado. O pedido já aparece no painel administrativo.'}
+else if(s==='failure'){t.textContent='Pagamento não aprovado';x.textContent='O pagamento não foi aprovado. Você pode voltar ao carrinho e tentar novamente.'}
+else{t.textContent='Pagamento pendente';x.textContent='O pagamento está pendente. Assim que o Mercado Pago confirmar, o pedido será atualizado automaticamente.'}
+if(id){try{const r=await fetch('/api/order/'+encodeURIComponent(id));if(r.ok){const o=await r.json();x.textContent+=' Pedido '+o.id+' — status: '+o.payment_status+'.';}}catch{}}
+})();
+</script></body></html>

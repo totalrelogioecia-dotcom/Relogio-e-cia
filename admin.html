@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel administrativo — Relógio e Cia</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css">
+</head><body class="admin-page">
+<header class="site-header"><nav class="nav"><a href="index.html" class="brand-mark"><span class="sq"></span><span class="word">Relógio e Cia<small>Painel administrativo</small></span></a><a href="index.html" class="nav-cta">Ver loja</a></nav></header>
+<main class="admin-main">
+<section id="login-screen" class="admin-card login-card">
+<p class="eyebrow">Área restrita</p><h1>Painel administrativo</h1><p class="admin-muted">Entre com o usuário definido no arquivo <code>.env</code>.</p>
+<div id="login-msg" class="form-error" style="display:none"></div>
+<div class="form-field"><label>E-mail</label><input id="admin-email" type="email" autocomplete="username"></div>
+<div class="form-field"><label>Senha</label><input id="admin-senha" type="password" autocomplete="current-password"></div>
+<button id="login-btn" class="btn btn-primary">Entrar</button>
+</section>
+<section id="dashboard" style="display:none">
+<div class="admin-head"><div><p class="eyebrow">Controle da loja</p><h1>Painel administrativo</h1></div><button id="logout-btn" class="btn btn-outline">Sair</button></div>
+<div id="admin-msg" class="form-success" style="display:none"></div>
+<div class="admin-tabs"><button class="active" data-tab="produtos">📦 Produtos</button><button data-tab="pedidos">🛒 Pedidos</button></div>
+<div id="tab-produtos">
+<div class="admin-toolbar"><h2>Produtos</h2><button id="novo-produto" class="btn btn-primary">+ Novo produto</button></div>
+<div class="admin-card" id="product-editor" style="display:none">
+<h3 id="editor-title">Novo produto</h3>
+<input type="hidden" id="p-id">
+<div class="admin-grid">
+<div class="form-field"><label>Nome</label><input id="p-nome"></div><div class="form-field"><label>Marca</label><input id="p-marca"></div>
+<div class="form-field"><label>Categoria</label><input id="p-categoria" value="Relógios"></div><div class="form-field"><label>SKU</label><input id="p-sku"></div>
+<div class="form-field"><label>Preço (R$)</label><input id="p-preco" type="number" step="0.01" min="0"></div><div class="form-field"><label>Estoque</label><input id="p-estoque" type="number" step="1" min="0"></div>
+</div>
+<div class="form-field"><label>Descrição</label><textarea id="p-desc" rows="4"></textarea></div>
+<div class="form-field"><label>Fotos (URLs, uma por linha)</label><textarea id="p-fotos" rows="3"></textarea></div>
+<label class="switch"><input id="p-ativo" type="checkbox" checked><span>Produto visível na loja</span></label>
+<div class="editor-actions"><button id="salvar-produto" class="btn btn-primary">Salvar produto</button><button id="cancelar-produto" class="btn btn-outline">Cancelar</button></div>
+</div>
+<div id="products-list" class="admin-table-wrap"></div>
+</div>
+<div id="tab-pedidos" style="display:none"><div class="admin-toolbar"><h2>Pedidos</h2><button id="refresh-orders" class="btn btn-outline">Atualizar</button></div><div id="orders-list" class="admin-table-wrap"></div></div>
+</section>
+</main><script src="admin.js"></script></body></html>

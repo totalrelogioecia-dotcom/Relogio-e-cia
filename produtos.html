@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produtos — Relógio e Cia Relojoaria</title>
+<meta name="description" content="Relógios e acessórios Technos, Casio, G-Shock, Citizen e Orient. Filtre por marca, categoria e preço.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="index.html" class="brand-mark">
+      <span class="sq"></span>
+      <span class="word">Relógio e Cia<small>Relojoaria desde 2003</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Início</a></li>
+      <li><a href="produtos.html" aria-current="page">Produtos</a></li>
+      <li><a href="sobre.html">Sobre nós</a></li>
+      <li><a href="sobre.html#loja">Nossa loja</a></li>
+    </ul>
+    <div class="nav-utility">
+      <a href="conta.html" class="nav-icon-link" id="nav-conta-link">Conta</a>
+      <a href="carrinho.html" class="nav-icon-link">Carrinho <span class="cart-badge" id="cart-badge" data-zero="1">0</span></a>
+    </div>
+    <a href="produtos.html" class="nav-cta">Ver catálogo</a>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
+  </nav>
+</header>
+
+<section class="section" style="padding-bottom:0;">
+  <div class="frame">
+    <div class="rail">
+      <div class="rail-ticks"></div>
+      <span class="rail-mark"></span>
+      <span class="rail-label">Nº 02 — Catálogo</span>
+    </div>
+    <div>
+      <div class="section-content">
+        <p class="eyebrow">Catálogo</p>
+        <h1 style="font-family:var(--font-display); font-size:clamp(1.9rem,3.4vw,2.7rem); margin:0 0 10px; font-weight:700; letter-spacing:-.01em;">Relógios e acessórios</h1>
+        <p style="color:var(--ink-soft); max-width:56ch; margin:0 0 40px;">Use os filtros para encontrar o relógio ou acessório ideal por marca, categoria e faixa de preço.</p>
+
+        <div class="products-layout" style="padding-bottom:64px;">
+          <aside class="filters">
+            <h3>Filtrar</h3>
+
+            <fieldset class="filter-group" style="border:none; margin:0;">
+              <legend>Marca</legend>
+              <label class="check-row"><input type="checkbox" name="marca" value="Technos"> Technos <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="Casio"> Casio <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="G-Shock"> G-Shock <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="Citizen"> Citizen <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="Orient"> Orient <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="Universal"> Diversos / Genérico <span class="count">0</span></label>
+            </fieldset>
+
+            <fieldset class="filter-group" style="border:none; margin:0;">
+              <legend>Categoria</legend>
+              <label class="check-row"><input type="checkbox" name="categoria" value="Relógios"> Relógios <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="categoria" value="Pulseiras"> Pulseiras <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="categoria" value="Pilhas"> Pilhas <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="categoria" value="Acessórios"> Acessórios <span class="count">0</span></label>
+            </fieldset>
+
+            <fieldset class="filter-group" style="border:none; margin:0;">
+              <legend>Faixa de preço</legend>
+              <div class="price-inputs">
+                <input type="number" id="preco-min" placeholder="Mín." min="0">
+                <span>—</span>
+                <input type="number" id="preco-max" placeholder="Máx." min="0">
+              </div>
+            </fieldset>
+
+            <button type="button" class="reset-link" id="reset-filtros">Limpar filtros</button>
+          </aside>
+
+          <div>
+            <div class="products-toolbar">
+              <p class="result-count" id="result-count"><strong>0</strong> produtos encontrados</p>
+              <div class="sort-control">
+                <label for="ordenar">Ordenar por</label>
+                <select id="ordenar">
+                  <option value="relevancia">Relevância</option>
+                  <option value="preco-asc">Menor preço</option>
+                  <option value="preco-desc">Maior preço</option>
+                  <option value="nome-asc">Nome (A-Z)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="product-grid" id="product-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="frame">
+    <div class="rail inverse">
+      <div class="rail-ticks"></div>
+    </div>
+    <div>
+      <div class="footer-grid">
+        <div>
+          <h5>Relógio e Cia</h5>
+          <p>Relógios e acessórios das melhores marcas, com loja física e atendimento especializado há mais de 20 anos.</p>
+        </div>
+        <div>
+          <h5>Navegação</h5>
+          <ul>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="produtos.html">Produtos</a></li>
+            <li><a href="sobre.html">Sobre nós</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Marcas</h5>
+          <ul>
+            <li><a href="produtos.html?marca=Technos">Technos</a></li>
+            <li><a href="produtos.html?marca=Casio">Casio</a></li>
+            <li><a href="produtos.html?marca=G-Shock">G-Shock</a></li>
+            <li><a href="produtos.html?marca=Citizen">Citizen</a></li>
+            <li><a href="produtos.html?marca=Orient">Orient</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Atendimento</h5>
+          <ul>
+            <li><a href="tel:+555196311864">(51) 9631-1864</a></li>
+            <li><a href="mailto:totalrelogioecia@gmail.com">totalrelogioecia@gmail.com</a></li>
+            <li><a href="sobre.html#loja">Av. Cristóvão Colombo, 545 — Independência, Porto Alegre - RS</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Relógio e Cia Relojoaria. Todos os direitos reservados.</span>
+        <span>Site meramente ilustrativo</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <button class="modal-close" aria-label="Fechar">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  // Pré-seleciona marca vinda por link (?marca=Casio) vindo da home/rodapé
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const marca = params.get('marca');
+    if (marca) {
+      const input = document.querySelector(`input[name="marca"][value="${marca}"]`);
+      if (input) {
+        input.checked = true;
+        input.dispatchEvent(new Event('change'));
+      }
+    }
+  });
+</script>
+</body>
+</html>
