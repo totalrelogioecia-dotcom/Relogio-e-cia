@@ -42,7 +42,7 @@ const write = (file, value) => fs.writeFileSync(file, JSON.stringify(value,null,
 const getProducts = () => read(PRODUCTS, []);
 const getOrders = () => read(ORDERS, []);
 
-app.use(express.json({limit:'1mb'}));
+app.use(express.json({limit:'10mb'}));
 app.use(express.static(ROOT, {index:'index.html'}));
 
 function safeEqual(a,b) {
