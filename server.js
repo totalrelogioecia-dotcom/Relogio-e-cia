@@ -893,17 +893,106 @@ function validarWebhookMercadoPago(req) {
    WEBHOOK MERCADO PAGO
 ========================================================= */
 
+/* =========================================================
+   WEBHOOK MERCADO PAGO
+========================================================= */
+
 app.post(
   '/api/mercadopago/webhook',
   async (req, res) => {
 
+    const type =
+      req.body?.type ||
+      req.body?.topic ||
+      '';
+
+    const paymentId =
+      String(
+        req.body?.data?.id ||
+        req.query['data.id'] ||
+        req.body?.id ||
+        ''
+      );
+
+    const liveMode =
+      req.body?.live_mode === true;
+
+    const xSignature =
+      req.get('x-signature') || '';
+
     /*
-      Primeiro validamos a assinatura.
+      ======================================================
+      TESTE DO MERCADO PAGO
+      ======================================================
+
+      O simulador pode enviar uma requisição de teste
+      sem assinatura.
+
+      Nesse caso apenas respondemos 200.
+
+      IMPORTANTE:
+      Não alteramos pedido nem estoque.
+    */
+
+    if (!xSignature) {
+
+      console.log(
+        'Webhook recebido sem x-signature.'
+      );
+
+      console.log(
+        'Tipo:',
+        type
+      );
+
+      console.log(
+        'Data ID:',
+        paymentId
+      );
+
+      console.log(
+        'Live mode:',
+        liveMode
+      );
+
+      /*
+        Se for uma simulação/teste, respondemos OK.
+      */
+
+      if (!liveMode) {
+
+        console.log(
+          'Simulação do Mercado Pago recebida com sucesso.'
+        );
+
+        return res.sendStatus(200);
+      }
+
+      /*
+        Se estiver em produção e não houver assinatura,
+        recusamos.
+      */
+
+      console.error(
+        'Webhook de produção sem assinatura.'
+      );
+
+      return res.sendStatus(401);
+    }
+
+    /*
+      ======================================================
+      NOTIFICAÇÃO REAL
+      ======================================================
     */
 
     if (
       !validarWebhookMercadoPago(req)
     ) {
+
+      console.error(
+        'Assinatura do webhook inválida.'
+      );
 
       return res.sendStatus(401);
     }
@@ -914,32 +1003,49 @@ app.post(
 
     res.sendStatus(200);
 
+    /*
+      ======================================================
+      PROCESSAMENTO
+      ======================================================
+    */
+
     try {
 
-      const type =
-        req.body?.type ||
-        req.body?.topic;
+      if (
+        type !== 'payment'
+      ) {
 
-      const paymentId =
-        req.body?.data?.id ||
-        req.query['data.id'] ||
-        req.body?.id;
+        console.log(
+          'Webhook ignorado. Tipo:',
+          type
+        );
 
-      /*
-        Só processamos notificações de pagamento.
-      */
+        return;
+      }
+
+      if (!paymentId) {
+
+        console.error(
+          'Webhook de pagamento sem data.id.'
+        );
+
+        return;
+      }
 
       if (
-        type !== 'payment' ||
-        !paymentId ||
         !process.env.MERCADOPAGO_ACCESS_TOKEN
       ) {
+
+        console.error(
+          'MERCADOPAGO_ACCESS_TOKEN não configurado.'
+        );
+
         return;
       }
 
       /*
-        Busca o pagamento diretamente
-        na API do Mercado Pago.
+        Consulta o pagamento diretamente
+        na API oficial do Mercado Pago.
       */
 
       const r =
@@ -956,74 +1062,109 @@ app.post(
       if (!r.ok) {
 
         console.error(
-          'Não foi possível consultar o pagamento:',
+          'Erro ao consultar pagamento no Mercado Pago:',
           r.status
         );
 
         return;
       }
 
-      const p =
+      const payment =
         await r.json();
 
+      console.log(
+        'Pagamento consultado:',
+        payment.id,
+        payment.status
+      );
+
       /*
-        O external_reference contém
-        o ID do nosso pedido.
+        Recupera o número do nosso pedido.
       */
+
+      const orderId =
+        payment.external_reference;
+
+      if (!orderId) {
+
+        console.error(
+          'Pagamento sem external_reference.'
+        );
+
+        return;
+      }
 
       const orders =
         getOrders();
 
-      const i =
+      const orderIndex =
         orders.findIndex(
-          o =>
-            o.id ===
-            p.external_reference
+          order =>
+            order.id === orderId
         );
 
-      if (i < 0) {
+      if (orderIndex === -1) {
 
         console.error(
           'Pedido não encontrado:',
-          p.external_reference
+          orderId
         );
 
         return;
       }
 
       /*
-        Salva informações do pagamento.
+        Atualiza informações do pagamento.
       */
 
-      orders[i].payment_id =
-        String(p.id);
+      orders[orderIndex].payment_id =
+        String(payment.id);
 
-      orders[i].payment_status =
-        p.status || 'pending';
-
-      /*
-        Atualiza o status do pedido.
-      */
-
-      orders[i].status =
-        p.status === 'approved'
-          ? 'paid'
-
-          : p.status === 'rejected'
-            ? 'rejected'
-
-            : p.status === 'cancelled'
-              ? 'cancelled'
-
-              : 'pending';
+      orders[orderIndex].payment_status =
+        payment.status || 'pending';
 
       /*
-        Dá baixa no estoque somente uma vez.
+        Atualiza status do pedido.
       */
 
       if (
-        p.status === 'approved' &&
-        !orders[i].stock_applied
+        payment.status === 'approved'
+      ) {
+
+        orders[orderIndex].status =
+          'paid';
+
+      } else if (
+        payment.status === 'rejected'
+      ) {
+
+        orders[orderIndex].status =
+          'rejected';
+
+      } else if (
+        payment.status === 'cancelled'
+      ) {
+
+        orders[orderIndex].status =
+          'cancelled';
+
+      } else {
+
+        orders[orderIndex].status =
+          'pending';
+      }
+
+      /*
+        ====================================================
+        BAIXA DE ESTOQUE
+        ====================================================
+
+        Só fazemos uma vez.
+      */
+
+      if (
+        payment.status === 'approved' &&
+        !orders[orderIndex].stock_applied
       ) {
 
         const products =
@@ -1031,22 +1172,26 @@ app.post(
 
         for (
           const item
-          of orders[i].items || []
+          of orders[orderIndex].items || []
         ) {
 
-          const pi =
-            products.find(
-              x =>
-                Number(x.id) ===
+          const productIndex =
+            products.findIndex(
+              product =>
+                Number(product.id) ===
                 Number(item.id)
             );
 
-          if (pi) {
+          if (
+            productIndex !== -1
+          ) {
 
-            pi.estoque =
+            products[productIndex].estoque =
               Math.max(
                 0,
-                Number(pi.estoque) -
+                Number(
+                  products[productIndex].estoque
+                ) -
                 Number(item.quantidade)
               );
           }
@@ -1057,11 +1202,16 @@ app.post(
           products
         );
 
-        orders[i].stock_applied =
+        orders[orderIndex].stock_applied =
           true;
+
+        console.log(
+          'Estoque atualizado para o pedido:',
+          orderId
+        );
       }
 
-      orders[i].updated_at =
+      orders[orderIndex].updated_at =
         new Date().toISOString();
 
       write(
@@ -1070,17 +1220,17 @@ app.post(
       );
 
       console.log(
-        'Pagamento atualizado:',
-        p.id,
-        p.status,
-        p.external_reference
+        'Pedido atualizado:',
+        orderId,
+        '=>',
+        orders[orderIndex].status
       );
 
-    } catch (e) {
+    } catch (error) {
 
       console.error(
-        'Erro no Webhook Mercado Pago:',
-        e
+        'Erro ao processar Webhook Mercado Pago:',
+        error
       );
     }
   }
