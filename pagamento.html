@@ -21,7 +21,7 @@
     <div class="account-box" id="resultado">
       <p class="eyebrow">Pagamento</p>
       <h1 id="titulo">Confirmando seu pagamento…</h1>
-      <p id="texto">Estamos aguardando a confirmação do Mercado Pago. Isso pode levar alguns segundos.</p>
+      <p id="texto">Estamos confirmando a operação com o Mercado Pago. Aguarde alguns segundos.</p>
       <a class="btn btn-primary" href="index.html">Voltar para a loja</a>
     </div>
   </main>
@@ -61,27 +61,27 @@
         : 'Ainda estamos aguardando a confirmação do Mercado Pago.';
     }
 
-    // Se o Mercado Pago retornou com failure, não precisamos ficar aguardando.
     if (retorno === 'failure') {
       mostrar('rejected', id);
       return;
     }
 
     if (!id) {
-      mostrar(retorno === 'success' ? 'paid' : 'pending', '');
+      titulo.textContent = 'Não foi possível identificar o pedido';
+      texto.textContent = 'Volte para a loja e tente realizar o pagamento novamente.';
       return;
     }
 
-    // O redirecionamento pode acontecer antes do webhook. Por isso consultamos
-    // o pedido repetidamente por até ~30 segundos, permitindo que o webhook
-    // atualize payment_status de pending para approved/paid.
-    const tentativas = 15;
+    // O Mercado Pago pode redirecionar antes do webhook. O endpoint do pedido
+    // também tenta consultar o Mercado Pago pelo external_reference, então
+    // conseguimos confirmar mesmo se o webhook chegar atrasado.
+    const tentativas = 30;
     const intervalo = 2000;
-    let ultimoStatus = retorno === 'success' ? 'pending' : 'pending';
+    let ultimoStatus = 'pending';
 
     for (let tentativa = 0; tentativa < tentativas; tentativa++) {
       try {
-        const resposta = await fetch('/api/order/' + encodeURIComponent(id), {
+        const resposta = await fetch('/api/order/' + encodeURIComponent(id) + '?t=' + Date.now(), {
           cache: 'no-store',
           headers: { 'Accept': 'application/json' }
         });
@@ -91,7 +91,12 @@
           const status = pedido.payment_status || pedido.status || 'pending';
           ultimoStatus = status;
 
-          mostrar(status, pedido.id || id);
+          if (status === 'pending' && retorno === 'success') {
+            titulo.textContent = 'Confirmando pagamento…';
+            texto.textContent = `Recebemos o retorno do Mercado Pago para o pedido ${id}. Estamos confirmando a aprovação.`;
+          } else {
+            mostrar(status, pedido.id || id);
+          }
 
           if (['approved', 'paid', 'rejected', 'cancelled'].includes(status)) return;
         }
@@ -104,9 +109,12 @@
       }
     }
 
-    // Se o webhook ainda não chegou depois das tentativas, deixamos a tela
-    // como pendente em vez de afirmar que o pagamento foi aprovado sem confirmação.
-    mostrar(ultimoStatus, id);
+    if (ultimoStatus === 'pending' && retorno === 'success') {
+      titulo.textContent = 'Pagamento em confirmação';
+      texto.textContent = `O Mercado Pago retornou com sucesso, mas a confirmação final do pedido ${id} ainda está sendo processada. Atualize esta página em alguns segundos.`;
+    } else {
+      mostrar(ultimoStatus, id);
+    }
   })();
   </script>
 </body>
