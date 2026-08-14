@@ -220,10 +220,23 @@ app.post('/api/checkout', async (req, res) => {
 
 function parseSignature(header) {
   const result = {};
-  for (const part of String(header || '').split(',')) {
-    const [key, ...rest] = part.trim().split('=');
-    if (key) result[key.trim().toLowerCase()] = rest.join('=').trim();
+  const parts = String(header || '').split(',');
+
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+
+    const separator = trimmed.indexOf('=');
+    if (separator <= 0) return null;
+
+    const key = trimmed.slice(0, separator).trim().toLowerCase();
+    const value = trimmed.slice(separator + 1).trim();
+
+    if (!key || !value) return null;
+    if (result[key] !== undefined) return null;
+    result[key] = value;
   }
+
   return result;
 }
 
@@ -233,17 +246,48 @@ function validarWebhookMercadoPago(req) {
   const requestId = String(req.get('x-request-id') || '').trim();
   let dataId = String(req.query['data.id'] || '').trim();
 
-  if (/^[a-z0-9]+$/i.test(dataId)) dataId = dataId.toLowerCase();
   if (!secret || !signature || !dataId) return false;
 
-  const { ts, v1 } = parseSignature(signature);
+  // O Mercado Pago envia data.id em minúsculas quando o identificador é
+  // estritamente alfanumérico. Mantemos os demais identificadores intactos.
+  if (/^[a-z0-9]+$/i.test(dataId)) dataId = dataId.toLowerCase();
+
+  const parsed = parseSignature(signature);
+  if (!parsed) return false;
+
+  const { ts, v1 } = parsed;
   if (!ts || !v1) return false;
+
+  // A assinatura oficial é um HMAC-SHA256 em hexadecimal (64 caracteres).
+  if (!/^\d+$/.test(ts)) return false;
+  if (!/^[a-f0-9]{64}$/i.test(v1)) return false;
+
+  const timestamp = Number(ts);
+  if (!Number.isSafeInteger(timestamp) || timestamp <= 0) return false;
+
+  // Evita replay de uma assinatura antiga. O padrão é 5 minutos e pode
+  // ser ajustado no ambiente sem alterar o código.
+  const toleranceSeconds = Math.max(
+    0,
+    Number(process.env.MERCADOPAGO_WEBHOOK_TOLERANCE_SECONDS || 300)
+  );
+  const nowSeconds = Math.floor(Date.now() / 1000);
+
+  if (toleranceSeconds > 0 && Math.abs(nowSeconds - timestamp) > toleranceSeconds) {
+    console.warn('Webhook Mercado Pago rejeitado: assinatura expirada.');
+    return false;
+  }
 
   const manifestParts = [`id:${dataId}`];
   if (requestId) manifestParts.push(`request-id:${requestId}`);
   manifestParts.push(`ts:${ts}`);
+
   const manifest = `${manifestParts.join(';')};`;
-  const expected = crypto.createHmac('sha256', secret).update(manifest, 'utf8').digest('hex');
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(manifest, 'utf8')
+    .digest('hex');
+
   return safeEqual(expected, v1.toLowerCase());
 }
 
