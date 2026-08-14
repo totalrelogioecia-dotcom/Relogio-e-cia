@@ -270,6 +270,69 @@ function validarWebhookMercadoPago(req) {
   return true;
 }
 
+async function consultarPagamento(paymentId) {
+  const access = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  if (!access) throw new Error('MERCADOPAGO_ACCESS_TOKEN não configurado.');
+
+  const response = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`, {
+    headers: { Authorization: `Bearer ${access}` }
+  });
+
+  const text = await response.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
+
+  if (!response.ok) {
+    const error = new Error(`Mercado Pago respondeu ${response.status}`);
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+function statusDoPagamento(status) {
+  if (status === 'approved') return 'paid';
+  if (status === 'rejected') return 'rejected';
+  if (status === 'cancelled') return 'cancelled';
+  return 'pending';
+}
+
+async function aplicarPagamentoAoPedido(payment, orderId) {
+  const orders = getOrders();
+  const index = orders.findIndex(order => order.id === orderId);
+  if (index < 0) throw new Error(`Pedido não encontrado: ${orderId}`);
+
+  const order = orders[index];
+  order.payment_id = String(payment.id || '');
+  order.payment_status = String(payment.status || 'pending');
+  order.status = statusDoPagamento(payment.status);
+  order.payment_detail = {
+    status_detail: payment.status_detail || null,
+    payment_type_id: payment.payment_type_id || null,
+    date_approved: payment.date_approved || null,
+    date_last_updated: payment.date_last_updated || null
+  };
+  order.updated_at = new Date().toISOString();
+
+  if (payment.status === 'approved' && !order.stock_applied) {
+    const products = getProducts();
+    for (const item of order.items || []) {
+      const productIndex = products.findIndex(product => Number(product.id) === Number(item.id));
+      if (productIndex !== -1) {
+        products[productIndex].estoque = Math.max(0, Number(products[productIndex].estoque) - Number(item.quantidade));
+      }
+    }
+    write(PRODUCTS, products);
+    order.stock_applied = true;
+    console.log('Estoque atualizado:', orderId);
+  }
+
+  write(ORDERS, orders);
+  console.log('Pedido atualizado:', orderId, '=>', order.status, '| pagamento:', order.payment_status);
+  return order;
+}
+
 app.post('/api/mercadopago/webhook', async (req, res) => {
   const type = String(req.body?.type || req.body?.topic || '');
   const action = String(req.body?.action || '');
@@ -290,55 +353,23 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
     return res.sendStatus(401);
   }
 
+  if (type !== 'payment' || !paymentId) return res.sendStatus(200);
+
+  // Confirmamos rapidamente o recebimento. O processamento é idempotente.
   res.sendStatus(200);
 
-  if (type !== 'payment' || !paymentId) return;
-
   try {
-    const access = process.env.MERCADOPAGO_ACCESS_TOKEN;
-    if (!access) return console.error('MERCADOPAGO_ACCESS_TOKEN não configurado.');
+    const payment = await consultarPagamento(paymentId);
+    const orderId = String(payment.external_reference || '');
+    if (!orderId) return console.error('Pagamento sem external_reference:', paymentId);
 
-    const response = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`, {
-      headers: { Authorization: `Bearer ${access}` }
-    });
-    if (!response.ok) return console.error('Erro ao consultar pagamento:', response.status);
-
-    const payment = await response.json();
-    const orderId = payment.external_reference;
-    if (!orderId) return console.error('Pagamento sem external_reference.');
-
-    const orders = getOrders();
-    const index = orders.findIndex(order => order.id === orderId);
-    if (index < 0) return console.error('Pedido não encontrado:', orderId);
-
-    orders[index].payment_id = String(payment.id);
-    orders[index].payment_status = payment.status || 'pending';
-    orders[index].status = payment.status === 'approved'
-      ? 'paid'
-      : payment.status === 'rejected'
-        ? 'rejected'
-        : payment.status === 'cancelled'
-          ? 'cancelled'
-          : 'pending';
-
-    if (payment.status === 'approved' && !orders[index].stock_applied) {
-      const products = getProducts();
-      for (const item of orders[index].items || []) {
-        const productIndex = products.findIndex(product => Number(product.id) === Number(item.id));
-        if (productIndex !== -1) {
-          products[productIndex].estoque = Math.max(0, Number(products[productIndex].estoque) - Number(item.quantidade));
-        }
-      }
-      write(PRODUCTS, products);
-      orders[index].stock_applied = true;
-      console.log('Estoque atualizado:', orderId);
-    }
-
-    orders[index].updated_at = new Date().toISOString();
-    write(ORDERS, orders);
-    console.log('Pedido atualizado:', orderId, '=>', orders[index].status);
+    await aplicarPagamentoAoPedido(payment, orderId);
   } catch (error) {
-    console.error('Erro ao processar webhook:', error);
+    console.error('Erro ao processar webhook:', {
+      message: error.message,
+      status: error.status || null,
+      paymentId
+    });
   }
 });
 
@@ -347,7 +378,13 @@ app.get('/healthz', (req, res) => res.json({ ok: true }));
 app.get('/api/order/:id', (req, res) => {
   const order = getOrders().find(item => item.id === req.params.id);
   if (!order) return res.status(404).json({ error: 'Pedido não encontrado.' });
-  res.json({ id: order.id, status: order.status, payment_status: order.payment_status, total: order.total, created_at: order.created_at });
+  res.json({
+    id: order.id,
+    status: order.status,
+    payment_status: order.payment_status,
+    payment_id: order.payment_id || null,
+    updated_at: order.updated_at || null
+  });
 });
 
 app.listen(PORT, () => {
