@@ -222,16 +222,18 @@ function parseSignature(header) {
   const result = {};
   for (const part of String(header || '').split(',')) {
     const [key, ...rest] = part.trim().split('=');
-    if (key) result[key] = rest.join('=');
+    if (key) result[key.trim().toLowerCase()] = rest.join('=').trim();
   }
   return result;
 }
 
 function validarWebhookMercadoPago(req) {
-  const secret = String(process.env.MERCADOPAGO_WEBHOOK_SECRET || '');
-  const signature = req.get('x-signature') || '';
-  const requestId = req.get('x-request-id') || '';
-  const dataId = String(req.query['data.id'] || '');
+  const secret = String(process.env.MERCADOPAGO_WEBHOOK_SECRET || '').trim();
+  const signature = String(req.get('x-signature') || '').trim();
+  const requestId = String(req.get('x-request-id') || '').trim();
+  let dataId = String(req.query['data.id'] || '').trim();
+
+  if (/^[a-z0-9]+$/i.test(dataId)) dataId = dataId.toLowerCase();
 
   if (!secret || !signature || !dataId) {
     console.error('Webhook sem credenciais obrigatórias:', {
@@ -241,19 +243,29 @@ function validarWebhookMercadoPago(req) {
   }
 
   const { ts, v1 } = parseSignature(signature);
-  if (!ts || !v1) return false;
+  if (!ts || !v1) {
+    console.error('Webhook com x-signature em formato inválido.');
+    return false;
+  }
 
   const manifestParts = [`id:${dataId}`];
   if (requestId) manifestParts.push(`request-id:${requestId}`);
   manifestParts.push(`ts:${ts}`);
   const manifest = `${manifestParts.join(';')};`;
 
-  const expected = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
-  if (!safeEqual(expected, v1)) return false;
+  const expected = crypto.createHmac('sha256', secret).update(manifest, 'utf8').digest('hex');
+  const valid = safeEqual(expected, v1.toLowerCase());
 
-  const timestamp = Number(ts);
-  const timestampMs = timestamp < 100000000000 ? timestamp * 1000 : timestamp;
-  if (!Number.isFinite(timestampMs) || Math.abs(Date.now() - timestampMs) > 10 * 60 * 1000) return false;
+  if (!valid) {
+    console.error('Assinatura do webhook inválida.', {
+      hasSecret: true,
+      hasRequestId: Boolean(requestId),
+      dataIdLength: dataId.length,
+      ts,
+      manifest
+    });
+    return false;
+  }
 
   return true;
 }
@@ -268,8 +280,8 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
 
   console.log('Webhook Mercado Pago:', { type, action, paymentId, liveMode, hasQueryDataId, hasSignature });
 
-  if (!liveMode && !hasQueryDataId) {
-    console.log('Simulação do Mercado Pago recebida. Nenhum pedido foi alterado.');
+  if (!liveMode && !hasQueryDataId && !hasSignature) {
+    console.log('Simulação sem assinatura recebida. Nenhum pedido foi alterado.');
     return res.sendStatus(200);
   }
 
