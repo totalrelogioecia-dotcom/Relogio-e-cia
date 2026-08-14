@@ -234,40 +234,17 @@ function validarWebhookMercadoPago(req) {
   let dataId = String(req.query['data.id'] || '').trim();
 
   if (/^[a-z0-9]+$/i.test(dataId)) dataId = dataId.toLowerCase();
-
-  if (!secret || !signature || !dataId) {
-    console.error('Webhook sem credenciais obrigatórias:', {
-      hasSecret: Boolean(secret), hasSignature: Boolean(signature), hasQueryDataId: Boolean(dataId)
-    });
-    return false;
-  }
+  if (!secret || !signature || !dataId) return false;
 
   const { ts, v1 } = parseSignature(signature);
-  if (!ts || !v1) {
-    console.error('Webhook com x-signature em formato inválido.');
-    return false;
-  }
+  if (!ts || !v1) return false;
 
   const manifestParts = [`id:${dataId}`];
   if (requestId) manifestParts.push(`request-id:${requestId}`);
   manifestParts.push(`ts:${ts}`);
   const manifest = `${manifestParts.join(';')};`;
-
   const expected = crypto.createHmac('sha256', secret).update(manifest, 'utf8').digest('hex');
-  const valid = safeEqual(expected, v1.toLowerCase());
-
-  if (!valid) {
-    console.error('Assinatura do webhook inválida.', {
-      hasSecret: true,
-      hasRequestId: Boolean(requestId),
-      dataIdLength: dataId.length,
-      ts,
-      manifest
-    });
-    return false;
-  }
-
-  return true;
+  return safeEqual(expected, v1.toLowerCase());
 }
 
 async function consultarPagamento(paymentId) {
@@ -291,6 +268,26 @@ async function consultarPagamento(paymentId) {
   return data;
 }
 
+async function buscarPagamentoPorPedido(orderId) {
+  const access = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  if (!access) throw new Error('MERCADOPAGO_ACCESS_TOKEN não configurado.');
+
+  const url = `https://api.mercadopago.com/v1/payments/search?external_reference=${encodeURIComponent(orderId)}&sort=date_created&criteria=desc`;
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${access}` } });
+  const text = await response.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
+
+  if (!response.ok) {
+    const error = new Error(`Mercado Pago busca pagamento respondeu ${response.status}`);
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  return Array.isArray(data.results) && data.results.length ? data.results[0] : null;
+}
+
 function statusDoPagamento(status) {
   if (status === 'approved') return 'paid';
   if (status === 'rejected') return 'rejected';
@@ -304,9 +301,12 @@ async function aplicarPagamentoAoPedido(payment, orderId) {
   if (index < 0) throw new Error(`Pedido não encontrado: ${orderId}`);
 
   const order = orders[index];
+  const novoStatus = statusDoPagamento(payment.status);
+  const pagamentoMudou = String(order.payment_id || '') !== String(payment.id || '') || order.payment_status !== String(payment.status || 'pending');
+
   order.payment_id = String(payment.id || '');
   order.payment_status = String(payment.status || 'pending');
-  order.status = statusDoPagamento(payment.status);
+  order.status = novoStatus;
   order.payment_detail = {
     status_detail: payment.status_detail || null,
     payment_type_id: payment.payment_type_id || null,
@@ -328,9 +328,23 @@ async function aplicarPagamentoAoPedido(payment, orderId) {
     console.log('Estoque atualizado:', orderId);
   }
 
-  write(ORDERS, orders);
+  if (pagamentoMudou || order.status === 'paid') write(ORDERS, orders);
   console.log('Pedido atualizado:', orderId, '=>', order.status, '| pagamento:', order.payment_status);
   return order;
+}
+
+async function sincronizarPedido(order) {
+  if (!order || order.payment_status === 'approved' || order.status === 'paid') return order;
+
+  try {
+    const payment = await buscarPagamentoPorPedido(order.id);
+    if (!payment) return order;
+    console.log('Pagamento encontrado por external_reference:', order.id, payment.id, payment.status);
+    return await aplicarPagamentoAoPedido(payment, order.id);
+  } catch (error) {
+    console.error('Erro ao sincronizar pedido:', order.id, error.message);
+    return order;
+  }
 }
 
 app.post('/api/mercadopago/webhook', async (req, res) => {
@@ -355,29 +369,37 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
 
   if (type !== 'payment' || !paymentId) return res.sendStatus(200);
 
-  // Confirmamos rapidamente o recebimento. O processamento é idempotente.
-  res.sendStatus(200);
-
   try {
     const payment = await consultarPagamento(paymentId);
     const orderId = String(payment.external_reference || '');
-    if (!orderId) return console.error('Pagamento sem external_reference:', paymentId);
+    if (!orderId) {
+      console.error('Pagamento sem external_reference:', paymentId);
+      return res.sendStatus(200);
+    }
 
     await aplicarPagamentoAoPedido(payment, orderId);
+    return res.sendStatus(200);
   } catch (error) {
     console.error('Erro ao processar webhook:', {
       message: error.message,
       status: error.status || null,
       paymentId
     });
+    return res.sendStatus(500);
   }
 });
 
 app.get('/healthz', (req, res) => res.json({ ok: true }));
 
-app.get('/api/order/:id', (req, res) => {
-  const order = getOrders().find(item => item.id === req.params.id);
+app.get('/api/order/:id', async (req, res) => {
+  let order = getOrders().find(item => item.id === req.params.id);
   if (!order) return res.status(404).json({ error: 'Pedido não encontrado.' });
+
+  if (order.payment_status === 'pending' || order.status === 'pending') {
+    order = await sincronizarPedido(order);
+  }
+
+  res.set('Cache-Control', 'no-store');
   res.json({
     id: order.id,
     status: order.status,
