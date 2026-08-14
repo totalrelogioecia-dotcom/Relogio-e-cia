@@ -1,12 +1,113 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Pagamento — Relógio e Cia</title><link rel="stylesheet" href="style.css"></head>
-<body><header class="site-header"><nav class="nav"><a href="index.html" class="brand-mark"><span class="sq"></span><span class="word">Relógio e Cia<small>Relojoaria desde 2003</small></span></a><a href="produtos.html" class="nav-cta">Continuar comprando</a></nav></header>
-<main style="max-width:760px;margin:80px auto;padding:0 28px"><div class="account-box" id="resultado"><p class="eyebrow">Pagamento</p><h1 id="titulo">Verificando seu pedido…</h1><p id="texto">Estamos consultando o status do pagamento.</p><a class="btn btn-primary" href="index.html">Voltar para a loja</a></div></main>
-<script>
-(async()=>{const q=new URLSearchParams(location.search),s=q.get('status'),id=q.get('pedido');const t=document.getElementById('titulo'),x=document.getElementById('texto');
-if(s==='success'){t.textContent='Pagamento aprovado!';x.textContent='Seu pagamento foi aprovado. O pedido já aparece no painel administrativo.'}
-else if(s==='failure'){t.textContent='Pagamento não aprovado';x.textContent='O pagamento não foi aprovado. Você pode voltar ao carrinho e tentar novamente.'}
-else{t.textContent='Pagamento pendente';x.textContent='O pagamento está pendente. Assim que o Mercado Pago confirmar, o pedido será atualizado automaticamente.'}
-if(id){try{const r=await fetch('/api/order/'+encodeURIComponent(id));if(r.ok){const o=await r.json();x.textContent+=' Pedido '+o.id+' — status: '+o.payment_status+'.';}}catch{}}
-})();
-</script></body></html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Pagamento — Relógio e Cia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a href="index.html" class="brand-mark">
+        <span class="sq"></span>
+        <span class="word">Relógio e Cia<small>Relojoaria desde 2003</small></span>
+      </a>
+      <a href="produtos.html" class="nav-cta">Continuar comprando</a>
+    </nav>
+  </header>
+
+  <main style="max-width:760px;margin:80px auto;padding:0 28px">
+    <div class="account-box" id="resultado">
+      <p class="eyebrow">Pagamento</p>
+      <h1 id="titulo">Confirmando seu pagamento…</h1>
+      <p id="texto">Estamos aguardando a confirmação do Mercado Pago. Isso pode levar alguns segundos.</p>
+      <a class="btn btn-primary" href="index.html">Voltar para a loja</a>
+    </div>
+  </main>
+
+  <script>
+  (async () => {
+    const q = new URLSearchParams(location.search);
+    const retorno = q.get('status');
+    const id = q.get('pedido');
+    const titulo = document.getElementById('titulo');
+    const texto = document.getElementById('texto');
+
+    function mostrar(status, orderId) {
+      if (status === 'paid' || status === 'approved') {
+        titulo.textContent = 'Pagamento aprovado!';
+        texto.textContent = orderId
+          ? `Seu pagamento foi aprovado e o pedido ${orderId} foi confirmado com sucesso.`
+          : 'Seu pagamento foi aprovado e o pedido foi confirmado com sucesso.';
+        return;
+      }
+
+      if (status === 'rejected') {
+        titulo.textContent = 'Pagamento não aprovado';
+        texto.textContent = 'O pagamento não foi aprovado. Você pode voltar para a loja e tentar novamente.';
+        return;
+      }
+
+      if (status === 'cancelled') {
+        titulo.textContent = 'Pagamento cancelado';
+        texto.textContent = 'O pagamento foi cancelado. Você pode voltar para a loja e realizar uma nova tentativa.';
+        return;
+      }
+
+      titulo.textContent = 'Pagamento pendente';
+      texto.textContent = orderId
+        ? `O pedido ${orderId} foi criado e ainda estamos aguardando a confirmação do Mercado Pago.`
+        : 'Ainda estamos aguardando a confirmação do Mercado Pago.';
+    }
+
+    // Se o Mercado Pago retornou com failure, não precisamos ficar aguardando.
+    if (retorno === 'failure') {
+      mostrar('rejected', id);
+      return;
+    }
+
+    if (!id) {
+      mostrar(retorno === 'success' ? 'paid' : 'pending', '');
+      return;
+    }
+
+    // O redirecionamento pode acontecer antes do webhook. Por isso consultamos
+    // o pedido repetidamente por até ~30 segundos, permitindo que o webhook
+    // atualize payment_status de pending para approved/paid.
+    const tentativas = 15;
+    const intervalo = 2000;
+    let ultimoStatus = retorno === 'success' ? 'pending' : 'pending';
+
+    for (let tentativa = 0; tentativa < tentativas; tentativa++) {
+      try {
+        const resposta = await fetch('/api/order/' + encodeURIComponent(id), {
+          cache: 'no-store',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (resposta.ok) {
+          const pedido = await resposta.json();
+          const status = pedido.payment_status || pedido.status || 'pending';
+          ultimoStatus = status;
+
+          mostrar(status, pedido.id || id);
+
+          if (['approved', 'paid', 'rejected', 'cancelled'].includes(status)) return;
+        }
+      } catch (erro) {
+        console.warn('Não foi possível consultar o pedido:', erro);
+      }
+
+      if (tentativa < tentativas - 1) {
+        await new Promise(resolve => setTimeout(resolve, intervalo));
+      }
+    }
+
+    // Se o webhook ainda não chegou depois das tentativas, deixamos a tela
+    // como pendente em vez de afirmar que o pagamento foi aprovado sem confirmação.
+    mostrar(ultimoStatus, id);
+  })();
+  </script>
+</body>
+</html>
