@@ -324,6 +324,31 @@ let PRODUTOS = [
   { id:54, nome:'Casio Vintage AQ-230GA-9DMQ', marca:'Casio', categoria:'Relógios', preco:289.00, sku:'AQ-230GA-9DMQ', desc:'Analógico-digital combinado em tom dourado, calendário automático e cronômetro.', fotos:[fotoCasio('AQ-230GA-9DMQ','casio'), fotoCasio('AQ-230GA-9DMQ','casio',true)] },
 ];
 
+/* ---------- Carregamento do catálogo pelo backend ---------- */
+let catalogoCarregamento = null;
+
+function quandoCatalogoPronto(callback) {
+  if (!catalogoCarregamento) {
+    catalogoCarregamento = fetch('/api/products', { cache: 'no-store' })
+      .then(res => {
+        if (!res.ok) throw new Error(`Falha ao carregar produtos (${res.status})`);
+        return res.json();
+      })
+      .then(produtos => {
+        if (!Array.isArray(produtos)) throw new Error('Resposta de produtos inválida.');
+        // O backend é a fonte oficial do catálogo.
+        if (produtos.length) PRODUTOS = produtos;
+        return PRODUTOS;
+      })
+      .catch(err => {
+        // Mantém o catálogo embutido como fallback caso a API fique temporariamente indisponível.
+        console.error('Não foi possível carregar o catálogo do servidor:', err);
+        return PRODUTOS;
+      });
+  }
+  return catalogoCarregamento.then(() => callback());
+}
+
 /* ---------- Lógica da página de produtos ---------- */
 function iniciarPaginaProdutos() {
   const grid = document.getElementById('product-grid');
