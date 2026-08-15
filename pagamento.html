@@ -37,7 +37,6 @@
     const titulo = document.getElementById('titulo');
     const texto = document.getElementById('texto');
     const acoes = document.getElementById('acoes');
-    const btnPrincipal = document.getElementById('btn-principal');
 
     function mensagemRecusa(statusDetail) {
       const mensagens = {
@@ -85,18 +84,20 @@
 
         const aviso = document.createElement('div');
         aviso.style.cssText = 'margin-top:22px;padding:16px 18px;border:1px solid #e5b8b8;background:#fff7f7;line-height:1.55;';
-        aviso.innerHTML = '<strong>O pedido continua salvo.</strong><br>Você pode voltar ao carrinho e escolher outra forma de pagamento. Nenhuma cobrança foi aprovada nesta tentativa.';
+        aviso.innerHTML = '<strong>O pedido continua salvo.</strong><br>Seus produtos permanecem no carrinho. Você pode tentar novamente com outro cartão ou escolher PIX. Nenhuma cobrança foi aprovada nesta tentativa.';
         acoes.parentNode.insertBefore(aviso, acoes);
 
-        adicionarAcao('Tentar outro pagamento', 'carrinho.html', true);
+        // O carrinho fica salvo no localStorage. O cliente volta ao checkout
+        // com os mesmos produtos e quantidades, sem precisar montar o pedido de novo.
+        adicionarAcao('Tentar outro pagamento', 'carrinho.html?retorno=recusado', true);
         adicionarAcao('Voltar para a loja', 'index.html');
         return;
       }
 
       if (status === 'cancelled') {
         titulo.textContent = 'Pagamento cancelado';
-        texto.textContent = 'O pagamento foi cancelado. Você pode voltar ao carrinho e escolher outra forma de pagamento.';
-        adicionarAcao('Voltar ao carrinho', 'carrinho.html', true);
+        texto.textContent = 'O pagamento foi cancelado. Seus produtos continuam no carrinho e você pode escolher outra forma de pagamento.';
+        adicionarAcao('Voltar ao carrinho', 'carrinho.html?retorno=cancelado', true);
         adicionarAcao('Voltar para a loja', 'index.html');
         return;
       }
