@@ -22,7 +22,10 @@
       <p class="eyebrow">Pagamento</p>
       <h1 id="titulo">Confirmando seu pagamento…</h1>
       <p id="texto">Estamos confirmando a operação com o Mercado Pago. Aguarde alguns segundos.</p>
-      <a class="btn btn-primary" href="index.html">Voltar para a loja</a>
+
+      <div id="acoes" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:26px;">
+        <a class="btn btn-primary" id="btn-principal" href="index.html">Voltar para a loja</a>
+      </div>
     </div>
   </main>
 
@@ -33,9 +36,9 @@
     const id = q.get('pedido');
     const titulo = document.getElementById('titulo');
     const texto = document.getElementById('texto');
+    const acoes = document.getElementById('acoes');
+    const btnPrincipal = document.getElementById('btn-principal');
 
-    // Converte os detalhes técnicos do Mercado Pago em mensagens simples
-    // para o cliente. Os códigos internos continuam somente nos logs/painel.
     function mensagemRecusa(statusDetail) {
       const mensagens = {
         cc_rejected_high_risk: 'O pagamento não pôde ser aprovado pela análise de segurança. Tente outro cartão ou outra forma de pagamento.',
@@ -51,24 +54,50 @@
         || 'O pagamento não foi aprovado. Tente outro cartão ou outra forma de pagamento.';
     }
 
+    function limparAcoes() {
+      acoes.innerHTML = '';
+    }
+
+    function adicionarAcao(textoBotao, href, primaria = false) {
+      const link = document.createElement('a');
+      link.className = primaria ? 'btn btn-primary' : 'btn';
+      link.href = href;
+      link.textContent = textoBotao;
+      acoes.appendChild(link);
+      return link;
+    }
+
     function mostrar(status, orderId, paymentDetail) {
+      limparAcoes();
+
       if (status === 'paid' || status === 'approved') {
         titulo.textContent = 'Pagamento aprovado!';
         texto.textContent = orderId
           ? `Seu pagamento foi aprovado e o pedido ${orderId} foi confirmado com sucesso.`
           : 'Seu pagamento foi aprovado e o pedido foi confirmado com sucesso.';
+        adicionarAcao('Continuar comprando', 'produtos.html', true);
         return;
       }
 
       if (status === 'rejected') {
-        titulo.textContent = 'Não foi possível aprovar o pagamento';
+        titulo.textContent = 'Pagamento não aprovado';
         texto.textContent = mensagemRecusa(paymentDetail?.status_detail);
+
+        const aviso = document.createElement('div');
+        aviso.style.cssText = 'margin-top:22px;padding:16px 18px;border:1px solid #e5b8b8;background:#fff7f7;line-height:1.55;';
+        aviso.innerHTML = '<strong>O pedido continua salvo.</strong><br>Você pode voltar ao carrinho e escolher outra forma de pagamento. Nenhuma cobrança foi aprovada nesta tentativa.';
+        acoes.parentNode.insertBefore(aviso, acoes);
+
+        adicionarAcao('Tentar outro pagamento', 'carrinho.html', true);
+        adicionarAcao('Voltar para a loja', 'index.html');
         return;
       }
 
       if (status === 'cancelled') {
         titulo.textContent = 'Pagamento cancelado';
-        texto.textContent = 'O pagamento foi cancelado. Você pode voltar para a loja e realizar uma nova tentativa.';
+        texto.textContent = 'O pagamento foi cancelado. Você pode voltar ao carrinho e escolher outra forma de pagamento.';
+        adicionarAcao('Voltar ao carrinho', 'carrinho.html', true);
+        adicionarAcao('Voltar para a loja', 'index.html');
         return;
       }
 
@@ -76,6 +105,7 @@
       texto.textContent = orderId
         ? `O pedido ${orderId} foi criado e ainda estamos aguardando a confirmação do Mercado Pago.`
         : 'Ainda estamos aguardando a confirmação do Mercado Pago.';
+      adicionarAcao('Voltar para a loja', 'index.html', true);
     }
 
     if (retorno === 'failure' && !id) {
@@ -86,12 +116,11 @@
     if (!id) {
       titulo.textContent = 'Não foi possível identificar o pedido';
       texto.textContent = 'Volte para a loja e tente realizar o pagamento novamente.';
+      limparAcoes();
+      adicionarAcao('Voltar para a loja', 'index.html', true);
       return;
     }
 
-    // O Mercado Pago pode redirecionar antes do webhook. O endpoint do pedido
-    // também tenta consultar o Mercado Pago pelo external_reference, então
-    // conseguimos confirmar mesmo se o webhook chegar atrasado.
     const tentativas = 30;
     const intervalo = 2000;
     let ultimoStatus = 'pending';
@@ -132,6 +161,8 @@
     if (ultimoStatus === 'pending' && retorno === 'success') {
       titulo.textContent = 'Pagamento em confirmação';
       texto.textContent = `O Mercado Pago retornou com sucesso, mas a confirmação final do pedido ${id} ainda está sendo processada. Atualize esta página em alguns segundos.`;
+      limparAcoes();
+      adicionarAcao('Voltar para a loja', 'index.html', true);
     } else {
       mostrar(ultimoStatus, id, ultimoDetalhe);
     }
