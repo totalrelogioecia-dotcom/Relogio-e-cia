@@ -156,6 +156,109 @@ function dadosSegurosPagamento(payment) {
   };
 }
 
+function montarPayerCheckout(payer) {
+  const nomeCompleto = String(payer?.nome || '').trim().replace(/\s+/g, ' ');
+  const partes = nomeCompleto.split(' ').filter(Boolean);
+  const primeiroNome = partes.shift() || 'Cliente';
+  const sobrenome = partes.join(' ');
+
+  const result = {
+    name: primeiroNome.slice(0, 80),
+    email: String(payer?.email || '').trim().slice(0, 150)
+  };
+
+  if (sobrenome) result.surname = sobrenome.slice(0, 120);
+
+  const phone = payer?.telefone || payer?.phone;
+  if (phone?.area_code && phone?.number) {
+    result.phone = {
+      area_code: String(phone.area_code).replace(/\D/g, '').slice(0, 4),
+      number: String(phone.number).replace(/\D/g, '').slice(0, 15)
+    };
+  }
+
+  const identification = payer?.identificacao || payer?.identification;
+  if (identification?.type && identification?.number) {
+    result.identification = {
+      type: String(identification.type).slice(0, 20),
+      number: String(identification.number).replace(/\D/g, '').slice(0, 30)
+    };
+  }
+
+  const address = payer?.endereco || payer?.address;
+  if (address?.zip_code && address?.street_name && address?.street_number) {
+    result.address = {
+      zip_code: String(address.zip_code).replace(/\D/g, '').slice(0, 12),
+      street_name: String(address.street_name).slice(0, 120),
+      street_number: Number.isFinite(Number(address.street_number)) ? Number(address.street_number) : String(address.street_number).slice(0, 20)
+    };
+  }
+
+  if (payer?.date_created) {
+    const dateCreated = new Date(payer.date_created);
+    if (!Number.isNaN(dateCreated.getTime())) result.date_created = dateCreated.toISOString();
+  }
+
+  if (typeof payer?.is_prime_user === 'boolean') result.is_prime_user = payer.is_prime_user;
+  if (typeof payer?.is_first_purchase_online === 'boolean') result.is_first_purchase_online = payer.is_first_purchase_online;
+  if (payer?.last_purchase) {
+    const lastPurchase = new Date(payer.last_purchase);
+    if (!Number.isNaN(lastPurchase.getTime())) result.last_purchase = lastPurchase.toISOString();
+  }
+
+  if (payer?.authentication_type) {
+    result.authentication_type = String(payer.authentication_type).slice(0, 40);
+  }
+
+  return result;
+}
+
+function montarItensCheckout(items) {
+  return items.map(item => {
+    const result = {
+      id: String(item.id),
+      title: String(item.nome || 'Produto').slice(0, 256),
+      quantity: Number(item.quantidade),
+      currency_id: 'BRL',
+      unit_price: Number(item.unit_price)
+    };
+
+    if (item.desc) result.description = String(item.desc).slice(0, 256);
+    if (item.picture_url) result.picture_url = String(item.picture_url).slice(0, 1000);
+    if (item.category_id) result.category_id = String(item.category_id).slice(0, 100);
+
+    return result;
+  });
+}
+
+function montarShipment(shipping) {
+  if (!shipping?.zip_code || !shipping?.city_name || !shipping?.state_name || !shipping?.street_number) return null;
+
+  const receiverAddress = {
+    zip_code: String(shipping.zip_code).replace(/\D/g, '').slice(0, 12),
+    city_name: String(shipping.city_name).slice(0, 120),
+    state_name: String(shipping.state_name).slice(0, 120),
+    street_number: Number.isFinite(Number(shipping.street_number)) ? Number(shipping.street_number) : String(shipping.street_number).slice(0, 20),
+    country_name: 'Brasil'
+  };
+
+  if (shipping.street_name) receiverAddress.street_name = String(shipping.street_name).slice(0, 120);
+
+  const shipment = {
+    local_pickup: shipping.local_pickup === true,
+    receiver_address: receiverAddress
+  };
+
+  if (shipping.cost !== undefined && Number.isFinite(Number(shipping.cost)) && Number(shipping.cost) >= 0) {
+    shipment.cost = Number(Number(shipping.cost).toFixed(2));
+  }
+
+  if (shipping.free_shipping === true) shipment.free_shipping = true;
+  if (shipping.express_shipment === true) shipment.express_shipment = true;
+
+  return shipment;
+}
+
 async function criarPagamentoPix({ access, total, payer, orderId, base, description }) {
   const firstName = String(payer.nome || '').trim().split(/\s+/)[0] || 'Cliente';
   const lastName = String(payer.nome || '').trim().split(/\s+/).slice(1).join(' ') || 'Cliente';
@@ -213,7 +316,7 @@ async function criarPagamentoPix({ access, total, payer, orderId, base, descript
 
 app.post('/api/checkout', async (req, res) => {
   try {
-    const { items, payer, metodo } = req.body || {};
+    const { items, payer, metodo, shipping } = req.body || {};
     if (!Array.isArray(items) || !items.length) return res.status(400).json({ error: 'Carrinho vazio.' });
     if (!payer?.email || !payer?.nome) return res.status(400).json({ error: 'Dados do comprador incompletos.' });
 
@@ -225,7 +328,21 @@ app.post('/api/checkout', async (req, res) => {
       const quantity = Math.max(1, Math.min(99, Number(item.qtd) || 1));
       if (!product) return res.status(400).json({ error: 'Produto não encontrado.' });
       if (Number(product.estoque) < quantity) return res.status(400).json({ error: `Estoque insuficiente para ${product.nome}.` });
-      normalized.push({ id: product.id, nome: product.nome, sku: product.sku, quantidade: quantity, unit_price: Number(product.preco) });
+
+      const pictureUrl = Array.isArray(product.fotos)
+        ? product.fotos.find(url => /^https:\/\//i.test(String(url || '')))
+        : null;
+
+      normalized.push({
+        id: product.id,
+        nome: product.nome,
+        sku: product.sku,
+        desc: product.desc,
+        picture_url: pictureUrl || null,
+        category_id: product.categoria_id_mp || null,
+        quantidade: quantity,
+        unit_price: Number(product.preco)
+      });
     }
 
     const access = process.env.MERCADOPAGO_ACCESS_TOKEN;
@@ -301,11 +418,16 @@ app.post('/api/checkout', async (req, res) => {
       installments: 12
     };
 
+    const payerCheckout = montarPayerCheckout(payer);
+    const itemsCheckout = montarItensCheckout(priced);
+    const shipmentCheckout = montarShipment(shipping);
+
     const preference = {
-      items: priced.map(item => ({ id: String(item.id), title: item.nome, quantity: item.quantidade, currency_id: 'BRL', unit_price: item.unit_price })),
-      payer: { name: String(payer.nome).slice(0, 120), email: String(payer.email).slice(0, 180) },
+      items: itemsCheckout,
+      payer: payerCheckout,
       payment_methods: paymentMethods,
       external_reference: orderId,
+      additional_info: `Pedido ${orderId}. ${priced.length} item(ns). Total: R$ ${total.toFixed(2)}.`,
       back_urls: {
         success: `${base}/pagamento.html?status=success&pedido=${encodeURIComponent(orderId)}`,
         failure: `${base}/pagamento.html?status=failure&pedido=${encodeURIComponent(orderId)}`,
@@ -314,6 +436,8 @@ app.post('/api/checkout', async (req, res) => {
       auto_return: 'approved',
       notification_url: `${base}/api/mercadopago/webhook`
     };
+
+    if (shipmentCheckout) preference.shipments = shipmentCheckout;
 
     const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
@@ -349,7 +473,10 @@ app.post('/api/checkout', async (req, res) => {
     console.log('Mercado Pago checkout criado:', {
       preference_id: mp.id || null,
       external_reference: orderId,
-      init_point: Boolean(mp.init_point)
+      init_point: Boolean(mp.init_point),
+      payer_fields: Object.keys(payerCheckout),
+      item_count: itemsCheckout.length,
+      shipment_sent: Boolean(shipmentCheckout)
     });
 
     res.json({ order_id: orderId, init_point: mp.init_point });
