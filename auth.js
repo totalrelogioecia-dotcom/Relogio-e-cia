@@ -3,7 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
 
-const DATA = path.join(__dirname, 'data');
+const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const USERS = path.join(DATA, 'users.json');
 const RESET_TOKENS = path.join(DATA, 'password-reset-tokens.json');
 fs.mkdirSync(DATA, { recursive: true });
@@ -65,6 +65,47 @@ function validAuthToken(token) {
   } catch { return null; }
 }
 
+function parseCookies(header) {
+  return String(header || '').split(';').reduce((acc, part) => {
+    const i = part.indexOf('=');
+    if (i < 0) return acc;
+    const key = part.slice(0, i).trim();
+    const value = part.slice(i + 1).trim();
+    if (key) acc[key] = decodeURIComponent(value);
+    return acc;
+  }, {});
+}
+
+function tokenFromRequest(req) {
+  const bearer = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
+  if (bearer) return bearer;
+  return parseCookies(req.headers.cookie).reloja_auth || '';
+}
+
+function userFromRequest(req) {
+  return validAuthToken(tokenFromRequest(req));
+}
+
+function setAuthCookie(res, token) {
+  const secure = String(process.env.PUBLIC_URL || '').startsWith('https://');
+  const parts = [
+    `reloja_auth=${encodeURIComponent(token)}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    'Max-Age=604800'
+  ];
+  if (secure) parts.push('Secure');
+  res.setHeader('Set-Cookie', parts.join('; '));
+}
+
+function clearAuthCookie(res) {
+  const secure = String(process.env.PUBLIC_URL || '').startsWith('https://');
+  const parts = ['reloja_auth=', 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'];
+  if (secure) parts.push('Secure');
+  res.setHeader('Set-Cookie', parts.join('; '));
+}
+
 function emailHtml(nome, resetUrl) {
   const safeNome = String(nome || 'cliente').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c]));
   const safeUrl = String(resetUrl).replace(/"/g, '&quot;');
@@ -84,8 +125,11 @@ async function sendResetEmail(user, token) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    console.error('Resend recuperação de senha:', data);
-    throw new Error(data?.message || 'Não foi possível enviar o e-mail de recuperação.');
+    console.error('Resend recuperação de senha:', { statusCode: response.status, ...data });
+    const error = new Error(data?.message || 'Não foi possível enviar o e-mail de recuperação.');
+    error.status = response.status;
+    error.code = data?.name || null;
+    throw error;
   }
   console.log('E-mail de recuperação enviado:', { to: user.email, resend_id: data?.id || null });
 }
@@ -100,8 +144,6 @@ function tooSoon(email) {
 }
 
 function registerAuthRoutes(app) {
-  // As rotas são registradas pelo preload antes do express.json() do server.js.
-  // Por isso o parser precisa existir aqui, antes dos handlers de autenticação.
   app.use('/api/auth', express.json({ limit: '1mb' }));
 
   app.post('/api/auth/register', (req, res) => {
@@ -140,7 +182,9 @@ function registerAuthRoutes(app) {
       users.push(user);
       write(USERS, users);
       console.log('Conta criada no servidor:', { id: user.id, email: user.email });
-      res.status(201).json({ token: authToken(user), user: cleanUser(user) });
+      const token = authToken(user);
+      setAuthCookie(res, token);
+      res.status(201).json({ token, user: cleanUser(user) });
     } catch (error) {
       console.error('Erro /api/auth/register:', error);
       res.status(500).json({ error: error.message || 'Erro ao criar conta.' });
@@ -153,15 +197,21 @@ function registerAuthRoutes(app) {
       const senha = String(req.body?.senha || '');
       const user = read(USERS, []).find(u => u.email === email);
       if (!user || !verifyPassword(senha, user.password_hash)) return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
-      res.json({ token: authToken(user), user: cleanUser(user) });
+      const token = authToken(user);
+      setAuthCookie(res, token);
+      res.json({ token, user: cleanUser(user) });
     } catch (error) {
       res.status(500).json({ error: error.message || 'Erro ao entrar.' });
     }
   });
 
+  app.post('/api/auth/logout', (req, res) => {
+    clearAuthCookie(res);
+    res.status(204).end();
+  });
+
   app.get('/api/auth/me', (req, res) => {
-    const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    const user = validAuthToken(token);
+    const user = userFromRequest(req);
     if (!user) return res.status(401).json({ error: 'Sessão inválida ou expirada.' });
     res.json({ user: cleanUser(user) });
   });
@@ -187,9 +237,13 @@ function registerAuthRoutes(app) {
       await sendResetEmail(user, rawToken);
       return res.json(generic);
     } catch (error) {
-      const cleaned = read(RESET_TOKENS, []).filter(t => t.token_hash !== tokenHash);
-      write(RESET_TOKENS, cleaned);
+      write(RESET_TOKENS, read(RESET_TOKENS, []).filter(t => t.token_hash !== tokenHash));
       console.error('Erro /api/auth/forgot-password:', error.message);
+      if (error.status === 403 && /testing emails|own email address|verify a domain/i.test(error.message)) {
+        return res.status(403).json({
+          error: 'O envio de e-mails está em modo de teste. Por enquanto, use o mesmo e-mail cadastrado na conta do Resend. Para enviar recuperação a outros clientes será necessário verificar um domínio próprio.'
+        });
+      }
       return res.status(503).json({ error: 'Não foi possível enviar o e-mail de recuperação. Verifique a configuração do serviço de e-mail.' });
     }
   });
@@ -209,9 +263,10 @@ function registerAuthRoutes(app) {
       users[userIndex].password_hash = hashPassword(senha);
       users[userIndex].updated_at = new Date().toISOString();
       write(USERS, users);
-      const remaining = tokens.filter(t => t.user_id !== users[userIndex].id);
-      write(RESET_TOKENS, remaining);
-      res.json({ token: authToken(users[userIndex]), user: cleanUser(users[userIndex]) });
+      write(RESET_TOKENS, tokens.filter(t => t.user_id !== users[userIndex].id));
+      const newToken = authToken(users[userIndex]);
+      setAuthCookie(res, newToken);
+      res.json({ token: newToken, user: cleanUser(users[userIndex]) });
     } catch (error) {
       console.error('Erro /api/auth/reset-password:', error);
       res.status(500).json({ error: 'Não foi possível redefinir a senha.' });
@@ -219,4 +274,4 @@ function registerAuthRoutes(app) {
   });
 }
 
-module.exports = { registerAuthRoutes, validAuthToken, cleanUser };
+module.exports = { registerAuthRoutes, validAuthToken, cleanUser, userFromRequest };
