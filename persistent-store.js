@@ -40,10 +40,23 @@ function writeLocalJson(file, value) {
   originalWriteFileSync(file, JSON.stringify(value, null, 2), 'utf8');
 }
 
-function databaseSsl() {
-  const value = String(process.env.DATABASE_SSL || 'true').trim().toLowerCase();
-  if (value === 'false' || value === '0' || value === 'off') return false;
-  return { rejectUnauthorized: false };
+function databaseSsl(connectionString) {
+  const configured = String(process.env.DATABASE_SSL || '').trim().toLowerCase();
+  if (configured) {
+    if (configured === 'false' || configured === '0' || configured === 'off') return false;
+    return { rejectUnauthorized: false };
+  }
+
+  // No Render, a URL externa normalmente inclui sslmode=require; a URL interna não precisa TLS.
+  try {
+    const url = new URL(connectionString);
+    const sslMode = String(url.searchParams.get('sslmode') || '').toLowerCase();
+    if (sslMode === 'require' || sslMode === 'verify-ca' || sslMode === 'verify-full') {
+      return { rejectUnauthorized: false };
+    }
+  } catch {}
+
+  return false;
 }
 
 async function upsertState(key, value) {
@@ -107,7 +120,7 @@ async function initPersistentStore() {
 
   pool = new Pool({
     connectionString,
-    ssl: databaseSsl(),
+    ssl: databaseSsl(connectionString),
     max: Math.max(2, Number(process.env.DATABASE_POOL_MAX || 5)),
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000
