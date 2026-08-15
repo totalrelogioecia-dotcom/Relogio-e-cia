@@ -34,7 +34,24 @@
     const titulo = document.getElementById('titulo');
     const texto = document.getElementById('texto');
 
-    function mostrar(status, orderId) {
+    // Converte os detalhes técnicos do Mercado Pago em mensagens simples
+    // para o cliente. Os códigos internos continuam somente nos logs/painel.
+    function mensagemRecusa(statusDetail) {
+      const mensagens = {
+        cc_rejected_high_risk: 'O pagamento não pôde ser aprovado pela análise de segurança. Tente outro cartão ou outra forma de pagamento.',
+        cc_rejected_insufficient_amount: 'O cartão não possui limite suficiente para concluir esta compra. Tente outro cartão ou outra forma de pagamento.',
+        cc_rejected_bad_filled_security_code: 'O código de segurança do cartão não foi aceito. Confira os dados e tente novamente.',
+        cc_rejected_bad_filled_date: 'A validade informada para o cartão não foi aceita. Confira os dados e tente novamente.',
+        cc_rejected_bad_filled_other: 'Algum dado informado do cartão não foi aceito. Confira os dados e tente novamente.',
+        cc_rejected_call_for_authorize: 'A compra precisa ser autorizada pelo banco emissor do cartão. Entre em contato com seu banco ou tente outro cartão.',
+        cc_rejected_other_reason: 'O cartão não foi aprovado. Tente outro cartão ou outra forma de pagamento.'
+      };
+
+      return mensagens[String(statusDetail || '')]
+        || 'O pagamento não foi aprovado. Tente outro cartão ou outra forma de pagamento.';
+    }
+
+    function mostrar(status, orderId, paymentDetail) {
       if (status === 'paid' || status === 'approved') {
         titulo.textContent = 'Pagamento aprovado!';
         texto.textContent = orderId
@@ -44,8 +61,8 @@
       }
 
       if (status === 'rejected') {
-        titulo.textContent = 'Pagamento não aprovado';
-        texto.textContent = 'O pagamento não foi aprovado. Você pode voltar para a loja e tentar novamente.';
+        titulo.textContent = 'Não foi possível aprovar o pagamento';
+        texto.textContent = mensagemRecusa(paymentDetail?.status_detail);
         return;
       }
 
@@ -61,8 +78,8 @@
         : 'Ainda estamos aguardando a confirmação do Mercado Pago.';
     }
 
-    if (retorno === 'failure') {
-      mostrar('rejected', id);
+    if (retorno === 'failure' && !id) {
+      mostrar('rejected');
       return;
     }
 
@@ -78,6 +95,7 @@
     const tentativas = 30;
     const intervalo = 2000;
     let ultimoStatus = 'pending';
+    let ultimoDetalhe = null;
 
     for (let tentativa = 0; tentativa < tentativas; tentativa++) {
       try {
@@ -89,13 +107,15 @@
         if (resposta.ok) {
           const pedido = await resposta.json();
           const status = pedido.payment_status || pedido.status || 'pending';
+          const paymentDetail = pedido.payment_detail || null;
           ultimoStatus = status;
+          ultimoDetalhe = paymentDetail;
 
           if (status === 'pending' && retorno === 'success') {
             titulo.textContent = 'Confirmando pagamento…';
             texto.textContent = `Recebemos o retorno do Mercado Pago para o pedido ${id}. Estamos confirmando a aprovação.`;
           } else {
-            mostrar(status, pedido.id || id);
+            mostrar(status, pedido.id || id, paymentDetail);
           }
 
           if (['approved', 'paid', 'rejected', 'cancelled'].includes(status)) return;
@@ -113,7 +133,7 @@
       titulo.textContent = 'Pagamento em confirmação';
       texto.textContent = `O Mercado Pago retornou com sucesso, mas a confirmação final do pedido ${id} ainda está sendo processada. Atualize esta página em alguns segundos.`;
     } else {
-      mostrar(ultimoStatus, id);
+      mostrar(ultimoStatus, id, ultimoDetalhe);
     }
   })();
   </script>
