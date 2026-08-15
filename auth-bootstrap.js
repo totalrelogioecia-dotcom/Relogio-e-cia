@@ -1,5 +1,6 @@
 const express = require('express');
 const { registerAuthRoutes, userFromRequest } = require('./auth');
+const { storageStatus } = require('./persistent-store');
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
@@ -7,6 +8,11 @@ if (!originalExpress.__relogioAuthPatched) {
     const app = originalExpress(...args);
 
     registerAuthRoutes(app);
+
+    app.get('/api/storage-status', (req, res) => {
+      res.set('Cache-Control', 'no-store');
+      res.json(storageStatus());
+    });
 
     // O server.js registra /api/checkout depois deste preload. Aqui hidratamos
     // os dados do comprador com a conta autenticada antes de criar o pagamento.
