@@ -51,6 +51,7 @@
     </div>
   </main>
 
+  <script src="cart-tools.js"></script>
   <script>
   (async () => {
     const q = new URLSearchParams(location.search);
@@ -112,6 +113,9 @@
         pedido = await consultar();
 
         if (pedido.payment_status === 'approved' || pedido.status === 'paid') {
+          if (window.relojaConfirmarCompra) {
+            window.relojaConfirmarCompra(pedido.id || pedidoId);
+          }
           conteudo.style.display = 'none';
           titulo.textContent = 'Pagamento aprovado!';
           texto.textContent = 'Recebemos a confirmação do pagamento.';
@@ -121,6 +125,9 @@
         }
 
         if (pedido.payment_status === 'rejected' || pedido.status === 'rejected') {
+          if (window.relojaDescartarCheckout) {
+            window.relojaDescartarCheckout(pedido.id || pedidoId);
+          }
           conteudo.style.display = 'none';
           titulo.textContent = 'Pagamento não aprovado';
           texto.textContent = 'O pagamento PIX não foi aprovado.';
