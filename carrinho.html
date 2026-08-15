@@ -49,6 +49,7 @@
 
           <aside class="cart-summary" id="cart-summary-box">
             <h3>Resumo do pedido</h3>
+            <div id="cart-price-warning" style="display:none; margin:0 0 18px; padding:12px 14px; border:1px solid #e5b800; background:#fff9df; color:#5f4d00; font-size:.9rem; line-height:1.45;"></div>
             <div class="cart-summary-row">
               <span>Subtotal</span>
               <span id="cart-subtotal">R$ 0,00</span>
@@ -132,29 +133,113 @@
 </footer>
 
 <script>
-// O script principal espera init_point para redirecionar ao pagamento.
-// Para PIX direto, o backend devolve redirect_url local; aqui adaptamos a resposta sem expor o token de acesso.
+// Sincroniza o preço salvo no carrinho com o catálogo oficial do servidor.
+// O navegador pode guardar o carrinho por meses; o preço mostrado antes do pagamento
+// deve sempre refletir o preço atual cadastrado no servidor.
 (function () {
   const originalFetch = window.fetch.bind(window);
+
+  function formatarPrecoCarrinho(valor) {
+    return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function sincronizarPrecos(produtos) {
+    if (!Array.isArray(produtos)) return;
+
+    let itens;
+    try { itens = JSON.parse(localStorage.getItem('reloja_carrinho')) || []; }
+    catch (_) { itens = []; }
+
+    if (!Array.isArray(itens) || !itens.length) return;
+
+    const porId = new Map(produtos.map(p => [Number(p.id), p]));
+    const alteracoes = [];
+    let mudou = false;
+
+    const atualizados = itens.map(item => {
+      const produto = porId.get(Number(item.id));
+      if (!produto || !Number.isFinite(Number(produto.preco))) return item;
+
+      const precoAnterior = Number(item.preco);
+      const precoAtual = Number(produto.preco);
+
+      if (Math.abs(precoAnterior - precoAtual) > 0.000001) {
+        alteracoes.push({
+          nome: produto.nome || item.nome,
+          anterior: precoAnterior,
+          atual: precoAtual
+        });
+        mudou = true;
+      }
+
+      return {
+        ...item,
+        nome: produto.nome || item.nome,
+        sku: produto.sku || item.sku,
+        marca: produto.marca || item.marca,
+        preco: precoAtual,
+        foto: (produto.fotos && produto.fotos[0]) || produto.foto || item.foto || ''
+      };
+    });
+
+    if (mudou) {
+      localStorage.setItem('reloja_carrinho', JSON.stringify(atualizados));
+      try {
+        sessionStorage.setItem('reloja_preco_alteracoes', JSON.stringify(alteracoes));
+      } catch (_) {}
+    }
+
+    window.dispatchEvent(new CustomEvent('reloja:precos-sincronizados', { detail: { alteracoes } }));
+  }
+
   window.fetch = async function (...args) {
     const response = await originalFetch(...args);
-    try {
-      const requestUrl = String(args[0]?.url || args[0] || '');
-      if (!requestUrl.includes('/api/checkout')) return response;
-      const clone = response.clone();
-      const data = await clone.json();
-      if (!data.init_point && data.redirect_url) {
-        const headers = new Headers(response.headers);
-        headers.set('Content-Type', 'application/json');
-        return new Response(JSON.stringify({ ...data, init_point: data.redirect_url }), {
-          status: response.status,
-          statusText: response.statusText,
-          headers
-        });
-      }
-    } catch (_) {}
+    const requestUrl = String(args[0]?.url || args[0] || '');
+
+    if (requestUrl.includes('/api/products')) {
+      const originalJson = response.json.bind(response);
+      response.json = async function () {
+        const data = await originalJson();
+        sincronizarPrecos(data);
+        return data;
+      };
+    }
+
+    if (requestUrl.includes('/api/checkout')) {
+      try {
+        const clone = response.clone();
+        const data = await clone.json();
+        if (!data.init_point && data.redirect_url) {
+          const headers = new Headers(response.headers);
+          headers.set('Content-Type', 'application/json');
+          return new Response(JSON.stringify({ ...data, init_point: data.redirect_url }), {
+            status: response.status,
+            statusText: response.statusText,
+            headers
+          });
+        }
+      } catch (_) {}
+    }
+
     return response;
   };
+
+  window.addEventListener('reloja:precos-sincronizados', function (event) {
+    const alteracoes = event.detail?.alteracoes || [];
+    const aviso = document.getElementById('cart-price-warning');
+    if (!aviso || !alteracoes.length) return;
+
+    const detalhes = alteracoes.slice(0, 4).map(a =>
+      `<div>${a.nome}: ${formatarPrecoCarrinho(a.anterior)} → <strong>${formatarPrecoCarrinho(a.atual)}</strong></div>`
+    ).join('');
+
+    const restante = alteracoes.length > 4
+      ? `<div>+ ${alteracoes.length - 4} outro(s) item(ns) atualizado(s).</div>`
+      : '';
+
+    aviso.innerHTML = `<strong>Preço atualizado</strong><br>O preço de um ou mais produtos mudou desde que foram adicionados ao carrinho. O novo valor é aplicado antes do pagamento.<div style="margin-top:7px;">${detalhes}${restante}</div>`;
+    aviso.style.display = 'block';
+  });
 })();
 </script>
 <script src="script.js"></script>
