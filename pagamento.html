@@ -29,6 +29,7 @@
     </div>
   </main>
 
+  <script src="cart-tools.js"></script>
   <script>
   (async () => {
     const q = new URLSearchParams(location.search);
@@ -70,6 +71,9 @@
       limparAcoes();
 
       if (status === 'paid' || status === 'approved') {
+        if (orderId && window.relojaConfirmarCompra) {
+          window.relojaConfirmarCompra(orderId);
+        }
         titulo.textContent = 'Pagamento aprovado!';
         texto.textContent = orderId
           ? `Seu pagamento foi aprovado e o pedido ${orderId} foi confirmado com sucesso.`
@@ -79,6 +83,9 @@
       }
 
       if (status === 'rejected') {
+        if (orderId && window.relojaDescartarCheckout) {
+          window.relojaDescartarCheckout(orderId);
+        }
         titulo.textContent = 'Pagamento não aprovado';
         texto.textContent = mensagemRecusa(paymentDetail?.status_detail);
 
@@ -95,6 +102,9 @@
       }
 
       if (status === 'cancelled') {
+        if (orderId && window.relojaDescartarCheckout) {
+          window.relojaDescartarCheckout(orderId);
+        }
         titulo.textContent = 'Pagamento cancelado';
         texto.textContent = 'O pagamento foi cancelado. Seus produtos continuam no carrinho e você pode escolher outra forma de pagamento.';
         adicionarAcao('Voltar ao carrinho', 'carrinho.html?retorno=cancelado', true);
