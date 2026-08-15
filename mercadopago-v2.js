@@ -89,8 +89,6 @@ async function mpRequest(url, options = {}) {
 }
 
 async function createCheckoutPro({ orderId, items, payerEmail, base }) {
-  // Preferência intencionalmente mínima. Deixamos o Checkout Pro coletar e validar
-  // os dados do cartão no ambiente do próprio Mercado Pago.
   const body = {
     items: items.map(item => ({
       id: String(item.id),
@@ -100,6 +98,13 @@ async function createCheckoutPro({ orderId, items, payerEmail, base }) {
       unit_price: Number(item.unit_price.toFixed(2))
     })),
     payer: { email: String(payerEmail || '').trim().toLowerCase().slice(0, 180) },
+    payment_methods: {
+      excluded_payment_types: [
+        { id: 'ticket' },
+        { id: 'bank_transfer' }
+      ],
+      installments: 12
+    },
     external_reference: orderId,
     back_urls: {
       success: `${base}/pagamento.html?status=success&pedido=${encodeURIComponent(orderId)}`,
@@ -256,7 +261,7 @@ function registerMercadoPagoV2(app) {
         created_at: new Date().toISOString()
       };
       const orders = read(ORDERS, []); orders.push(order); write(ORDERS, orders);
-      console.log('Mercado Pago v2 preferência criada:', { orderId, preference_id: preference.id, total, item_count: normalized.length, payer_fields: ['email'] });
+      console.log('Mercado Pago v2 preferência criada:', { orderId, preference_id: preference.id, total, item_count: normalized.length, payer_fields: ['email'], excluded_payment_types: ['ticket', 'bank_transfer'] });
       return res.json({ order_id: orderId, init_point: preference.init_point });
     } catch (error) {
       console.error('Erro Mercado Pago v2 /api/checkout:', { message: error.message, status: error.status || null, data: error.data || null });
