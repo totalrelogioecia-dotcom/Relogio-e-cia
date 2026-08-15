@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
-const DATA = path.join(ROOT, 'data');
+const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(ROOT, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
 const ORDERS = path.join(DATA, 'orders.json');
 
@@ -18,11 +18,7 @@ const read = (file, fallback) => {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch { return fallback; }
 };
-
-const write = (file, value) => {
-  fs.writeFileSync(file, JSON.stringify(value, null, 2), 'utf8');
-};
-
+const write = (file, value) => fs.writeFileSync(file, JSON.stringify(value, null, 2), 'utf8');
 const getProducts = () => read(PRODUCTS, []);
 const getOrders = () => read(ORDERS, []);
 
@@ -36,7 +32,8 @@ function safeEqual(a, b) {
 }
 
 function makeToken(payload) {
-  const secret = process.env.ADMIN_SESSION_SECRET || 'CHANGE-ME';
+  const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
+  if (!secret) throw new Error('ADMIN_SESSION_SECRET não configurado.');
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const sig = crypto.createHmac('sha256', secret).update(body).digest('base64url');
   return `${body}.${sig}`;
@@ -46,7 +43,8 @@ function validToken(value) {
   try {
     const [body, sig] = String(value || '').split('.');
     if (!body || !sig) return false;
-    const secret = process.env.ADMIN_SESSION_SECRET || 'CHANGE-ME';
+    const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
+    if (!secret) return false;
     const expected = crypto.createHmac('sha256', secret).update(body).digest('base64url');
     if (!safeEqual(sig, expected)) return false;
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
@@ -75,28 +73,32 @@ function normalizeProduct(p) {
   };
 }
 
+app.get('/healthz', (req, res) => res.json({ ok: true }));
+
 app.get('/api/products', (req, res) => {
+  res.set('Cache-Control', 'no-store');
   res.json(getProducts().filter(p => p.ativo !== false));
 });
 
 app.post('/api/admin/login', (req, res) => {
-  const email = String(req.body?.email || '').trim().toLowerCase();
-  const senha = String(req.body?.senha || '');
-  const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
-  const adminPass = String(process.env.ADMIN_PASSWORD || '');
-  const secret = String(process.env.ADMIN_SESSION_SECRET || '');
+  try {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const senha = String(req.body?.senha || '');
+    const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+    const adminPass = String(process.env.ADMIN_PASSWORD || '');
+    const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
 
-  if (!adminEmail || !adminPass || !secret) {
-    return res.status(503).json({ error: 'Painel administrativo não configurado.' });
-  }
-  if (!safeEqual(email, adminEmail) || !safeEqual(senha, adminPass)) {
-    return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
-  }
+    if (!adminEmail || !adminPass || !secret) return res.status(503).json({ error: 'Painel administrativo não configurado.' });
+    if (!safeEqual(email, adminEmail) || !safeEqual(senha, adminPass)) return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
 
-  res.json({
-    token: makeToken({ role: 'admin', email: adminEmail, exp: Date.now() + 8 * 60 * 60 * 1000 }),
-    admin: { email: adminEmail }
-  });
+    res.json({
+      token: makeToken({ role: 'admin', email: adminEmail, exp: Date.now() + 8 * 60 * 60 * 1000 }),
+      admin: { email: adminEmail }
+    });
+  } catch (error) {
+    console.error('Erro no login administrativo:', error);
+    res.status(500).json({ error: 'Não foi possível entrar no painel.' });
+  }
 });
 
 app.get('/api/admin/products', admin, (req, res) => res.json(getProducts()));
@@ -134,611 +136,17 @@ app.get('/api/admin/orders', admin, (req, res) => {
   res.json(getOrders().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
 });
 
-function dadosSegurosPagamento(payment) {
-  return {
-    id: payment?.id ? String(payment.id) : null,
-    status: payment?.status ? String(payment.status) : null,
-    status_detail: payment?.status_detail ? String(payment.status_detail) : null,
-    payment_method_id: payment?.payment_method_id ? String(payment.payment_method_id) : null,
-    payment_type_id: payment?.payment_type_id ? String(payment.payment_type_id) : null,
-    operation_type: payment?.operation_type ? String(payment.operation_type) : null,
-    transaction_amount: Number.isFinite(Number(payment?.transaction_amount)) ? Number(payment.transaction_amount) : null,
-    transaction_amount_refunded: Number.isFinite(Number(payment?.transaction_amount_refunded)) ? Number(payment.transaction_amount_refunded) : null,
-    currency_id: payment?.currency_id ? String(payment.currency_id) : null,
-    installments: Number.isFinite(Number(payment?.installments)) ? Number(payment.installments) : null,
-    issuer_id: payment?.issuer_id ? String(payment.issuer_id) : null,
-    external_reference: payment?.external_reference ? String(payment.external_reference) : null,
-    date_created: payment?.date_created ? String(payment.date_created) : null,
-    date_approved: payment?.date_approved ? String(payment.date_approved) : null,
-    date_last_updated: payment?.date_last_updated ? String(payment.date_last_updated) : null,
-    money_release_date: payment?.money_release_date ? String(payment.money_release_date) : null,
-    live_mode: typeof payment?.live_mode === 'boolean' ? payment.live_mode : null
-  };
-}
-
-function montarPayerCheckout(payer) {
-  const nomeCompleto = String(payer?.nome || '').trim().replace(/\s+/g, ' ');
-  const partes = nomeCompleto.split(' ').filter(Boolean);
-  const primeiroNome = partes.shift() || 'Cliente';
-  const sobrenome = partes.join(' ');
-
-  const result = {
-    name: primeiroNome.slice(0, 80),
-    email: String(payer?.email || '').trim().slice(0, 150)
-  };
-
-  if (sobrenome) result.surname = sobrenome.slice(0, 120);
-
-  const phone = payer?.telefone || payer?.phone;
-  if (phone?.area_code && phone?.number) {
-    result.phone = {
-      area_code: String(phone.area_code).replace(/\D/g, '').slice(0, 4),
-      number: String(phone.number).replace(/\D/g, '').slice(0, 15)
-    };
-  }
-
-  const identification = payer?.identificacao || payer?.identification;
-  if (identification?.type && identification?.number) {
-    result.identification = {
-      type: String(identification.type).slice(0, 20),
-      number: String(identification.number).replace(/\D/g, '').slice(0, 30)
-    };
-  }
-
-  const address = payer?.endereco || payer?.address;
-  if (address?.zip_code && address?.street_name && address?.street_number) {
-    result.address = {
-      zip_code: String(address.zip_code).replace(/\D/g, '').slice(0, 12),
-      street_name: String(address.street_name).slice(0, 120),
-      street_number: Number.isFinite(Number(address.street_number)) ? Number(address.street_number) : String(address.street_number).slice(0, 20)
-    };
-  }
-
-  if (payer?.date_created) {
-    const dateCreated = new Date(payer.date_created);
-    if (!Number.isNaN(dateCreated.getTime())) result.date_created = dateCreated.toISOString();
-  }
-
-  if (typeof payer?.is_prime_user === 'boolean') result.is_prime_user = payer.is_prime_user;
-  if (typeof payer?.is_first_purchase_online === 'boolean') result.is_first_purchase_online = payer.is_first_purchase_online;
-  if (payer?.last_purchase) {
-    const lastPurchase = new Date(payer.last_purchase);
-    if (!Number.isNaN(lastPurchase.getTime())) result.last_purchase = lastPurchase.toISOString();
-  }
-
-  if (payer?.authentication_type) {
-    result.authentication_type = String(payer.authentication_type).slice(0, 40);
-  }
-
-  return result;
-}
-
-function montarItensCheckout(items) {
-  return items.map(item => {
-    const result = {
-      id: String(item.id),
-      title: String(item.nome || 'Produto').slice(0, 256),
-      quantity: Number(item.quantidade),
-      currency_id: 'BRL',
-      unit_price: Number(item.unit_price)
-    };
-
-    if (item.desc) result.description = String(item.desc).slice(0, 256);
-    if (item.picture_url) result.picture_url = String(item.picture_url).slice(0, 1000);
-    if (item.category_id) result.category_id = String(item.category_id).slice(0, 100);
-
-    return result;
-  });
-}
-
-function montarShipment(shipping) {
-  if (!shipping?.zip_code || !shipping?.city_name || !shipping?.state_name || !shipping?.street_number) return null;
-
-  const receiverAddress = {
-    zip_code: String(shipping.zip_code).replace(/\D/g, '').slice(0, 12),
-    city_name: String(shipping.city_name).slice(0, 120),
-    state_name: String(shipping.state_name).slice(0, 120),
-    street_number: Number.isFinite(Number(shipping.street_number)) ? Number(shipping.street_number) : String(shipping.street_number).slice(0, 20),
-    country_name: 'Brasil'
-  };
-
-  if (shipping.street_name) receiverAddress.street_name = String(shipping.street_name).slice(0, 120);
-
-  const shipment = {
-    local_pickup: shipping.local_pickup === true,
-    receiver_address: receiverAddress
-  };
-
-  if (shipping.cost !== undefined && Number.isFinite(Number(shipping.cost)) && Number(shipping.cost) >= 0) {
-    shipment.cost = Number(Number(shipping.cost).toFixed(2));
-  }
-
-  if (shipping.free_shipping === true) shipment.free_shipping = true;
-  if (shipping.express_shipment === true) shipment.express_shipment = true;
-
-  return shipment;
-}
-
-async function criarPagamentoPix({ access, total, payer, orderId, base, description }) {
-  const firstName = String(payer.nome || '').trim().split(/\s+/)[0] || 'Cliente';
-  const lastName = String(payer.nome || '').trim().split(/\s+/).slice(1).join(' ') || 'Cliente';
-
-  const response = await fetch('https://api.mercadopago.com/v1/payments', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${access}`,
-      'Content-Type': 'application/json',
-      'X-Idempotency-Key': crypto.randomUUID()
-    },
-    body: JSON.stringify({
-      transaction_amount: total,
-      description: String(description || `Pedido ${orderId}`).slice(0, 200),
-      payment_method_id: 'pix',
-      external_reference: orderId,
-      notification_url: `${base}/api/mercadopago/webhook`,
-      payer: {
-        email: String(payer.email).slice(0, 180),
-        first_name: firstName.slice(0, 80),
-        last_name: lastName.slice(0, 80)
-      }
-    })
-  });
-
-  const text = await response.text();
-  let data = {};
-  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
-
-  if (!response.ok) {
-    console.error('Mercado Pago PIX:', data);
-    const error = new Error('O Mercado Pago recusou a criação do PIX.');
-    error.status = response.status;
-    error.data = data;
-    throw error;
-  }
-
-  const transactionData = data.point_of_interaction?.transaction_data || {};
-  if (!data.id || !transactionData.qr_code || !transactionData.qr_code_base64) {
-    console.error('Mercado Pago PIX sem dados do QR Code:', data);
-    throw new Error('O Mercado Pago não retornou os dados do PIX.');
-  }
-
-  return {
-    id: String(data.id),
-    status: String(data.status || 'pending'),
-    status_detail: data.status_detail ? String(data.status_detail) : null,
-    payment_method_id: data.payment_method_id ? String(data.payment_method_id) : 'pix',
-    payment_type_id: data.payment_type_id ? String(data.payment_type_id) : null,
-    qr_code: String(transactionData.qr_code),
-    qr_code_base64: String(transactionData.qr_code_base64),
-    ticket_url: transactionData.ticket_url ? String(transactionData.ticket_url) : null
-  };
-}
-
-app.post('/api/checkout', async (req, res) => {
-  try {
-    const { items, payer, metodo, shipping } = req.body || {};
-    if (!Array.isArray(items) || !items.length) return res.status(400).json({ error: 'Carrinho vazio.' });
-    if (!payer?.email || !payer?.nome) return res.status(400).json({ error: 'Dados do comprador incompletos.' });
-
-    const products = getProducts();
-    const normalized = [];
-
-    for (const item of items) {
-      const product = products.find(p => Number(p.id) === Number(item.id) && p.ativo !== false);
-      const quantity = Math.max(1, Math.min(99, Number(item.qtd) || 1));
-      if (!product) return res.status(400).json({ error: 'Produto não encontrado.' });
-      if (Number(product.estoque) < quantity) return res.status(400).json({ error: `Estoque insuficiente para ${product.nome}.` });
-
-      const pictureUrl = Array.isArray(product.fotos)
-        ? product.fotos.find(url => /^https:\/\//i.test(String(url || '')))
-        : null;
-
-      normalized.push({
-        id: product.id,
-        nome: product.nome,
-        sku: product.sku,
-        desc: product.desc,
-        picture_url: pictureUrl || null,
-        category_id: product.categoria_id_mp || null,
-        quantidade: quantity,
-        unit_price: Number(product.preco)
-      });
-    }
-
-    const access = process.env.MERCADOPAGO_ACCESS_TOKEN;
-    const base = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '');
-    if (!access) return res.status(503).json({ error: 'Pagamento não configurado.' });
-    if (!base.startsWith('https://')) return res.status(503).json({ error: 'PUBLIC_URL precisa ser uma URL HTTPS pública.' });
-
-    const forma = metodo === 'pix' ? 'pix' : 'cartao';
-    const descontoPix = forma === 'pix' ? 0.05 : 0;
-    const priced = normalized.map(item => ({ ...item, unit_price: Number((item.unit_price * (1 - descontoPix)).toFixed(2)) }));
-    const total = Number(priced.reduce((sum, item) => sum + item.quantidade * item.unit_price, 0).toFixed(2));
-    const orderId = `PED-${Date.now()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
-
-    if (forma === 'pix') {
-      const pix = await criarPagamentoPix({
-        access,
-        total,
-        payer,
-        orderId,
-        base,
-        description: priced.map(item => `${item.quantidade}x ${item.nome}`).join(', ')
-      });
-
-      const subtotal = Number(normalized.reduce((sum, item) => sum + item.quantidade * item.unit_price, 0).toFixed(2));
-      const order = {
-        id: orderId,
-        status: statusDoPagamento(pix.status),
-        payment_status: pix.status,
-        payment_id: pix.id,
-        payer: { nome: String(payer.nome).slice(0, 120), email: String(payer.email).slice(0, 180) },
-        items: priced,
-        total,
-        subtotal,
-        desconto_pix: Number((subtotal * descontoPix).toFixed(2)),
-        metodo: 'pix',
-        payment_detail: {
-          status_detail: pix.status_detail,
-          payment_method_id: pix.payment_method_id,
-          payment_type_id: pix.payment_type_id
-        },
-        pix: {
-          qr_code: pix.qr_code,
-          qr_code_base64: pix.qr_code_base64,
-          ticket_url: pix.ticket_url
-        },
-        created_at: new Date().toISOString()
-      };
-
-      const orders = getOrders();
-      orders.push(order);
-      write(ORDERS, orders);
-
-      console.log('Mercado Pago PIX criado:', {
-        id: pix.id,
-        status: pix.status,
-        status_detail: pix.status_detail,
-        payment_method_id: pix.payment_method_id,
-        payment_type_id: pix.payment_type_id,
-        external_reference: orderId,
-        transaction_amount: total
-      });
-
-      return res.json({
-        order_id: orderId,
-        payment_id: pix.id,
-        pix: order.pix,
-        redirect_url: `${base}/pagamento-pix.html?pedido=${encodeURIComponent(orderId)}`
-      });
-    }
-
-    const paymentMethods = {
-      excluded_payment_types: [{ id: 'bank_transfer' }, { id: 'ticket' }],
-      installments: 12
-    };
-
-    const payerCheckout = montarPayerCheckout(payer);
-    const itemsCheckout = montarItensCheckout(priced);
-    const shipmentCheckout = montarShipment(shipping);
-
-    const preference = {
-      items: itemsCheckout,
-      payer: payerCheckout,
-      payment_methods: paymentMethods,
-      external_reference: orderId,
-      additional_info: `Pedido ${orderId}. ${priced.length} item(ns). Total: R$ ${total.toFixed(2)}.`,
-      back_urls: {
-        success: `${base}/pagamento.html?status=success&pedido=${encodeURIComponent(orderId)}`,
-        failure: `${base}/pagamento.html?status=failure&pedido=${encodeURIComponent(orderId)}`,
-        pending: `${base}/pagamento.html?status=pending&pedido=${encodeURIComponent(orderId)}`
-      },
-      auto_return: 'approved',
-      notification_url: `${base}/api/mercadopago/webhook`
-    };
-
-    if (shipmentCheckout) preference.shipments = shipmentCheckout;
-
-    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${access}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(preference)
-    });
-
-    const mp = await response.json();
-    if (!response.ok) {
-      console.error('Mercado Pago checkout:', mp);
-      return res.status(502).json({ error: 'O Mercado Pago recusou o checkout.' });
-    }
-
-    const subtotal = Number(normalized.reduce((sum, item) => sum + item.quantidade * item.unit_price, 0).toFixed(2));
-    const order = {
-      id: orderId,
-      status: 'pending',
-      payment_status: 'pending',
-      payer: { nome: String(payer.nome).slice(0, 120), email: String(payer.email).slice(0, 180) },
-      items: priced,
-      total,
-      subtotal,
-      desconto_pix: 0,
-      metodo: forma,
-      preference_id: mp.id,
-      created_at: new Date().toISOString()
-    };
-
-    const orders = getOrders();
-    orders.push(order);
-    write(ORDERS, orders);
-
-    console.log('Mercado Pago checkout criado:', {
-      preference_id: mp.id || null,
-      external_reference: orderId,
-      init_point: Boolean(mp.init_point),
-      payer_fields: Object.keys(payerCheckout),
-      item_count: itemsCheckout.length,
-      shipment_sent: Boolean(shipmentCheckout)
-    });
-
-    res.json({ order_id: orderId, init_point: mp.init_point });
-  } catch (error) {
-    console.error('Erro /api/checkout:', error);
-    res.status(500).json({ error: error.message || 'Erro interno ao preparar o pagamento.' });
-  }
-});
-
-function parseSignature(header) {
-  const result = {};
-  const parts = String(header || '').split(',');
-
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if (!trimmed) continue;
-
-    const separator = trimmed.indexOf('=');
-    if (separator <= 0) return null;
-
-    const key = trimmed.slice(0, separator).trim().toLowerCase();
-    const value = trimmed.slice(separator + 1).trim();
-
-    if (!key || !value) return null;
-    if (result[key] !== undefined) return null;
-    result[key] = value;
-  }
-
-  return result;
-}
-
-function validarWebhookMercadoPago(req) {
-  const secret = String(process.env.MERCADOPAGO_WEBHOOK_SECRET || '').trim();
-  const signature = String(req.get('x-signature') || '').trim();
-  const requestId = String(req.get('x-request-id') || '').trim();
-  const rawDataId = String(req.query['data.id'] || '').trim();
-
-  const fail = (reason, details = {}) => {
-    console.warn('Diagnóstico HMAC Mercado Pago:', { reason, ...details });
-    return false;
-  };
-
-  if (!secret) return fail('MERCADOPAGO_WEBHOOK_SECRET ausente');
-  if (!signature) return fail('header x-signature ausente');
-  if (!rawDataId) return fail('query data.id ausente');
-
-  const parsed = parseSignature(signature);
-  if (!parsed) return fail('formato de x-signature inválido');
-
-  const { ts, v1 } = parsed;
-  if (!ts || !v1) return fail('x-signature sem ts ou v1', { hasTs: Boolean(ts), hasV1: Boolean(v1) });
-  if (!/^\d+$/.test(ts)) return fail('ts não numérico', { tsLength: ts.length });
-  if (!/^[a-f0-9]{64}$/i.test(v1)) return fail('v1 não é SHA-256 hexadecimal', { v1Length: v1.length });
-
-  const timestamp = Number(ts);
-  if (!Number.isSafeInteger(timestamp) || timestamp <= 0) return fail('ts inválido ou fora do intervalo seguro');
-
-  const timestampIsMilliseconds = ts.length >= 13;
-  const timestampMs = timestampIsMilliseconds ? timestamp : timestamp * 1000;
-  const nowMs = Date.now();
-  const deltaMs = nowMs - timestampMs;
-  const toleranceSeconds = Math.max(0, Number(process.env.MERCADOPAGO_WEBHOOK_TOLERANCE_SECONDS || 300));
-  const toleranceMs = toleranceSeconds * 1000;
-
-  if (toleranceSeconds > 0 && Math.abs(deltaMs) > toleranceMs) {
-    return fail('assinatura fora da janela de tolerância', {
-      timestampUnit: timestampIsMilliseconds ? 'milliseconds' : 'seconds',
-      deltaSeconds: Number((deltaMs / 1000).toFixed(3)),
-      toleranceSeconds,
-      tsDigits: ts.length
-    });
-  }
-
-  const dataId = rawDataId.toLowerCase();
-  const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
-  const expected = crypto.createHmac('sha256', secret).update(manifest, 'utf8').digest('hex');
-  const officialMatch = safeEqual(expected, v1.toLowerCase());
-
-  console.log('Diagnóstico HMAC Mercado Pago:', {
-    dataId: rawDataId,
-    dataIdNormalized: dataId,
-    dataIdChangedByLowercase: rawDataId !== dataId,
-    hasRequestId: Boolean(requestId),
-    requestIdLength: requestId.length,
-    timestampUnit: timestampIsMilliseconds ? 'milliseconds' : 'seconds',
-    tsDigits: ts.length,
-    deltaSeconds: Number((deltaMs / 1000).toFixed(3)),
-    toleranceSeconds,
-    officialMatch,
-    receivedV1Prefix: v1.slice(0, 12),
-    expectedPrefix: expected.slice(0, 12),
-    manifestLength: manifest.length,
-    manifestHash: crypto.createHash('sha256').update(manifest, 'utf8').digest('hex').slice(0, 12)
-  });
-
-  if (officialMatch) return true;
-  return fail('HMAC divergente', {
-    dataIdChangedByLowercase: rawDataId !== dataId,
-    hasRequestId: Boolean(requestId),
-    receivedV1Prefix: v1.slice(0, 12),
-    officialExpectedPrefix: expected.slice(0, 12)
-  });
-}
-
-async function consultarPagamento(paymentId) {
-  const access = process.env.MERCADOPAGO_ACCESS_TOKEN;
-  if (!access) throw new Error('MERCADOPAGO_ACCESS_TOKEN não configurado.');
-
-  const response = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`, {
-    headers: { Authorization: `Bearer ${access}` }
-  });
-
-  const text = await response.text();
-  let data = {};
-  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
-
-  if (!response.ok) {
-    const error = new Error(`Mercado Pago respondeu ${response.status}`);
-    error.status = response.status;
-    error.data = data;
-    throw error;
-  }
-  return data;
-}
-
-async function buscarPagamentoPorPedido(orderId) {
-  const access = process.env.MERCADOPAGO_ACCESS_TOKEN;
-  if (!access) throw new Error('MERCADOPAGO_ACCESS_TOKEN não configurado.');
-
-  const url = `https://api.mercadopago.com/v1/payments/search?external_reference=${encodeURIComponent(orderId)}&sort=date_created&criteria=desc`;
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${access}` } });
-  const text = await response.text();
-  let data = {};
-  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
-
-  if (!response.ok) {
-    const error = new Error(`Mercado Pago busca pagamento respondeu ${response.status}`);
-    error.status = response.status;
-    error.data = data;
-    throw error;
-  }
-
-  return Array.isArray(data.results) && data.results.length ? data.results[0] : null;
-}
-
-function statusDoPagamento(status) {
-  if (status === 'approved') return 'paid';
-  if (status === 'rejected') return 'rejected';
-  if (status === 'cancelled') return 'cancelled';
-  return 'pending';
-}
-
-async function aplicarPagamentoAoPedido(payment, orderId) {
-  const orders = getOrders();
-  const index = orders.findIndex(order => order.id === orderId);
-  if (index < 0) throw new Error(`Pedido não encontrado: ${orderId}`);
-
-  const order = orders[index];
-  const novoStatus = statusDoPagamento(payment.status);
-  const pagamentoMudou = String(order.payment_id || '') !== String(payment.id || '') || order.payment_status !== String(payment.status || 'pending');
-  const dadosPagamento = dadosSegurosPagamento(payment);
-
-  order.payment_id = String(payment.id || '');
-  order.payment_status = String(payment.status || 'pending');
-  order.status = novoStatus;
-  order.payment_detail = dadosPagamento;
-  order.updated_at = new Date().toISOString();
-
-  console.log('Mercado Pago pagamento:', dadosPagamento);
-
-  if (payment.status === 'approved' && !order.stock_applied) {
-    const products = getProducts();
-    for (const item of order.items || []) {
-      const productIndex = products.findIndex(product => Number(product.id) === Number(item.id));
-      if (productIndex !== -1) {
-        products[productIndex].estoque = Math.max(0, Number(products[productIndex].estoque) - Number(item.quantidade));
-      }
-    }
-    write(PRODUCTS, products);
-    order.stock_applied = true;
-    console.log('Estoque atualizado:', orderId);
-  }
-
-  if (pagamentoMudou || order.status === 'paid') write(ORDERS, orders);
-  console.log('Pedido atualizado:', orderId, '=>', order.status, '| pagamento:', order.payment_status);
-  return order;
-}
-
-async function sincronizarPedido(order) {
-  if (!order || order.payment_status === 'approved' || order.status === 'paid') return order;
-
-  try {
-    const payment = await buscarPagamentoPorPedido(order.id);
-    if (!payment) return order;
-    console.log('Pagamento encontrado por external_reference:', order.id, payment.id, payment.status);
-    return await aplicarPagamentoAoPedido(payment, order.id);
-  } catch (error) {
-    console.error('Erro ao sincronizar pedido:', order.id, error.message);
-    return order;
-  }
-}
-
-app.post('/api/mercadopago/webhook', async (req, res) => {
-  const type = String(req.body?.type || req.body?.topic || '');
-  const action = String(req.body?.action || '');
-  const liveMode = req.body?.live_mode === true;
-  const paymentId = String(req.body?.data?.id || req.query['data.id'] || req.body?.id || '');
-  const hasQueryDataId = Boolean(req.query['data.id']);
-  const hasSignature = Boolean(req.get('x-signature'));
-
-  console.log('Webhook Mercado Pago:', { type, action, paymentId, liveMode, hasQueryDataId, hasSignature });
-
-  if (!liveMode && !hasQueryDataId && !hasSignature) {
-    console.log('Simulação sem assinatura recebida. Nenhum pedido foi alterado.');
-    return res.sendStatus(200);
-  }
-
-  if (!validarWebhookMercadoPago(req)) {
-    console.error('Assinatura do webhook inválida.');
-    return res.sendStatus(401);
-  }
-
-  if (type !== 'payment' || !paymentId) return res.sendStatus(200);
-
-  try {
-    const payment = await consultarPagamento(paymentId);
-    const orderId = String(payment.external_reference || '');
-    if (!orderId) {
-      console.error('Pagamento sem external_reference:', paymentId);
-      return res.sendStatus(200);
-    }
-
-    await aplicarPagamentoAoPedido(payment, orderId);
-    return res.sendStatus(200);
-  } catch (error) {
-    console.error('Erro ao processar webhook:', { message: error.message, status: error.status || null, paymentId });
-    return res.sendStatus(500);
-  }
-});
-
-app.get('/healthz', (req, res) => res.json({ ok: true }));
-
-app.get('/api/order/:id', async (req, res) => {
-  let order = getOrders().find(item => item.id === req.params.id);
-  if (!order) return res.status(404).json({ error: 'Pedido não encontrado.' });
-
-  if (order.payment_status === 'pending' || order.status === 'pending') {
-    order = await sincronizarPedido(order);
-  }
-
-  res.set('Cache-Control', 'no-store');
+app.get('/api/admin/payment-config', admin, (req, res) => {
   res.json({
-    id: order.id,
-    status: order.status,
-    payment_status: order.payment_status,
-    payment_id: order.payment_id || null,
-    metodo: order.metodo || null,
-    pix: order.pix || null,
-    updated_at: order.updated_at || null
+    access_token_configured: Boolean(String(process.env.MERCADOPAGO_ACCESS_TOKEN || '').trim()),
+    public_key_configured: Boolean(String(process.env.MERCADOPAGO_PUBLIC_KEY || '').trim()),
+    webhook_secret_configured: Boolean(String(process.env.MERCADOPAGO_WEBHOOK_SECRET || '').trim()),
+    public_url: String(process.env.PUBLIC_URL || '').replace(/\/+$/, '') || null,
+    integration: 'mercadopago-v2'
   });
 });
 
 app.listen(PORT, () => {
   console.log(`Relógio e Cia: http://localhost:${PORT}`);
+  console.log('Servidor principal iniciado sem rotas legadas do Mercado Pago.');
 });
