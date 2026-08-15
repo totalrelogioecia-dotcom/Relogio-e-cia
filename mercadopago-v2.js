@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
+const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
@@ -46,6 +47,13 @@ function paymentSafe(payment) {
   };
 }
 
+function normalizeCategory(product) {
+  if (product?.categoria_id_mp) return String(product.categoria_id_mp).trim().slice(0, 100);
+  const categoria = String(product?.categoria || '').toLowerCase();
+  if (categoria.includes('relóg') || categoria.includes('relog') || categoria.includes('acess')) return 'fashion';
+  return null;
+}
+
 function normalizeCartItems(items) {
   if (!Array.isArray(items) || !items.length) throw Object.assign(new Error('Carrinho vazio.'), { status: 400 });
   const products = read(PRODUCTS, []);
@@ -56,56 +64,156 @@ function normalizeCartItems(items) {
     if (!product) throw Object.assign(new Error('Produto não encontrado.'), { status: 400 });
     if (Number(product.estoque) < qtd) throw Object.assign(new Error(`Estoque insuficiente para ${product.nome}.`), { status: 400 });
 
+    const foto = Array.isArray(product.fotos) ? product.fotos.find(url => /^https:\/\//i.test(String(url || ''))) : null;
+
     return {
       id: Number(product.id),
       nome: String(product.nome || 'Produto'),
       sku: String(product.sku || ''),
+      descricao: String(product.desc || '').trim(),
+      categoria_id: normalizeCategory(product),
       quantidade: qtd,
       unit_price: Number(product.preco),
-      foto: Array.isArray(product.fotos) ? (product.fotos.find(Boolean) || null) : null
+      foto: foto || null
     };
   });
 }
 
-async function mpRequest(url, options = {}) {
-  const access = String(process.env.MERCADOPAGO_ACCESS_TOKEN || '').trim();
-  if (!access) throw Object.assign(new Error('MERCADOPAGO_ACCESS_TOKEN não configurado.'), { status: 503 });
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${access}`,
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    }
-  });
-
-  const text = await response.text();
-  let data = {};
-  try { data = text ? JSON.parse(text) : {}; }
-  catch { data = { raw: text }; }
-
-  if (!response.ok) {
-    const error = new Error(data?.message || `Mercado Pago respondeu ${response.status}.`);
-    error.status = response.status;
-    error.data = data;
-    throw error;
-  }
-  return data;
+function getStatementDescriptor() {
+  const raw = String(process.env.MERCADOPAGO_STATEMENT_DESCRIPTOR || 'RELOGIOECIA')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9 ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 13);
+  return raw || 'RELOGIOECIA';
 }
 
-async function createCheckoutPro({ orderId, items, payerEmail, base }) {
-  const body = {
-    items: items.map(item => ({
-      id: String(item.id),
+function sdkClients() {
+  const access = String(process.env.MERCADOPAGO_ACCESS_TOKEN || '').trim();
+  if (!access) throw Object.assign(new Error('MERCADOPAGO_ACCESS_TOKEN não configurado.'), { status: 503 });
+  const client = new MercadoPagoConfig({
+    accessToken: access,
+    options: { timeout: 10000, maxRetries: 2 }
+  });
+  return {
+    preference: new Preference(client),
+    payment: new Payment(client)
+  };
+}
+
+function sdkError(error, fallback) {
+  const wrapped = new Error(error?.message || fallback || 'Erro na comunicação com o Mercado Pago.');
+  const possibleStatus = Number(
+    error?.status ||
+    error?.statusCode ||
+    error?.api_response?.status ||
+    error?.cause?.status ||
+    error?.cause?.statusCode
+  );
+  if (Number.isFinite(possibleStatus) && possibleStatus > 0) wrapped.status = possibleStatus;
+  wrapped.data = error?.cause || error?.data || null;
+  return wrapped;
+}
+
+function splitName(fullName) {
+  const parts = String(fullName || '').trim().replace(/\s+/g, ' ').split(' ').filter(Boolean);
+  const name = parts.shift() || 'Cliente';
+  return { name: name.slice(0, 80), surname: parts.join(' ').slice(0, 120) };
+}
+
+function buildPreferencePayer(payer) {
+  const fullName = splitName(payer?.nome);
+  const result = {
+    name: fullName.name,
+    email: String(payer?.email || '').trim().toLowerCase().slice(0, 180)
+  };
+  if (fullName.surname) result.surname = fullName.surname;
+
+  const areaCode = String(payer?.telefone?.area_code || '').replace(/\D/g, '').slice(0, 4);
+  const phoneNumber = String(payer?.telefone?.number || '').replace(/\D/g, '').slice(0, 15);
+  if (areaCode && phoneNumber) result.phone = { area_code: areaCode, number: phoneNumber };
+
+  const idType = String(payer?.identificacao?.type || '').trim().toUpperCase().slice(0, 20);
+  const idNumber = String(payer?.identificacao?.number || '').replace(/\D/g, '').slice(0, 30);
+  if (idType && idNumber) result.identification = { type: idType, number: idNumber };
+
+  const zipCode = String(payer?.endereco?.zip_code || '').replace(/\D/g, '').slice(0, 12);
+  const streetName = String(payer?.endereco?.street_name || '').trim().slice(0, 120);
+  const streetNumberText = String(payer?.endereco?.street_number || '').trim();
+  const streetNumberMatch = streetNumberText.match(/\d+/);
+  if (zipCode && streetName && streetNumberMatch) {
+    result.address = {
+      zip_code: zipCode,
+      street_name: streetName,
+      street_number: Number(streetNumberMatch[0])
+    };
+  }
+
+  if (payer?.date_created) {
+    const createdAt = new Date(payer.date_created);
+    if (!Number.isNaN(createdAt.getTime())) result.date_created = createdAt.toISOString();
+  }
+
+  return result;
+}
+
+function buildPaymentPayer(payer) {
+  const fullName = splitName(payer?.nome);
+  const result = {
+    email: String(payer?.email || '').trim().toLowerCase().slice(0, 180),
+    first_name: fullName.name
+  };
+  if (fullName.surname) result.last_name = fullName.surname;
+
+  const areaCode = String(payer?.telefone?.area_code || '').replace(/\D/g, '').slice(0, 4);
+  const phoneNumber = String(payer?.telefone?.number || '').replace(/\D/g, '').slice(0, 15);
+  if (areaCode && phoneNumber) result.phone = { area_code: areaCode, number: phoneNumber };
+
+  const idType = String(payer?.identificacao?.type || '').trim().toUpperCase().slice(0, 20);
+  const idNumber = String(payer?.identificacao?.number || '').replace(/\D/g, '').slice(0, 30);
+  if (idType && idNumber) result.identification = { type: idType, number: idNumber };
+
+  const zipCode = String(payer?.endereco?.zip_code || '').replace(/\D/g, '').slice(0, 12);
+  const streetName = String(payer?.endereco?.street_name || '').trim().slice(0, 120);
+  const streetNumber = String(payer?.endereco?.street_number || '').trim().slice(0, 20);
+  if (zipCode && streetName && streetNumber) {
+    result.address = {
+      zip_code: zipCode,
+      street_name: streetName,
+      street_number: streetNumber,
+      neighborhood: String(payer?.endereco?.neighborhood || '').trim().slice(0, 120) || undefined,
+      city: String(payer?.endereco?.city_name || '').trim().slice(0, 120) || undefined,
+      federal_unit: String(payer?.endereco?.state_code || '').trim().toUpperCase().slice(0, 2) || undefined
+    };
+  }
+
+  return result;
+}
+
+function buildPreferenceItems(items) {
+  return items.map(item => {
+    const result = {
+      id: String(item.sku || item.id),
       title: item.nome.slice(0, 256),
       quantity: item.quantidade,
       currency_id: 'BRL',
-      unit_price: Number(item.unit_price.toFixed(2))
-    })),
-    payer: {
-      email: String(payerEmail || '').trim().toLowerCase().slice(0, 180)
-    },
+      unit_price: Number(item.unit_price.toFixed(2)),
+      type: 'physical'
+    };
+    if (item.descricao) result.description = item.descricao.slice(0, 256);
+    if (item.foto) result.picture_url = item.foto.slice(0, 1000);
+    if (item.categoria_id) result.category_id = item.categoria_id;
+    return result;
+  });
+}
+
+async function createCheckoutPro({ orderId, items, payer, base }) {
+  const body = {
+    items: buildPreferenceItems(items),
+    payer: buildPreferencePayer(payer),
     payment_methods: {
       excluded_payment_types: [
         { id: 'ticket' },
@@ -113,6 +221,7 @@ async function createCheckoutPro({ orderId, items, payerEmail, base }) {
       ],
       installments: 12
     },
+    statement_descriptor: getStatementDescriptor(),
     external_reference: orderId,
     back_urls: {
       success: `${base}/pagamento.html?status=success&pedido=${encodeURIComponent(orderId)}`,
@@ -123,22 +232,26 @@ async function createCheckoutPro({ orderId, items, payerEmail, base }) {
     notification_url: `${base}/api/mercadopago/webhook`
   };
 
-  const data = await mpRequest('https://api.mercadopago.com/checkout/preferences', {
-    method: 'POST',
-    headers: { 'X-Idempotency-Key': crypto.randomUUID() },
-    body: JSON.stringify(body)
-  });
-
-  if (!data.id || !data.init_point) throw new Error('O Mercado Pago não retornou a preferência de pagamento completa.');
-  return data;
+  try {
+    const { preference } = sdkClients();
+    const data = await preference.create({
+      body,
+      requestOptions: { idempotencyKey: crypto.randomUUID() }
+    });
+    if (!data?.id || !data?.init_point) throw new Error('O Mercado Pago não retornou a preferência de pagamento completa.');
+    return data;
+  } catch (error) {
+    throw sdkError(error, 'O Mercado Pago recusou a criação da preferência.');
+  }
 }
 
 async function createPix({ orderId, items, payer, base }) {
   const subtotal = Number(items.reduce((s, i) => s + i.quantidade * i.unit_price, 0).toFixed(2));
   const total = Number((subtotal * 0.95).toFixed(2));
-  const nome = String(payer?.nome || 'Cliente').trim().split(/\s+/);
-  const firstName = nome.shift() || 'Cliente';
-  const lastName = nome.join(' ') || 'Cliente';
+  const paymentItems = buildPreferenceItems(items).map(item => ({
+    ...item,
+    unit_price: Number((item.unit_price * 0.95).toFixed(2))
+  }));
 
   const body = {
     transaction_amount: total,
@@ -146,21 +259,23 @@ async function createPix({ orderId, items, payer, base }) {
     payment_method_id: 'pix',
     external_reference: orderId,
     notification_url: `${base}/api/mercadopago/webhook`,
-    payer: {
-      email: String(payer?.email || '').trim().toLowerCase().slice(0, 180),
-      first_name: firstName.slice(0, 80),
-      last_name: lastName.slice(0, 80)
-    }
+    payer: buildPaymentPayer(payer),
+    additional_info: { items: paymentItems }
   };
 
-  const data = await mpRequest('https://api.mercadopago.com/v1/payments', {
-    method: 'POST',
-    headers: { 'X-Idempotency-Key': crypto.randomUUID() },
-    body: JSON.stringify(body)
-  });
+  let data;
+  try {
+    const { payment } = sdkClients();
+    data = await payment.create({
+      body,
+      requestOptions: { idempotencyKey: crypto.randomUUID() }
+    });
+  } catch (error) {
+    throw sdkError(error, 'O Mercado Pago recusou a criação do PIX.');
+  }
 
-  const tx = data.point_of_interaction?.transaction_data || {};
-  if (!data.id || !tx.qr_code || !tx.qr_code_base64) throw new Error('O Mercado Pago não retornou o QR Code do PIX.');
+  const tx = data?.point_of_interaction?.transaction_data || {};
+  if (!data?.id || !tx.qr_code || !tx.qr_code_base64) throw new Error('O Mercado Pago não retornou o QR Code do PIX.');
 
   return {
     payment: data,
@@ -212,12 +327,29 @@ function validateWebhook(req) {
 }
 
 async function getPayment(paymentId) {
-  return mpRequest(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`, { method: 'GET' });
+  try {
+    const { payment } = sdkClients();
+    return await payment.get({ id: String(paymentId) });
+  } catch (error) {
+    throw sdkError(error, 'Não foi possível consultar o pagamento.');
+  }
 }
 
 async function findPaymentByOrder(orderId) {
-  const data = await mpRequest(`https://api.mercadopago.com/v1/payments/search?external_reference=${encodeURIComponent(orderId)}&sort=date_created&criteria=desc`, { method: 'GET' });
-  return Array.isArray(data.results) && data.results.length ? data.results[0] : null;
+  try {
+    const { payment } = sdkClients();
+    const data = await payment.search({
+      options: {
+        external_reference: String(orderId),
+        sort: 'date_created',
+        criteria: 'desc',
+        limit: 1
+      }
+    });
+    return Array.isArray(data?.results) && data.results.length ? data.results[0] : null;
+  } catch (error) {
+    throw sdkError(error, 'Não foi possível localizar o pagamento do pedido.');
+  }
 }
 
 function applyPayment(payment) {
@@ -303,7 +435,13 @@ function registerMercadoPagoV2(app) {
         orders.push(order);
         write(ORDERS, orders);
 
-        console.log('Mercado Pago PIX criado:', { orderId, payment_id: order.payment_id, total: order.total });
+        console.log('Mercado Pago PIX criado:', {
+          orderId,
+          payment_id: order.payment_id,
+          total: order.total,
+          sdk_backend: true,
+          item_descriptions: normalized.filter(i => i.descricao).length
+        });
         return res.json({
           order_id: orderId,
           payment_id: order.payment_id,
@@ -311,8 +449,9 @@ function registerMercadoPagoV2(app) {
         });
       }
 
-      const preference = await createCheckoutPro({ orderId, items: normalized, payerEmail: payer.email, base });
+      const preference = await createCheckoutPro({ orderId, items: normalized, payer, base });
       const total = Number(normalized.reduce((s, i) => s + i.quantidade * i.unit_price, 0).toFixed(2));
+      const preferencePayer = buildPreferencePayer(payer);
       const order = {
         id: orderId,
         status: 'pending',
@@ -335,8 +474,13 @@ function registerMercadoPagoV2(app) {
         preference_id: preference.id,
         total,
         item_count: normalized.length,
-        payer_fields: ['email'],
+        payer_fields: Object.keys(preferencePayer),
+        item_descriptions: normalized.filter(i => i.descricao).length,
+        picture_urls: normalized.filter(i => i.foto).length,
+        category_ids: normalized.filter(i => i.categoria_id).length,
+        statement_descriptor: getStatementDescriptor(),
         excluded_payment_types: ['ticket', 'bank_transfer'],
+        sdk_backend: true,
         init_point: Boolean(preference.init_point)
       });
 
