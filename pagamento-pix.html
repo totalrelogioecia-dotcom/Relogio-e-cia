@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Pagamento PIX — Relógio e Cia</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .pix-wrap { max-width: 760px; margin: 70px auto; padding: 0 24px; }
+    .pix-card { text-align: center; }
+    .pix-qr { width: 280px; max-width: 100%; height: auto; margin: 24px auto; display: block; border: 1px solid #ddd; padding: 12px; background: #fff; }
+    .pix-code { width: 100%; min-height: 120px; box-sizing: border-box; padding: 14px; border: 1px solid #ccc; border-radius: 8px; resize: vertical; font-family: monospace; font-size: 13px; }
+    .pix-status { margin: 18px 0; font-weight: 600; }
+    .pix-ok { font-size: 1.4rem; font-weight: 700; }
+    .pix-muted { opacity: .75; }
+    .pix-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a href="index.html" class="brand-mark">
+        <span class="sq"></span>
+        <span class="word">Relógio e Cia<small>Relojoaria desde 2003</small></span>
+      </a>
+      <a href="produtos.html" class="nav-cta">Continuar comprando</a>
+    </nav>
+  </header>
+
+  <main class="pix-wrap">
+    <div class="account-box pix-card">
+      <p class="eyebrow">Pagamento PIX</p>
+      <h1 id="titulo">Gerando seu PIX…</h1>
+      <p id="texto" class="pix-muted">Aguarde enquanto carregamos os dados do pagamento.</p>
+
+      <div id="pix-conteudo" style="display:none;">
+        <img id="pix-qr" class="pix-qr" alt="QR Code PIX">
+        <p><strong>Escaneie o QR Code com o aplicativo do seu banco.</strong></p>
+        <p>Ou use o código PIX copia e cola:</p>
+        <textarea id="pix-code" class="pix-code" readonly></textarea>
+        <div class="pix-actions">
+          <button class="btn btn-primary" type="button" id="copiar">Copiar código PIX</button>
+          <a class="btn btn-outline" href="index.html">Voltar para a loja</a>
+        </div>
+      </div>
+
+      <div id="resultado" style="display:none;">
+        <p id="resultado-texto"></p>
+        <a class="btn btn-primary" href="index.html">Voltar para a loja</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  (async () => {
+    const q = new URLSearchParams(location.search);
+    const pedidoId = q.get('pedido');
+    const titulo = document.getElementById('titulo');
+    const texto = document.getElementById('texto');
+    const conteudo = document.getElementById('pix-conteudo');
+    const resultado = document.getElementById('resultado');
+    const resultadoTexto = document.getElementById('resultado-texto');
+    const qr = document.getElementById('pix-qr');
+    const code = document.getElementById('pix-code');
+    const copiar = document.getElementById('copiar');
+
+    if (!pedidoId) {
+      titulo.textContent = 'Pedido não identificado';
+      texto.textContent = 'Volte para a loja e tente novamente.';
+      return;
+    }
+
+    copiar.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(code.value);
+        copiar.textContent = 'Código copiado ✓';
+        setTimeout(() => { copiar.textContent = 'Copiar código PIX'; }, 1800);
+      } catch {
+        code.focus();
+        code.select();
+        document.execCommand('copy');
+        copiar.textContent = 'Código copiado ✓';
+        setTimeout(() => { copiar.textContent = 'Copiar código PIX'; }, 1800);
+      }
+    });
+
+    async function consultar() {
+      const resposta = await fetch('/api/order/' + encodeURIComponent(pedidoId) + '?t=' + Date.now(), {
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!resposta.ok) throw new Error('Não foi possível consultar o pedido.');
+      return resposta.json();
+    }
+
+    try {
+      let pedido = await consultar();
+      const pix = pedido.pix;
+
+      if (!pix || !pix.qr_code || !pix.qr_code_base64) {
+        throw new Error('Os dados do PIX não foram encontrados.');
+      }
+
+      qr.src = 'data:image/png;base64,' + pix.qr_code_base64;
+      code.value = pix.qr_code;
+      conteudo.style.display = 'block';
+      titulo.textContent = 'Pague com PIX';
+      texto.textContent = 'O PIX foi criado sem exigir login no Mercado Pago.';
+
+      for (let tentativa = 0; tentativa < 90; tentativa++) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        pedido = await consultar();
+
+        if (pedido.payment_status === 'approved' || pedido.status === 'paid') {
+          conteudo.style.display = 'none';
+          titulo.textContent = 'Pagamento aprovado!';
+          texto.textContent = 'Recebemos a confirmação do pagamento.';
+          resultado.style.display = 'block';
+          resultadoTexto.textContent = 'Seu pedido ' + pedido.id + ' foi confirmado com sucesso.';
+          return;
+        }
+
+        if (pedido.payment_status === 'rejected' || pedido.status === 'rejected') {
+          conteudo.style.display = 'none';
+          titulo.textContent = 'Pagamento não aprovado';
+          texto.textContent = 'O pagamento PIX não foi aprovado.';
+          resultado.style.display = 'block';
+          return;
+        }
+      }
+
+      texto.textContent = 'O PIX continua aguardando pagamento. Você pode deixar esta página aberta; ela continuará disponível para consulta.';
+    } catch (erro) {
+      titulo.textContent = 'Não foi possível carregar o PIX';
+      texto.textContent = erro.message || 'Tente novamente.';
+    }
+  })();
+  </script>
+</body>
+</html>
