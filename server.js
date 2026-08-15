@@ -134,6 +134,58 @@ app.get('/api/admin/orders', admin, (req, res) => {
   res.json(getOrders().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
 });
 
+async function criarPagamentoPix({ access, total, payer, orderId, base, description }) {
+  const firstName = String(payer.nome || '').trim().split(/\s+/)[0] || 'Cliente';
+  const lastName = String(payer.nome || '').trim().split(/\s+/).slice(1).join(' ') || 'Cliente';
+
+  const response = await fetch('https://api.mercadopago.com/v1/payments', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${access}`,
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': crypto.randomUUID()
+    },
+    body: JSON.stringify({
+      transaction_amount: total,
+      description: String(description || `Pedido ${orderId}`).slice(0, 200),
+      payment_method_id: 'pix',
+      external_reference: orderId,
+      notification_url: `${base}/api/mercadopago/webhook`,
+      payer: {
+        email: String(payer.email).slice(0, 180),
+        first_name: firstName.slice(0, 80),
+        last_name: lastName.slice(0, 80)
+      }
+    })
+  });
+
+  const text = await response.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
+
+  if (!response.ok) {
+    console.error('Mercado Pago PIX:', data);
+    const error = new Error('O Mercado Pago recusou a criação do PIX.');
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  const transactionData = data.point_of_interaction?.transaction_data || {};
+  if (!data.id || !transactionData.qr_code || !transactionData.qr_code_base64) {
+    console.error('Mercado Pago PIX sem dados do QR Code:', data);
+    throw new Error('O Mercado Pago não retornou os dados do PIX.');
+  }
+
+  return {
+    id: String(data.id),
+    status: String(data.status || 'pending'),
+    qr_code: String(transactionData.qr_code),
+    qr_code_base64: String(transactionData.qr_code_base64),
+    ticket_url: transactionData.ticket_url ? String(transactionData.ticket_url) : null
+  };
+}
+
 app.post('/api/checkout', async (req, res) => {
   try {
     const { items, payer, metodo } = req.body || {};
@@ -162,9 +214,52 @@ app.post('/api/checkout', async (req, res) => {
     const total = Number(priced.reduce((sum, item) => sum + item.quantidade * item.unit_price, 0).toFixed(2));
     const orderId = `PED-${Date.now()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
 
-    const paymentMethods = forma === 'pix'
-      ? { excluded_payment_types: [{ id: 'credit_card' }, { id: 'debit_card' }, { id: 'ticket' }] }
-      : { excluded_payment_types: [{ id: 'bank_transfer' }, { id: 'ticket' }], installments: 12 };
+    if (forma === 'pix') {
+      const pix = await criarPagamentoPix({
+        access,
+        total,
+        payer,
+        orderId,
+        base,
+        description: priced.map(item => `${item.quantidade}x ${item.nome}`).join(', ')
+      });
+
+      const subtotal = Number(normalized.reduce((sum, item) => sum + item.quantidade * item.unit_price, 0).toFixed(2));
+      const order = {
+        id: orderId,
+        status: statusDoPagamento(pix.status),
+        payment_status: pix.status,
+        payment_id: pix.id,
+        payer: { nome: String(payer.nome).slice(0, 120), email: String(payer.email).slice(0, 180) },
+        items: priced,
+        total,
+        subtotal,
+        desconto_pix: Number((subtotal * descontoPix).toFixed(2)),
+        metodo: 'pix',
+        pix: {
+          qr_code: pix.qr_code,
+          qr_code_base64: pix.qr_code_base64,
+          ticket_url: pix.ticket_url
+        },
+        created_at: new Date().toISOString()
+      };
+
+      const orders = getOrders();
+      orders.push(order);
+      write(ORDERS, orders);
+
+      return res.json({
+        order_id: orderId,
+        payment_id: pix.id,
+        pix: order.pix,
+        redirect_url: `${base}/pagamento-pix.html?pedido=${encodeURIComponent(orderId)}`
+      });
+    }
+
+    const paymentMethods = {
+      excluded_payment_types: [{ id: 'bank_transfer' }, { id: 'ticket' }],
+      installments: 12
+    };
 
     const preference = {
       items: priced.map(item => ({ id: String(item.id), title: item.nome, quantity: item.quantidade, currency_id: 'BRL', unit_price: item.unit_price })),
@@ -201,7 +296,7 @@ app.post('/api/checkout', async (req, res) => {
       items: priced,
       total,
       subtotal,
-      desconto_pix: Number((subtotal * descontoPix).toFixed(2)),
+      desconto_pix: 0,
       metodo: forma,
       preference_id: mp.id,
       created_at: new Date().toISOString()
@@ -214,7 +309,7 @@ app.post('/api/checkout', async (req, res) => {
     res.json({ order_id: orderId, init_point: mp.init_point });
   } catch (error) {
     console.error('Erro /api/checkout:', error);
-    res.status(500).json({ error: 'Erro interno ao preparar o pagamento.' });
+    res.status(500).json({ error: error.message || 'Erro interno ao preparar o pagamento.' });
   }
 });
 
@@ -259,29 +354,18 @@ function validarWebhookMercadoPago(req) {
   if (!parsed) return fail('formato de x-signature inválido');
 
   const { ts, v1 } = parsed;
-  if (!ts || !v1) return fail('x-signature sem ts ou v1', {
-    hasTs: Boolean(ts),
-    hasV1: Boolean(v1)
-  });
-
+  if (!ts || !v1) return fail('x-signature sem ts ou v1', { hasTs: Boolean(ts), hasV1: Boolean(v1) });
   if (!/^\d+$/.test(ts)) return fail('ts não numérico', { tsLength: ts.length });
   if (!/^[a-f0-9]{64}$/i.test(v1)) return fail('v1 não é SHA-256 hexadecimal', { v1Length: v1.length });
 
   const timestamp = Number(ts);
-  if (!Number.isSafeInteger(timestamp) || timestamp <= 0) {
-    return fail('ts inválido ou fora do intervalo seguro');
-  }
+  if (!Number.isSafeInteger(timestamp) || timestamp <= 0) return fail('ts inválido ou fora do intervalo seguro');
 
-  // O Mercado Pago envia ts em MILISSEGUNDOS (normalmente 13 dígitos).
-  // Aceitamos segundos (10 dígitos) apenas para facilitar diagnóstico/testes.
   const timestampIsMilliseconds = ts.length >= 13;
   const timestampMs = timestampIsMilliseconds ? timestamp : timestamp * 1000;
   const nowMs = Date.now();
   const deltaMs = nowMs - timestampMs;
-  const toleranceSeconds = Math.max(
-    0,
-    Number(process.env.MERCADOPAGO_WEBHOOK_TOLERANCE_SECONDS || 300)
-  );
+  const toleranceSeconds = Math.max(0, Number(process.env.MERCADOPAGO_WEBHOOK_TOLERANCE_SECONDS || 300));
   const toleranceMs = toleranceSeconds * 1000;
 
   if (toleranceSeconds > 0 && Math.abs(deltaMs) > toleranceMs) {
@@ -294,47 +378,9 @@ function validarWebhookMercadoPago(req) {
   }
 
   const dataId = rawDataId.toLowerCase();
-  const variants = [
-    {
-      name: 'oficial',
-      dataId,
-      includeRequestId: Boolean(requestId)
-    },
-    {
-      name: 'sem-lowercase',
-      dataId: rawDataId,
-      includeRequestId: Boolean(requestId)
-    },
-    {
-      name: 'sem-request-id',
-      dataId,
-      includeRequestId: false
-    }
-  ];
-
-  const results = variants.map(variant => {
-    const manifest = [
-      `id:${variant.dataId}`,
-      ...(variant.includeRequestId ? [`request-id:${requestId}`] : []),
-      `ts:${ts}`
-    ].join(';') + ';';
-
-    const expected = crypto
-      .createHmac('sha256', secret)
-      .update(manifest, 'utf8')
-      .digest('hex');
-
-    return {
-      name: variant.name,
-      matches: safeEqual(expected, v1.toLowerCase()),
-      manifestLength: manifest.length,
-      manifestHash: crypto.createHash('sha256').update(manifest, 'utf8').digest('hex').slice(0, 12),
-      expectedPrefix: expected.slice(0, 12)
-    };
-  });
-
-  const official = results.find(item => item.name === 'oficial');
-  const matched = results.filter(item => item.matches).map(item => item.name);
+  const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
+  const expected = crypto.createHmac('sha256', secret).update(manifest, 'utf8').digest('hex');
+  const officialMatch = safeEqual(expected, v1.toLowerCase());
 
   console.log('Diagnóstico HMAC Mercado Pago:', {
     dataId: rawDataId,
@@ -346,20 +392,19 @@ function validarWebhookMercadoPago(req) {
     tsDigits: ts.length,
     deltaSeconds: Number((deltaMs / 1000).toFixed(3)),
     toleranceSeconds,
-    officialMatch: official.matches,
-    matchedVariants: matched,
+    officialMatch,
     receivedV1Prefix: v1.slice(0, 12),
-    variants: results
+    expectedPrefix: expected.slice(0, 12),
+    manifestLength: manifest.length,
+    manifestHash: crypto.createHash('sha256').update(manifest, 'utf8').digest('hex').slice(0, 12)
   });
 
-  if (official.matches) return true;
-
+  if (officialMatch) return true;
   return fail('HMAC divergente', {
     dataIdChangedByLowercase: rawDataId !== dataId,
     hasRequestId: Boolean(requestId),
-    matchedVariants: matched,
     receivedV1Prefix: v1.slice(0, 12),
-    officialExpectedPrefix: official.expectedPrefix
+    officialExpectedPrefix: expected.slice(0, 12)
   });
 }
 
@@ -496,11 +541,7 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
     await aplicarPagamentoAoPedido(payment, orderId);
     return res.sendStatus(200);
   } catch (error) {
-    console.error('Erro ao processar webhook:', {
-      message: error.message,
-      status: error.status || null,
-      paymentId
-    });
+    console.error('Erro ao processar webhook:', { message: error.message, status: error.status || null, paymentId });
     return res.sendStatus(500);
   }
 });
@@ -521,6 +562,8 @@ app.get('/api/order/:id', async (req, res) => {
     status: order.status,
     payment_status: order.payment_status,
     payment_id: order.payment_id || null,
+    metodo: order.metodo || null,
+    pix: order.pix || null,
     updated_at: order.updated_at || null
   });
 });
