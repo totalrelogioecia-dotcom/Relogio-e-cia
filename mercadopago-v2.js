@@ -210,6 +210,21 @@ function buildPreferenceItems(items) {
   });
 }
 
+function buildPaymentAdditionalItems(items) {
+  return items.map(item => {
+    const result = {
+      id: String(item.sku || item.id),
+      title: item.nome.slice(0, 256),
+      quantity: item.quantidade,
+      unit_price: Number((item.unit_price * 0.95).toFixed(2))
+    };
+    if (item.descricao) result.description = item.descricao.slice(0, 256);
+    if (item.foto) result.picture_url = item.foto.slice(0, 1000);
+    if (item.categoria_id) result.category_id = item.categoria_id;
+    return result;
+  });
+}
+
 async function createCheckoutPro({ orderId, items, payer, base }) {
   const body = {
     items: buildPreferenceItems(items),
@@ -248,14 +263,12 @@ async function createCheckoutPro({ orderId, items, payer, base }) {
 async function createPix({ orderId, items, payer, base }) {
   const subtotal = Number(items.reduce((s, i) => s + i.quantidade * i.unit_price, 0).toFixed(2));
   const total = Number((subtotal * 0.95).toFixed(2));
-  const paymentItems = buildPreferenceItems(items).map(item => ({
-    ...item,
-    unit_price: Number((item.unit_price * 0.95).toFixed(2))
-  }));
+  const paymentItems = buildPaymentAdditionalItems(items);
 
   const body = {
     transaction_amount: total,
     description: `Pedido ${orderId}`,
+    statement_descriptor: getStatementDescriptor(),
     payment_method_id: 'pix',
     external_reference: orderId,
     notification_url: `${base}/api/mercadopago/webhook`,
