@@ -79,6 +79,21 @@ function normalizeCartItems(items) {
   });
 }
 
+function buildItemDescription(item) {
+  const cadastrada = String(item?.descricao || '').trim();
+  if (cadastrada) return cadastrada.slice(0, 256);
+
+  const nome = String(item?.nome || 'Produto').trim();
+  const sku = String(item?.sku || '').trim();
+  const partes = [
+    nome,
+    sku ? `SKU ${sku}` : '',
+    'Produto físico vendido pela Relógio e Cia'
+  ].filter(Boolean);
+
+  return partes.join(' - ').slice(0, 256);
+}
+
 function getStatementDescriptor() {
   const raw = String(process.env.MERCADOPAGO_STATEMENT_DESCRIPTOR || 'RELOGIOECIA')
     .normalize('NFD')
@@ -198,12 +213,12 @@ function buildPreferenceItems(items) {
     const result = {
       id: String(item.sku || item.id),
       title: item.nome.slice(0, 256),
+      description: buildItemDescription(item),
       quantity: item.quantidade,
       currency_id: 'BRL',
       unit_price: Number(item.unit_price.toFixed(2)),
       type: 'physical'
     };
-    if (item.descricao) result.description = item.descricao.slice(0, 256);
     if (item.foto) result.picture_url = item.foto.slice(0, 1000);
     if (item.categoria_id) result.category_id = item.categoria_id;
     return result;
@@ -215,10 +230,10 @@ function buildPaymentAdditionalItems(items) {
     const result = {
       id: String(item.sku || item.id),
       title: item.nome.slice(0, 256),
+      description: buildItemDescription(item),
       quantity: item.quantidade,
       unit_price: Number((item.unit_price * 0.95).toFixed(2))
     };
-    if (item.descricao) result.description = item.descricao.slice(0, 256);
     if (item.foto) result.picture_url = item.foto.slice(0, 1000);
     if (item.categoria_id) result.category_id = item.categoria_id;
     return result;
@@ -453,7 +468,7 @@ function registerMercadoPagoV2(app) {
           payment_id: order.payment_id,
           total: order.total,
           sdk_backend: true,
-          item_descriptions: normalized.filter(i => i.descricao).length
+          item_descriptions: normalized.length
         });
         return res.json({
           order_id: orderId,
@@ -488,7 +503,7 @@ function registerMercadoPagoV2(app) {
         total,
         item_count: normalized.length,
         payer_fields: Object.keys(preferencePayer),
-        item_descriptions: normalized.filter(i => i.descricao).length,
+        item_descriptions: normalized.length,
         picture_urls: normalized.filter(i => i.foto).length,
         category_ids: normalized.filter(i => i.categoria_id).length,
         statement_descriptor: getStatementDescriptor(),
