@@ -134,6 +134,28 @@ app.get('/api/admin/orders', admin, (req, res) => {
   res.json(getOrders().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
 });
 
+function dadosSegurosPagamento(payment) {
+  return {
+    id: payment?.id ? String(payment.id) : null,
+    status: payment?.status ? String(payment.status) : null,
+    status_detail: payment?.status_detail ? String(payment.status_detail) : null,
+    payment_method_id: payment?.payment_method_id ? String(payment.payment_method_id) : null,
+    payment_type_id: payment?.payment_type_id ? String(payment.payment_type_id) : null,
+    operation_type: payment?.operation_type ? String(payment.operation_type) : null,
+    transaction_amount: Number.isFinite(Number(payment?.transaction_amount)) ? Number(payment.transaction_amount) : null,
+    transaction_amount_refunded: Number.isFinite(Number(payment?.transaction_amount_refunded)) ? Number(payment.transaction_amount_refunded) : null,
+    currency_id: payment?.currency_id ? String(payment.currency_id) : null,
+    installments: Number.isFinite(Number(payment?.installments)) ? Number(payment.installments) : null,
+    issuer_id: payment?.issuer_id ? String(payment.issuer_id) : null,
+    external_reference: payment?.external_reference ? String(payment.external_reference) : null,
+    date_created: payment?.date_created ? String(payment.date_created) : null,
+    date_approved: payment?.date_approved ? String(payment.date_approved) : null,
+    date_last_updated: payment?.date_last_updated ? String(payment.date_last_updated) : null,
+    money_release_date: payment?.money_release_date ? String(payment.money_release_date) : null,
+    live_mode: typeof payment?.live_mode === 'boolean' ? payment.live_mode : null
+  };
+}
+
 async function criarPagamentoPix({ access, total, payer, orderId, base, description }) {
   const firstName = String(payer.nome || '').trim().split(/\s+/)[0] || 'Cliente';
   const lastName = String(payer.nome || '').trim().split(/\s+/).slice(1).join(' ') || 'Cliente';
@@ -180,6 +202,9 @@ async function criarPagamentoPix({ access, total, payer, orderId, base, descript
   return {
     id: String(data.id),
     status: String(data.status || 'pending'),
+    status_detail: data.status_detail ? String(data.status_detail) : null,
+    payment_method_id: data.payment_method_id ? String(data.payment_method_id) : 'pix',
+    payment_type_id: data.payment_type_id ? String(data.payment_type_id) : null,
     qr_code: String(transactionData.qr_code),
     qr_code_base64: String(transactionData.qr_code_base64),
     ticket_url: transactionData.ticket_url ? String(transactionData.ticket_url) : null
@@ -236,6 +261,11 @@ app.post('/api/checkout', async (req, res) => {
         subtotal,
         desconto_pix: Number((subtotal * descontoPix).toFixed(2)),
         metodo: 'pix',
+        payment_detail: {
+          status_detail: pix.status_detail,
+          payment_method_id: pix.payment_method_id,
+          payment_type_id: pix.payment_type_id
+        },
         pix: {
           qr_code: pix.qr_code,
           qr_code_base64: pix.qr_code_base64,
@@ -247,6 +277,16 @@ app.post('/api/checkout', async (req, res) => {
       const orders = getOrders();
       orders.push(order);
       write(ORDERS, orders);
+
+      console.log('Mercado Pago PIX criado:', {
+        id: pix.id,
+        status: pix.status,
+        status_detail: pix.status_detail,
+        payment_method_id: pix.payment_method_id,
+        payment_type_id: pix.payment_type_id,
+        external_reference: orderId,
+        transaction_amount: total
+      });
 
       return res.json({
         order_id: orderId,
@@ -305,6 +345,12 @@ app.post('/api/checkout', async (req, res) => {
     const orders = getOrders();
     orders.push(order);
     write(ORDERS, orders);
+
+    console.log('Mercado Pago checkout criado:', {
+      preference_id: mp.id || null,
+      external_reference: orderId,
+      init_point: Boolean(mp.init_point)
+    });
 
     res.json({ order_id: orderId, init_point: mp.init_point });
   } catch (error) {
@@ -464,17 +510,15 @@ async function aplicarPagamentoAoPedido(payment, orderId) {
   const order = orders[index];
   const novoStatus = statusDoPagamento(payment.status);
   const pagamentoMudou = String(order.payment_id || '') !== String(payment.id || '') || order.payment_status !== String(payment.status || 'pending');
+  const dadosPagamento = dadosSegurosPagamento(payment);
 
   order.payment_id = String(payment.id || '');
   order.payment_status = String(payment.status || 'pending');
   order.status = novoStatus;
-  order.payment_detail = {
-    status_detail: payment.status_detail || null,
-    payment_type_id: payment.payment_type_id || null,
-    date_approved: payment.date_approved || null,
-    date_last_updated: payment.date_last_updated || null
-  };
+  order.payment_detail = dadosPagamento;
   order.updated_at = new Date().toISOString();
+
+  console.log('Mercado Pago pagamento:', dadosPagamento);
 
   if (payment.status === 'approved' && !order.stock_applied) {
     const products = getProducts();
