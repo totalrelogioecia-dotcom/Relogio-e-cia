@@ -3,4 +3,4 @@ services:
     name: relogio-e-cia
     env: node
     buildCommand: npm install
-    startCommand: node -r ./auth.js server.js
+    startCommand: npm start
