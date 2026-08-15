@@ -14,8 +14,8 @@
     const token = localStorage.getItem('reloja_auth_token');
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const resposta = await fetch(url, { ...options, headers });
-    const dados = await resposta.json().catch(() => ({}));
+    const resposta = await fetch(url, { ...options, headers, credentials: 'same-origin' });
+    const dados = resposta.status === 204 ? {} : await resposta.json().catch(() => ({}));
     if (!resposta.ok) throw new Error(dados.error || 'Não foi possível concluir a operação.');
     return dados;
   }
@@ -55,7 +55,6 @@
       const email = String(campoEmail?.value || '').trim().toLowerCase();
 
       if (!aviso) return;
-
       if (!email) {
         aviso.textContent = 'Informe seu e-mail.';
         aviso.className = 'form-error';
@@ -63,7 +62,6 @@
         campoEmail?.focus();
         return;
       }
-
       if (campoEmail && !campoEmail.checkValidity()) {
         aviso.textContent = 'Informe um endereço de e-mail válido.';
         aviso.className = 'form-error';
@@ -77,7 +75,6 @@
       aviso.style.display = 'none';
 
       try {
-        console.log('Recuperação de senha: solicitando link para e-mail informado.');
         const dados = await api('/api/auth/forgot-password', {
           method: 'POST',
           body: JSON.stringify({ email })
@@ -100,7 +97,6 @@
   function instalarBotao() {
     const tab = document.getElementById('tab-login');
     if (!tab || document.getElementById('btn-esqueci-senha')) return;
-
     const loginButton = document.getElementById('btn-login');
     if (!loginButton) return;
 
@@ -114,12 +110,30 @@
     loginButton.insertAdjacentElement('afterend', botao);
   }
 
+  function instalarLogoutServidor() {
+    const botao = document.getElementById('btn-sair');
+    if (!botao || botao.dataset.logoutServidor === '1') return;
+    botao.dataset.logoutServidor = '1';
+    botao.addEventListener('click', () => {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'same-origin',
+        keepalive: true
+      }).catch(() => {});
+      localStorage.removeItem('reloja_auth_token');
+    }, { capture: true });
+  }
+
+  function instalarTudo() {
+    instalarBotao();
+    instalarLogoutServidor();
+  }
+
   function iniciar() {
     const box = document.getElementById('account-box');
     if (!box) return;
-
-    instalarBotao();
-    new MutationObserver(() => instalarBotao()).observe(box, { childList: true, subtree: true });
+    instalarTudo();
+    new MutationObserver(instalarTudo).observe(box, { childList: true, subtree: true });
   }
 
   document.addEventListener('DOMContentLoaded', iniciar);
