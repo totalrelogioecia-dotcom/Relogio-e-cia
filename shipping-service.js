@@ -1,5 +1,12 @@
 const fs = require('fs');
 const path = require('path');
+const {
+  envMode,
+  baseUrl,
+  userAgent,
+  getAccessToken,
+  status: authStatus
+} = require('./melhorenvio-auth');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
@@ -14,42 +21,24 @@ function digits(value) {
   return String(value || '').replace(/\D/g, '');
 }
 
-function envMode() {
-  return String(process.env.MELHORENVIO_ENV || 'sandbox').trim().toLowerCase() === 'production'
-    ? 'production'
-    : 'sandbox';
-}
-
-function baseUrl() {
-  return envMode() === 'production'
-    ? 'https://melhorenvio.com.br'
-    : 'https://sandbox.melhorenvio.com.br';
-}
-
-function accessToken() {
-  return String(process.env.MELHORENVIO_ACCESS_TOKEN || '').trim();
-}
-
 function originPostalCode() {
   return digits(process.env.MELHORENVIO_FROM_POSTAL_CODE).slice(0, 8);
 }
 
-function userAgent() {
-  return String(
-    process.env.MELHORENVIO_USER_AGENT ||
-    'Relogio e Cia (totalrelogioecia@gmail.com)'
-  ).trim();
-}
-
 function isConfigured() {
-  return Boolean(accessToken() && originPostalCode().length === 8 && userAgent());
+  const auth = authStatus();
+  return Boolean(auth.connected && originPostalCode().length === 8 && userAgent());
 }
 
 function configStatus() {
+  const auth = authStatus();
   return {
     configured: isConfigured(),
     environment: envMode(),
-    token_configured: Boolean(accessToken()),
+    connected: auth.connected,
+    auth_mode: auth.auth_mode,
+    token_configured: auth.access_token_available,
+    oauth_configured: auth.oauth_configured,
     origin_postal_code_configured: originPostalCode().length === 8,
     user_agent_configured: Boolean(userAgent())
   };
@@ -106,11 +95,7 @@ function normalizeItems(rawItems) {
     const issue = validateShippingData(product, shipping);
     if (issue) missing.push(issue);
 
-    return {
-      product,
-      quantity,
-      shipping
-    };
+    return { product, quantity, shipping };
   });
 
   if (missing.length) {
@@ -136,17 +121,25 @@ function buildProducts(rawItems) {
 }
 
 async function callMelhorEnvio(pathname, body) {
-  if (!isConfigured()) {
-    const error = new Error('Frete automático ainda não está configurado no servidor.');
+  if (originPostalCode().length !== 8) {
+    const error = new Error('Configure o CEP de origem do Melhor Envio no servidor.');
     error.status = 503;
-    error.code = 'shipping_not_configured';
+    error.code = 'shipping_origin_missing';
+    throw error;
+  }
+
+  let token;
+  try {
+    token = await getAccessToken();
+  } catch (error) {
+    error.code = error.code || 'shipping_not_configured';
     throw error;
   }
 
   const response = await fetch(`${baseUrl()}${pathname}`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${accessToken()}`,
+      Authorization: `Bearer ${token}`,
       Accept: 'application/json',
       'Content-Type': 'application/json',
       'User-Agent': userAgent()
@@ -197,10 +190,7 @@ async function quoteShipping({ postalCode, items }) {
     from: { postal_code: originPostalCode() },
     to: { postal_code: destination },
     products: buildProducts(items),
-    options: {
-      receipt: false,
-      own_hand: false
-    }
+    options: { receipt: false, own_hand: false }
   };
 
   const result = await callMelhorEnvio('/api/v2/me/shipment/calculate', payload);
