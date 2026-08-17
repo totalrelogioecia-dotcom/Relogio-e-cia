@@ -1,24 +1,26 @@
 /* =========================================================
-   RELÓGIO E CIA — Mostruário de marcas v2
-   Mantém todas as linhas das marcas na posição original.
-   O carrossel usa um palco fixo abaixo da lista, sem empurrar
-   Citizen/Orient nem alterar a altura de cada nome de marca.
-   Referência visual: faixa horizontal de relógios, como no vídeo.
+   RELÓGIO E CIA — Mostruário de marcas v3
+   O nome da marca mantém sua altura original.
+   Ao clicar, o expositor abre verticalmente logo abaixo daquela
+   marca e empurra somente as marcas seguintes para baixo.
    ========================================================= */
 
+/* A lista não reserva mais um palco fixo no final. */
 #marcas .brand-index{
   position:relative;
-  padding-bottom:430px;
-  overflow:visible;
+  padding-bottom:0;
+  overflow:hidden;
+  min-width:0;
+  max-width:100%;
 }
 
-/* As linhas das marcas nunca mudam de tamanho/posição ao abrir. */
+/* A linha da marca continua exatamente com a altura original. */
 #marcas .brand-row,
 #marcas .brand-row:hover,
 #marcas .brand-row.brand-row-open{
   padding-left:0;
   background:var(--bg);
-  z-index:4;
+  z-index:2;
 }
 
 #marcas .brand-row::before{
@@ -38,45 +40,73 @@
   color:var(--red);
 }
 
-/* Todos os painéis ocupam exatamente o mesmo palco fixo. */
+#marcas .brand-row.brand-row-open .arrow{
+  transform:rotate(90deg);
+}
+
+/*
+   O painel já é inserido pelo JavaScript logo depois da linha clicada.
+   Aqui ele volta ao fluxo normal da página: fechado tem altura zero;
+   aberto cresce para baixo sem aumentar a própria linha da marca.
+*/
 #marcas .brand-showcase{
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:0;
+  position:relative;
+  left:auto;
+  right:auto;
+  bottom:auto;
   width:100%;
-  height:410px;
-  max-height:none;
+  height:0;
+  max-height:0;
   min-width:0;
   overflow:hidden;
   visibility:hidden;
   opacity:0;
   pointer-events:none;
-  transform:translateY(10px);
+  transform:none;
   background:var(--bg);
-  border:1px solid var(--line);
-  border-top:0;
-  transition:opacity .28s ease, transform .35s cubic-bezier(.22,.72,.2,1), visibility 0s linear .35s;
-  z-index:3;
+  border:0 solid var(--line);
+  transition:
+    height .48s cubic-bezier(.22,.72,.2,1),
+    max-height .48s cubic-bezier(.22,.72,.2,1),
+    opacity .25s ease,
+    border-width .25s ease,
+    visibility 0s linear .48s;
+  z-index:1;
 }
 
 #marcas .brand-showcase.is-open{
-  max-height:none;
+  height:410px;
+  max-height:410px;
   visibility:visible;
   opacity:1;
   pointer-events:auto;
-  transform:translateY(0);
+  border-left-width:1px;
+  border-right-width:1px;
   border-bottom-width:1px;
-  transition:opacity .28s ease, transform .35s cubic-bezier(.22,.72,.2,1), visibility 0s;
+  transition:
+    height .48s cubic-bezier(.22,.72,.2,1),
+    max-height .48s cubic-bezier(.22,.72,.2,1),
+    opacity .25s ease,
+    border-width .25s ease,
+    visibility 0s;
 }
 
 #marcas .brand-showcase-head{
   height:72px;
   padding:16px 18px 14px;
+  display:flex;
+  justify-content:space-between;
   align-items:center;
+  gap:20px;
   background:var(--bg-soft);
   border-top:1px solid var(--ink);
   border-bottom:1px solid var(--line);
+}
+
+#marcas .brand-showcase-head > div:first-child{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
 }
 
 #marcas .brand-showcase-head strong{
@@ -87,13 +117,19 @@
   font-size:.6rem;
 }
 
+#marcas .brand-showcase-nav{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
 #marcas .brand-showcase-nav button{
   width:42px;
   height:42px;
   border-radius:0;
 }
 
-/* Área horizontal: sem aumentar a página e sem scrollbar global. */
+/* Carrossel horizontal dentro da expansão vertical. */
 #marcas .brand-showcase-viewport{
   height:calc(100% - 72px);
   width:100%;
@@ -104,6 +140,7 @@
   padding:0;
   scroll-snap-type:x mandatory;
   scrollbar-width:none;
+  overscroll-behavior-inline:contain;
 }
 
 #marcas .brand-showcase-viewport::-webkit-scrollbar{
@@ -120,7 +157,7 @@
   height:100%;
 }
 
-/* Cartões mais próximos do vídeo: imagem grande e limpa. */
+/* Cartões com imagem grande, mantendo a estética do vídeo. */
 #marcas .home-watch-card{
   height:100%;
   min-height:0;
@@ -224,21 +261,19 @@
   border-top:1px solid var(--ink);
 }
 
-/* Impede qualquer elemento do mostruário de criar rolagem horizontal na página. */
+/* Impede o carrossel de criar rolagem horizontal na página inteira. */
 #marcas,
 #marcas .section-content,
-#marcas .brand-index{
+#marcas .brand-index,
+#marcas .brand-showcase{
   min-width:0;
   max-width:100%;
 }
 
 @media (max-width:900px){
-  #marcas .brand-index{
-    padding-bottom:390px;
-  }
-
-  #marcas .brand-showcase{
-    height:370px;
+  #marcas .brand-showcase.is-open{
+    height:390px;
+    max-height:390px;
   }
 
   #marcas .brand-showcase-track{
@@ -247,12 +282,9 @@
 }
 
 @media (max-width:640px){
-  #marcas .brand-index{
-    padding-bottom:430px;
-  }
-
-  #marcas .brand-showcase{
+  #marcas .brand-showcase.is-open{
     height:410px;
+    max-height:410px;
   }
 
   #marcas .brand-showcase-head{
