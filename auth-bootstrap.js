@@ -2,6 +2,7 @@ const express = require('express');
 const { registerAuthRoutes, userFromRequest } = require('./auth');
 const { storageStatus } = require('./persistent-store');
 const { registerMercadoPagoV2 } = require('./mercadopago-v2');
+const { registerMercadoPagoWebhookCompat } = require('./mercadopago-webhook-compat');
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
@@ -36,6 +37,11 @@ if (!originalExpress.__relogioAuthPatched) {
       }
       next();
     });
+
+    // O Mercado Pago pode enviar em produção uma notificação assinada com data.id,
+    // porém sem o campo type. Essa camada trata apenas essa variação observada,
+    // antes da rota principal, mantendo a validação HMAC.
+    registerMercadoPagoWebhookCompat(app);
 
     // Nova integração do Mercado Pago. Ela é registrada antes das rotas legadas
     // do server.js e, portanto, passa a responder /api/checkout e o webhook.
