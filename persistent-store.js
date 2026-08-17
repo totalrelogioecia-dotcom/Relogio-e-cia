@@ -11,7 +11,8 @@ const FILES = new Map([
   [path.resolve(path.join(DATA, 'orders.json')), 'orders'],
   [path.resolve(path.join(DATA, 'users.json')), 'users'],
   [path.resolve(path.join(DATA, 'password-reset-tokens.json')), 'password_reset_tokens'],
-  [path.resolve(path.join(DATA, 'shipping-products.json')), 'shipping_products']
+  [path.resolve(path.join(DATA, 'shipping-products.json')), 'shipping_products'],
+  [path.resolve(path.join(DATA, 'melhorenvio-auth.json')), 'melhorenvio_auth']
 ]);
 
 let pool = null;
@@ -48,7 +49,6 @@ function databaseSsl(connectionString) {
     return { rejectUnauthorized: false };
   }
 
-  // No Render, a URL externa normalmente inclui sslmode=require; a URL interna não precisa TLS.
   try {
     const url = new URL(connectionString);
     const sslMode = String(url.searchParams.get('sslmode') || '').toLowerCase();
@@ -145,7 +145,7 @@ async function initPersistentStore() {
       continue;
     }
 
-    const seedFallback = key === 'shipping_products' ? {} : [];
+    const seedFallback = ['shipping_products', 'melhorenvio_auth'].includes(key) ? {} : [];
     const seed = readLocalJson(file, seedFallback);
     await upsertState(key, seed);
     writeLocalJson(file, seed);
@@ -154,7 +154,7 @@ async function initPersistentStore() {
 
   patchFileWrites();
   ready = true;
-  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação e dados de frete.');
+  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete e OAuth do Melhor Envio.');
   return { persistent: true, provider: 'postgresql' };
 }
 
