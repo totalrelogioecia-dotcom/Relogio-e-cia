@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="home-enhancements.css">
 </head>
 <body>
 
@@ -59,7 +60,7 @@
         <div class="clock-panel">
           <p class="stopwatch-label">Horário de Brasília</p>
           <div class="clock-face-wrap">
-            <svg class="clock-svg" id="analog-clock" viewBox="0 0 200 200" role="img" aria-label="Relógio analógico com o horário de Brasília">
+            <svg class="clock-svg" id="analog-clock-brasilia" viewBox="0 0 200 200" role="img" aria-label="Relógio analógico com o horário de Brasília">
               <circle class="clock-ring" cx="100" cy="100" r="94"></circle>
               <g id="clock-ticks"></g>
               <line id="hand-hour" class="hand hand-hour" x1="100" y1="100" x2="100" y2="58"></line>
@@ -72,7 +73,7 @@
               <circle class="clock-center" cx="100" cy="100" r="3.2"></circle>
             </svg>
           </div>
-          <p class="stopwatch-caption" id="stopwatch-data">Carregando data...</p>
+          <p class="stopwatch-caption" id="stopwatch-data">Carregando horário de Brasília...</p>
         </div>
       </div>
     </div>
@@ -91,7 +92,7 @@
           <div>
             <h2>Marcas que trabalhamos</h2>
           </div>
-          <p>Todo produto vendido é original, com nota fiscal e garantia do fabricante.</p>
+          <p>Todo produto vendido é original, com nota fiscal e garantia do fabricante. Clique em uma marca para abrir o mostruário de relógios.</p>
         </div>
 
         <div class="brand-index">
@@ -242,5 +243,6 @@
 </footer>
 
 <script src="script.js"></script>
+<script src="home-enhancements.js"></script>
 </body>
 </html>
