@@ -7,6 +7,8 @@ const {
   SHIPPING_PRODUCTS
 } = require('./shipping-service');
 
+const quoteAttempts = new Map();
+
 function read(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch { return fallback; }
@@ -38,6 +40,29 @@ function validAdminToken(value) {
 function admin(req, res, next) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!validAdminToken(token)) return res.status(401).json({ error: 'Sessão administrativa inválida ou expirada.' });
+  next();
+}
+
+function quoteRateLimit(req, res, next) {
+  const now = Date.now();
+  const windowMs = 60_000;
+  const max = 20;
+  const key = String(req.ip || req.socket?.remoteAddress || 'unknown');
+  const current = (quoteAttempts.get(key) || []).filter(time => now - time < windowMs);
+  if (current.length >= max) {
+    quoteAttempts.set(key, current);
+    res.set('Retry-After', '60');
+    return res.status(429).json({ error: 'Muitas cotações em pouco tempo. Aguarde um minuto e tente novamente.' });
+  }
+  current.push(now);
+  quoteAttempts.set(key, current);
+  if (quoteAttempts.size > 1000) {
+    for (const [ip, times] of quoteAttempts.entries()) {
+      const fresh = times.filter(time => now - time < windowMs);
+      if (fresh.length) quoteAttempts.set(ip, fresh);
+      else quoteAttempts.delete(ip);
+    }
+  }
   next();
 }
 
@@ -77,7 +102,7 @@ function registerShippingRoutes(app) {
     res.json(configStatus());
   });
 
-  app.post('/api/shipping/quote', async (req, res) => {
+  app.post('/api/shipping/quote', quoteRateLimit, async (req, res) => {
     try {
       const result = await quoteShipping({
         postalCode: req.body?.postal_code,
