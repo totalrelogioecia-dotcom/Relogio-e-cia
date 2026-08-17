@@ -73,6 +73,38 @@ function normalizeProduct(p) {
   };
 }
 
+function isPaidOrder(order) {
+  return String(order?.status || '').toLowerCase() === 'paid' || String(order?.payment_status || '').toLowerCase() === 'approved';
+}
+
+function normalizeInvoiceInput(body, previous = null) {
+  const allowed = new Set(['pending', 'emitted', 'cancelled']);
+  const status = String(body?.status || previous?.status || 'pending').trim().toLowerCase();
+  if (!allowed.has(status)) throw Object.assign(new Error('Status da nota fiscal inválido.'), { statusCode: 400 });
+
+  const number = String(body?.number ?? previous?.number ?? '').trim().slice(0, 40);
+  const accessKey = String(body?.access_key ?? previous?.access_key ?? '').replace(/\D/g, '').slice(0, 44);
+
+  if (status === 'emitted') {
+    if (!number) throw Object.assign(new Error('Informe o número da NF-e.'), { statusCode: 400 });
+    if (accessKey.length !== 44) throw Object.assign(new Error('A chave de acesso da NF-e deve ter 44 dígitos.'), { statusCode: 400 });
+  }
+
+  if (status === 'cancelled' && !number && !accessKey) {
+    throw Object.assign(new Error('Registre a NF-e antes de marcá-la como cancelada.'), { statusCode: 400 });
+  }
+
+  const now = new Date().toISOString();
+  return {
+    status,
+    number: status === 'pending' ? '' : number,
+    access_key: status === 'pending' ? '' : accessKey,
+    issued_at: status === 'emitted' ? (previous?.issued_at || now) : (previous?.issued_at || null),
+    cancelled_at: status === 'cancelled' ? now : null,
+    updated_at: now
+  };
+}
+
 app.get('/healthz', (req, res) => res.json({ ok: true }));
 
 app.get('/api/products', (req, res) => {
@@ -134,6 +166,38 @@ app.delete('/api/admin/products/:id', admin, (req, res) => {
 
 app.get('/api/admin/orders', admin, (req, res) => {
   res.json(getOrders().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+});
+
+app.patch('/api/admin/orders/:id/invoice', admin, (req, res) => {
+  try {
+    const orderId = String(req.params.id || '').trim();
+    const orders = getOrders();
+    const index = orders.findIndex(order => String(order.id) === orderId);
+    if (index < 0) return res.status(404).json({ error: 'Pedido não encontrado.' });
+
+    const order = orders[index];
+    const requestedStatus = String(req.body?.status || order.invoice?.status || 'pending').trim().toLowerCase();
+    if (requestedStatus === 'emitted' && !isPaidOrder(order)) {
+      return res.status(409).json({ error: 'A NF-e só pode ser registrada como emitida após a confirmação do pagamento.' });
+    }
+
+    order.invoice = normalizeInvoiceInput(req.body, order.invoice || null);
+    order.updated_at = new Date().toISOString();
+    orders[index] = order;
+    write(ORDERS, orders);
+
+    console.log('Nota fiscal atualizada:', {
+      orderId,
+      invoice_status: order.invoice.status,
+      invoice_number: order.invoice.number || null
+    });
+
+    res.json(order);
+  } catch (error) {
+    const status = Number(error?.statusCode) || 500;
+    if (status >= 500) console.error('Erro ao atualizar nota fiscal:', error);
+    res.status(status).json({ error: error.message || 'Não foi possível atualizar a nota fiscal.' });
+  }
 });
 
 app.get('/api/admin/payment-config', admin, (req, res) => {
