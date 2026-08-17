@@ -4,6 +4,7 @@ const token=()=>localStorage.getItem(tokenKey);
 const MAX_PHOTOS=8;
 const MAX_TOTAL_PHOTO_BYTES=7*1024*1024;
 let currentPhotos=[];
+let currentInvoiceOrder=null;
 
 async function api(url,opts={}){opts.headers={...(opts.headers||{}),Authorization:`Bearer ${token()}`,'Content-Type':'application/json'};const r=await fetch(url,opts);const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Erro');return d;}
 function msg(text,ok=false){const e=$('#admin-msg');e.className=ok?'form-success':'form-error';e.textContent=text;e.style.display='block';setTimeout(()=>e.style.display='none',3500);}
@@ -84,11 +85,92 @@ async function saveProduct(){
   try{await api(id?`/api/admin/products/${id}`:'/api/admin/products',{method:id?'PUT':'POST',body:JSON.stringify(body)});$('#product-editor').style.display='none';msg('Produto salvo com sucesso.',true);loadProducts();}catch(e){msg(e.message);}
 }
 async function delProduct(id){if(!confirm('Ocultar este produto da loja?'))return;try{await api('/api/admin/products/'+id,{method:'DELETE'});msg('Produto ocultado.',true);loadProducts();}catch(e){msg(e.message);}}
-async function loadOrders(){try{const os=await api('/api/admin/orders');$('#orders-list').innerHTML=`<table class="admin-table"><thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Pagamento</th><th>Data</th></tr></thead><tbody>${os.map(o=>`<tr><td><strong>${esc(o.id)}</strong></td><td>${esc(o.payer?.nome||'')}<br><small>${esc(o.payer?.email||'')}</small></td><td>${brl(o.total)}</td><td><span class="status ${o.status}">${esc(o.payment_status||o.status)}</span></td><td>${new Date(o.created_at).toLocaleString('pt-BR')}</td></tr>`).join('')||'<tr><td colspan="5">Nenhum pedido ainda.</td></tr>'}</tbody></table>`;}catch(e){msg(e.message);}}
+
+function paidOrder(o){return String(o?.status||'').toLowerCase()==='paid'||String(o?.payment_status||'').toLowerCase()==='approved';}
+function invoiceStatus(o){return String(o?.invoice?.status||'pending').toLowerCase();}
+function invoiceLabel(status){return ({pending:'Pendente',emitted:'Emitida',cancelled:'Cancelada'})[status]||'Pendente';}
+function invoiceCell(o){
+  if(!paidOrder(o))return '<span class="invoice-status waiting">Aguardando pagamento</span>';
+  const st=invoiceStatus(o),inv=o.invoice||{};
+  const number=inv.number?`<small>NF ${esc(inv.number)}</small>`:'';
+  const key=inv.access_key?`<small title="${escAttr(inv.access_key)}">Chave …${esc(inv.access_key.slice(-8))}</small>`:'';
+  return `<div class="invoice-cell"><span class="invoice-status ${st}">${invoiceLabel(st)}</span>${number}${key}</div>`;
+}
+function ensureInvoiceModal(){
+  if($('#invoice-modal'))return;
+  const wrap=document.createElement('div');
+  wrap.id='invoice-modal';
+  wrap.className='admin-modal-backdrop';
+  wrap.setAttribute('aria-hidden','true');
+  wrap.innerHTML=`<div class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-modal-title">
+    <button type="button" class="admin-modal-close" id="invoice-close" aria-label="Fechar">×</button>
+    <p class="eyebrow">Nota fiscal</p>
+    <h2 id="invoice-modal-title">Registrar NF-e</h2>
+    <p class="admin-muted" id="invoice-order-label"></p>
+    <div id="invoice-form-error" class="form-error" style="display:none"></div>
+    <div class="form-field"><label>Status</label><select id="invoice-status"><option value="pending">Pendente</option><option value="emitted">Emitida</option><option value="cancelled">Cancelada</option></select></div>
+    <div class="form-field"><label>Número da NF-e</label><input id="invoice-number" maxlength="40" placeholder="Ex.: 12345"></div>
+    <div class="form-field"><label>Chave de acesso</label><input id="invoice-key" inputmode="numeric" maxlength="44" placeholder="44 dígitos"></div>
+    <p class="invoice-help">Para marcar como emitida, informe o número e a chave de acesso de 44 dígitos. O site apenas registra os dados da nota; a emissão continua sendo feita no sistema fiscal da empresa.</p>
+    <div class="editor-actions"><button type="button" id="invoice-save" class="btn btn-primary">Salvar NF-e</button><button type="button" id="invoice-cancel" class="btn btn-outline">Fechar</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  $('#invoice-close').onclick=closeInvoiceModal;
+  $('#invoice-cancel').onclick=closeInvoiceModal;
+  wrap.addEventListener('click',e=>{if(e.target===wrap)closeInvoiceModal();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&wrap.classList.contains('open'))closeInvoiceModal();});
+  $('#invoice-status').onchange=syncInvoiceFields;
+  $('#invoice-key').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,44);};
+  $('#invoice-save').onclick=saveInvoice;
+}
+function syncInvoiceFields(){
+  const st=$('#invoice-status')?.value;
+  const pending=st==='pending';
+  $('#invoice-number').disabled=pending;
+  $('#invoice-key').disabled=pending;
+  if(pending){$('#invoice-number').value='';$('#invoice-key').value='';}
+}
+function openInvoiceModal(order){
+  ensureInvoiceModal();
+  currentInvoiceOrder=order;
+  const inv=order.invoice||{};
+  $('#invoice-order-label').textContent=`Pedido ${order.id} · ${order.payer?.nome||'Cliente'} · ${brl(order.total)}`;
+  $('#invoice-status').value=inv.status||'pending';
+  $('#invoice-number').value=inv.number||'';
+  $('#invoice-key').value=inv.access_key||'';
+  $('#invoice-form-error').style.display='none';
+  syncInvoiceFields();
+  const modal=$('#invoice-modal');
+  modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('admin-modal-open');
+}
+function closeInvoiceModal(){const modal=$('#invoice-modal');if(!modal)return;modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('admin-modal-open');currentInvoiceOrder=null;}
+async function saveInvoice(){
+  if(!currentInvoiceOrder)return;
+  const errorBox=$('#invoice-form-error');
+  const status=$('#invoice-status').value;
+  const number=$('#invoice-number').value.trim();
+  const access_key=$('#invoice-key').value.replace(/\D/g,'');
+  if(status==='emitted'&&!number){errorBox.textContent='Informe o número da NF-e.';errorBox.style.display='block';return;}
+  if(status==='emitted'&&access_key.length!==44){errorBox.textContent='A chave de acesso deve ter exatamente 44 dígitos.';errorBox.style.display='block';return;}
+  const btn=$('#invoice-save');btn.disabled=true;btn.textContent='Salvando...';
+  try{
+    await api(`/api/admin/orders/${encodeURIComponent(currentInvoiceOrder.id)}/invoice`,{method:'PATCH',body:JSON.stringify({status,number,access_key})});
+    closeInvoiceModal();msg('Dados da nota fiscal salvos com sucesso.',true);await loadOrders();
+  }catch(e){errorBox.textContent=e.message;errorBox.style.display='block';}
+  finally{btn.disabled=false;btn.textContent='Salvar NF-e';}
+}
+async function loadOrders(){
+  try{
+    const os=await api('/api/admin/orders');
+    $('#orders-list').innerHTML=`<table class="admin-table orders-table"><thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Pagamento</th><th>Nota fiscal</th><th>Data</th><th>Ações</th></tr></thead><tbody>${os.map(o=>`<tr><td><strong>${esc(o.id)}</strong></td><td>${esc(o.payer?.nome||'')}<br><small>${esc(o.payer?.email||'')}</small></td><td>${brl(o.total)}</td><td><span class="status ${escAttr(o.status)}">${esc(o.payment_status||o.status)}</span></td><td>${invoiceCell(o)}</td><td>${new Date(o.created_at).toLocaleString('pt-BR')}</td><td><div class="admin-actions">${paidOrder(o)?`<button data-invoice="${escAttr(o.id)}">${invoiceStatus(o)==='pending'?'Registrar NF-e':'Editar NF-e'}</button>`:'<button disabled title="Aguarde a confirmação do pagamento">Registrar NF-e</button>'}</div></td></tr>`).join('')||'<tr><td colspan="7">Nenhum pedido ainda.</td></tr>'}</tbody></table>`;
+    os.forEach(o=>{const b=document.querySelector(`[data-invoice="${CSS.escape(String(o.id))}"]`);if(b)b.onclick=()=>openInvoiceModal(o);});
+  }catch(e){msg(e.message);}
+}
 function brl(v){return Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 $('#login-btn').onclick=login;$('#admin-senha').onkeydown=e=>{if(e.key==='Enter')login()};$('#logout-btn').onclick=()=>{localStorage.removeItem(tokenKey);location.reload()};$('#novo-produto').onclick=()=>{resetPhotos();fill()};$('#salvar-produto').onclick=saveProduct;$('#cancelar-produto').onclick=()=>$('#product-editor').style.display='none';$('#refresh-orders').onclick=loadOrders;
 document.querySelectorAll('.admin-tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.admin-tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');const p=b.dataset.tab==='produtos';$('#tab-produtos').style.display=p?'block':'none';$('#tab-pedidos').style.display=p?'none':'block';if(!p)loadOrders();});
 setupPhotoDropzone();
+ensureInvoiceModal();
 if(token())showDash();
