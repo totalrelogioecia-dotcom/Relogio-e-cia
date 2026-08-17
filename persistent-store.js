@@ -10,7 +10,8 @@ const FILES = new Map([
   [path.resolve(path.join(DATA, 'products.json')), 'products'],
   [path.resolve(path.join(DATA, 'orders.json')), 'orders'],
   [path.resolve(path.join(DATA, 'users.json')), 'users'],
-  [path.resolve(path.join(DATA, 'password-reset-tokens.json')), 'password_reset_tokens']
+  [path.resolve(path.join(DATA, 'password-reset-tokens.json')), 'password_reset_tokens'],
+  [path.resolve(path.join(DATA, 'shipping-products.json')), 'shipping_products']
 ]);
 
 let pool = null;
@@ -144,15 +145,16 @@ async function initPersistentStore() {
       continue;
     }
 
-    const seed = readLocalJson(file, []);
+    const seedFallback = key === 'shipping_products' ? {} : [];
+    const seed = readLocalJson(file, seedFallback);
     await upsertState(key, seed);
     writeLocalJson(file, seed);
-    console.log('Dados migrados para PostgreSQL:', { key, registros: Array.isArray(seed) ? seed.length : 1 });
+    console.log('Dados migrados para PostgreSQL:', { key, registros: Array.isArray(seed) ? seed.length : Object.keys(seed || {}).length });
   }
 
   patchFileWrites();
   ready = true;
-  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários e tokens de recuperação.');
+  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação e dados de frete.');
   return { persistent: true, provider: 'postgresql' };
 }
 
