@@ -5,6 +5,7 @@ const { registerMercadoPagoV2 } = require('./mercadopago-v2');
 const { registerMercadoPagoWebhookCompat } = require('./mercadopago-webhook-compat');
 const { registerShippingRoutes } = require('./shipping-routes');
 const { registerCheckoutWithShipping } = require('./checkout-with-shipping');
+const { registerMelhorEnvioOAuthRoutes } = require('./melhorenvio-oauth-routes');
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
@@ -12,6 +13,7 @@ if (!originalExpress.__relogioAuthPatched) {
     const app = originalExpress(...args);
 
     registerAuthRoutes(app);
+    registerMelhorEnvioOAuthRoutes(app);
     registerShippingRoutes(app);
 
     app.get('/api/storage-status', (req, res) => {
