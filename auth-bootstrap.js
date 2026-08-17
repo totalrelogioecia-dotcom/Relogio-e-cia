@@ -3,6 +3,8 @@ const { registerAuthRoutes, userFromRequest } = require('./auth');
 const { storageStatus } = require('./persistent-store');
 const { registerMercadoPagoV2 } = require('./mercadopago-v2');
 const { registerMercadoPagoWebhookCompat } = require('./mercadopago-webhook-compat');
+const { registerShippingRoutes } = require('./shipping-routes');
+const { registerCheckoutWithShipping } = require('./checkout-with-shipping');
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
@@ -10,6 +12,7 @@ if (!originalExpress.__relogioAuthPatched) {
     const app = originalExpress(...args);
 
     registerAuthRoutes(app);
+    registerShippingRoutes(app);
 
     app.get('/api/storage-status', (req, res) => {
       res.set('Cache-Control', 'no-store');
@@ -37,6 +40,10 @@ if (!originalExpress.__relogioAuthPatched) {
       }
       next();
     });
+
+    // Quando houver uma opção de frete selecionada, esta rota recalcula o valor
+    // no servidor e inclui o custo no PIX ou no Checkout Pro.
+    registerCheckoutWithShipping(app);
 
     // O Mercado Pago pode enviar em produção uma notificação assinada com data.id,
     // porém sem o campo type. Essa camada trata apenas essa variação observada,
