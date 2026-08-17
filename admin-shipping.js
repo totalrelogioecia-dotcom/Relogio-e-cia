@@ -5,6 +5,7 @@
 (function () {
   const TOKEN_KEY = 'reloja_admin_token';
   let shippingMap = {};
+  let refreshing = false;
 
   const $ = s => document.querySelector(s);
   const token = () => localStorage.getItem(TOKEN_KEY) || '';
@@ -58,7 +59,8 @@
   }
 
   async function loadShippingMap() {
-    if (!token()) return;
+    if (!token() || refreshing) return;
+    refreshing = true;
     try {
       const response = await fetch('/api/admin/shipping-products', {
         headers: { Authorization: `Bearer ${token()}`, Accept: 'application/json' },
@@ -66,6 +68,7 @@
       });
       if (response.ok) shippingMap = await response.json();
     } catch {}
+    finally { refreshing = false; }
   }
 
   async function saveShipping(productId, payload) {
@@ -85,10 +88,10 @@
 
   function enhanceProductRows() {
     document.querySelectorAll('#products-list tbody tr').forEach(row => {
-      if (row.querySelector('.shipping-product-status')) return;
       const edit = row.querySelector('[data-edit]');
       const first = row.querySelector('td');
       if (!edit || !first) return;
+      row.querySelector('.shipping-product-status')?.remove();
       const d = shippingMap[String(edit.dataset.edit)] || {};
       const ok = complete({ weight_kg:d.weight_kg, width_cm:d.width_cm, height_cm:d.height_cm, length_cm:d.length_cm });
       const badge = document.createElement('span');
@@ -102,8 +105,12 @@
   function watchEditorActions() {
     document.addEventListener('click', event => {
       const edit = event.target.closest('[data-edit]');
-      if (edit) setTimeout(() => fillFields(edit.dataset.edit), 0);
+      if (edit) setTimeout(async () => { await loadShippingMap(); fillFields(edit.dataset.edit); }, 0);
       if (event.target.closest('#novo-produto')) setTimeout(() => { ensureFields(); clearFields(); }, 0);
+      if (event.target.closest('#login-btn')) setTimeout(async () => {
+        await loadShippingMap();
+        enhanceProductRows();
+      }, 700);
     });
   }
 
@@ -143,12 +150,13 @@
 
     const list = $('#products-list');
     if (list) {
-      new MutationObserver(() => {
+      new MutationObserver(async () => {
+        if (token() && !Object.keys(shippingMap).length) await loadShippingMap();
         enhanceProductRows();
         document.querySelectorAll('[data-edit]').forEach(button => {
           if (button.dataset.shippingBound) return;
           button.dataset.shippingBound = '1';
-          button.addEventListener('click', () => setTimeout(() => fillFields(button.dataset.edit), 0));
+          button.addEventListener('click', () => setTimeout(async () => { await loadShippingMap(); fillFields(button.dataset.edit); }, 0));
         });
       }).observe(list, { childList: true, subtree: true });
     }
