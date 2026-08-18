@@ -4,6 +4,7 @@
   const normalize = value => String(value ?? '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[-‐‑‒–—−]/g, '')
     .toLowerCase()
     .trim();
 
@@ -89,7 +90,7 @@
         </div>
         <div class="site-search-input-wrap">
           <span aria-hidden="true">⌕</span>
-          <input id="site-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Ex.: F-91W, G-Shock, Technos..." aria-label="Pesquisar por nome, marca ou referência">
+          <input id="site-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Ex.: F91W, GA2100, G-Shock..." aria-label="Pesquisar por nome, marca ou referência">
           <kbd>ESC</kbd>
         </div>
         <div class="site-search-meta" id="site-search-meta">Pesquise por nome, marca, modelo ou referência.</div>
