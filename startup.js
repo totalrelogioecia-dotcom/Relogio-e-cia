@@ -5,6 +5,7 @@ const {
   flushPersistentStore,
   closePersistentStore
 } = require('./persistent-store');
+const { runProductDataMigrations } = require('./product-data-migrations');
 
 let shuttingDown = false;
 
@@ -32,6 +33,11 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 (async () => {
   try {
     await initPersistentStore();
+    // As migrações rodam somente depois de o conteúdo persistido do PostgreSQL
+    // ser materializado nos arquivos locais; assim as correções chegam ao banco
+    // em vez de serem substituídas pelos dados antigos durante o boot.
+    runProductDataMigrations();
+    await flushPersistentStore();
     require('./auth-bootstrap');
     require('./server');
   } catch (error) {
