@@ -62,12 +62,16 @@
 
     if (status.oauth_configured) {
       badge.className = 'melhorenvio-badge pending';
-      badge.textContent = 'Aguardando autorização';
-      text.textContent = status.origin_postal_code_configured
-        ? 'As credenciais estão no servidor. Falta apenas autorizar a conta do Melhor Envio.'
-        : 'As credenciais estão no servidor. Configure também o CEP de origem antes dos testes de frete.';
+      badge.textContent = status.connected ? 'Configuração incompleta' : 'Aguardando autorização';
+      if (status.connected && !status.origin_postal_code_configured) {
+        text.textContent = 'A conta já está autorizada. Falta apenas o CEP de origem no servidor.';
+      } else {
+        text.textContent = status.origin_postal_code_configured
+          ? 'As credenciais estão no servidor. Falta apenas autorizar a conta do Melhor Envio.'
+          : 'As credenciais estão no servidor. Configure também o CEP de origem antes dos testes de frete.';
+      }
       button.disabled = false;
-      button.textContent = 'Conectar Melhor Envio';
+      button.textContent = status.connected ? 'Reautorizar conta' : 'Conectar Melhor Envio';
       return;
     }
 
@@ -82,7 +86,9 @@
     if (!token()) return;
     ensureCard();
     try {
-      const status = await api('/api/admin/melhorenvio/status');
+      // Esta rota reúne o estado real da autenticação e também do CEP de origem.
+      // O endpoint administrativo de OAuth sozinho não informa o CEP.
+      const status = await api('/api/shipping/config');
       render(status);
     } catch (error) {
       const text = document.getElementById('melhorenvio-admin-text');
