@@ -6,6 +6,7 @@ const {
   closePersistentStore
 } = require('./persistent-store');
 const { runProductDataMigrations } = require('./product-data-migrations');
+const { runProductPhotoMigrations } = require('./product-photo-migrations');
 
 let shuttingDown = false;
 
@@ -37,6 +38,7 @@ process.on('SIGINT', () => shutdown('SIGINT'));
     // ser materializado nos arquivos locais; assim as correções chegam ao banco
     // em vez de serem substituídas pelos dados antigos durante o boot.
     runProductDataMigrations();
+    runProductPhotoMigrations();
     await flushPersistentStore();
     require('./auth-bootstrap');
     require('./server');
