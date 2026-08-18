@@ -4,7 +4,6 @@
 
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));}
   function escAttr(v){return esc(v).replace(/`/g,'&#96;');}
-  function brandValue(){return String($('#p-marca')?.value||'').trim().toLowerCase();}
 
   function ensureBox(){
     const sku=$('#p-sku');
@@ -15,8 +14,8 @@
     box.className='product-enrichment-box';
     box.innerHTML=`
       <div class="enrichment-copy">
-        <strong>Busca inteligente — Casio, G-Shock e Orient</strong>
-        <span>Digite a referência exata. O sistema escolhe a fonte oficial pela marca; se a marca estiver vazia, tenta identificar automaticamente.</span>
+        <strong>Busca inteligente — Casio e G-Shock</strong>
+        <span>Digite a referência exata para buscar fotos e especificações nos catálogos oficiais da Casio e G-Shock.</span>
       </div>
       <button type="button" id="buscar-referencia" class="btn btn-outline">Buscar dados pela referência</button>
       <div id="enrichment-status" class="enrichment-status" aria-live="polite"></div>`;
@@ -24,8 +23,8 @@
     $('#buscar-referencia').onclick=buscar;
   }
 
-  async function consultar(route,sku,signal){
-    const r=await fetch(`${route}?sku=${encodeURIComponent(sku)}`,{cache:'no-store',signal});
+  async function consultar(sku,signal){
+    const r=await fetch(`/api/casio-enrichment?sku=${encodeURIComponent(sku)}`,{cache:'no-store',signal});
     const data=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(data.error||'Não foi possível localizar essa referência.');
     return data;
@@ -37,25 +36,13 @@
     const btn=$('#buscar-referencia');
     if(!sku){status.innerHTML='<span class="bad">Informe primeiro a referência/SKU.</span>';return;}
     btn.disabled=true;btn.textContent='Buscando...';
-    const marca=brandValue();
-    status.textContent=marca.includes('orient')?'Consultando Orient e Painel de Fotos...':'Consultando catálogos oficiais...';
+    status.textContent='Consultando os catálogos oficiais Casio/G-Shock...';
     const controller=new AbortController();
     const timer=setTimeout(()=>controller.abort(),45000);
     try{
-      let data;
-      if(marca.includes('orient')){
-        data=await consultar('/api/orient-enrichment',sku,controller.signal);
-      }else if(marca.includes('casio')||marca.includes('g-shock')||marca.includes('gshock')){
-        data=await consultar('/api/casio-enrichment',sku,controller.signal);
-      }else{
-        try{data=await consultar('/api/casio-enrichment',sku,controller.signal);}
-        catch(first){
-          try{data=await consultar('/api/orient-enrichment',sku,controller.signal);}
-          catch(second){throw new Error(`${first.message} Também não encontrei a referência na Orient.`);}
-        }
-      }
+      const data=await consultar(sku,controller.signal);
       mostrarPreview(data);
-      status.innerHTML=`<span class="ok">Encontrado em ${esc(data.origem||'fonte oficial')}. Revise antes de aplicar.</span>`;
+      status.innerHTML=`<span class="ok">Encontrado em ${esc(data.origem||'fonte oficial Casio/G-Shock')}. Revise antes de aplicar.</span>`;
     }catch(e){
       const m=e?.name==='AbortError'?'A consulta demorou demais. Tente novamente em alguns segundos.':(e.message||'Não foi possível buscar essa referência.');
       status.innerHTML=`<span class="bad">${esc(m)}</span>`;
