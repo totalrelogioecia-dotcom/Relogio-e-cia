@@ -10,6 +10,9 @@ const { registerProductDetailsRoutes } = require('./product-details-routes');
 const { registerCasioEnrichmentV2 } = require('./casio-enrichment-v2');
 const { registerImageProxy } = require('./image-proxy');
 const { registerOrientEnrichment } = require('./orient-enrichment');
+const { configureCheckoutProPayerFilter } = require('./mercadopago-checkout-pro-payer-filter');
+
+configureCheckoutProPayerFilter();
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
