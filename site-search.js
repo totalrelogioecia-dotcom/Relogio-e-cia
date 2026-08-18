@@ -1,6 +1,14 @@
 (() => {
   'use strict';
 
+  if (!document.querySelector('script[data-casio-image-fallback]')) {
+    const helper = document.createElement('script');
+    helper.src = 'image-proxy-client.js';
+    helper.defer = true;
+    helper.dataset.casioImageFallback = '1';
+    document.head.appendChild(helper);
+  }
+
   const normalize = value => String(value ?? '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
