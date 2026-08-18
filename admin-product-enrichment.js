@@ -23,6 +23,12 @@
 
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function escAttr(v){return esc(v).replace(/`/g,'&#96;');}
+  function isOrient(){return /^orient$/i.test($('#p-marca')?.value?.trim()||'');}
+  function previewPhotoUrl(u){
+    const value=String(u||'');
+    if(value.startsWith('/api/'))return value;
+    return `/api/image-proxy?url=${encodeURIComponent(value)}`;
+  }
 
   async function buscar(){
     const sku=$('#p-sku')?.value?.trim();
@@ -31,7 +37,8 @@
     if(!sku){status.innerHTML='<span class="bad">Informe primeiro a referência/SKU.</span>';return;}
     btn.disabled=true;btn.textContent='Buscando...';status.textContent='Consultando o site oficial...';
     try{
-      const r=await fetch(`/api/product-enrichment?sku=${encodeURIComponent(sku)}`,{cache:'no-store'});
+      const endpoint=isOrient()?'/api/orient-enrichment':'/api/product-enrichment';
+      const r=await fetch(`${endpoint}?sku=${encodeURIComponent(sku)}`,{cache:'no-store'});
       const data=await r.json().catch(()=>({}));
       if(!r.ok)throw new Error(data.error||'Não foi possível localizar a referência.');
       lastResult=data;
@@ -56,8 +63,9 @@
       <button type="button" class="admin-modal-close" id="enrichment-close">×</button>
       <p class="eyebrow">Dados oficiais</p><h2>${esc(data.nome||data.sku)}</h2>
       <p class="admin-muted">Referência ${esc(data.sku)} · ${esc(data.origem||'Fabricante')}</p>
-      ${photos.length?`<div class="enrichment-photos">${photos.map((u,i)=>`<img src="${escAttr(`/api/image-proxy?url=${encodeURIComponent(u)}`)}" alt="Foto ${i+1}">`).join('')}</div>`:''}
+      ${photos.length?`<div class="enrichment-photos">${photos.map((u,i)=>`<img src="${escAttr(previewPhotoUrl(u))}" alt="Foto ${i+1}">`).join('')}</div>`:''}
       ${data.desc?`<div class="enrichment-description"><strong>Descrição encontrada</strong><p>${esc(data.desc)}</p></div>`:''}
+      ${data.aviso?`<p class="admin-muted">${esc(data.aviso)}</p>`:''}
       <div class="enrichment-specs">${specRows(data.detalhes||{})||'<p class="admin-muted">Nenhuma especificação estruturada foi encontrada automaticamente.</p>'}</div>
       <label class="enrichment-replace"><input id="enrichment-replace" type="checkbox"> Substituir também campos que já estão preenchidos</label>
       <p class="enrichment-note">Preço, estoque, status e frete nunca são alterados automaticamente.</p>
