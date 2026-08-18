@@ -10,9 +10,6 @@ const { registerProductDetailsRoutes } = require('./product-details-routes');
 const { registerCasioEnrichmentV2 } = require('./casio-enrichment-v2');
 const { registerImageProxy } = require('./image-proxy');
 const { registerOrientEnrichment } = require('./orient-enrichment');
-const { configureMercadoPagoEnvironment, registerMercadoPagoTestMode } = require('./mercadopago-test-mode');
-
-configureMercadoPagoEnvironment();
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
@@ -55,9 +52,6 @@ if (!originalExpress.__relogioAuthPatched) {
       next();
     });
 
-    // Em modo de teste, protege o estoque, usa o Checkout sandbox e trata
-    // sincronização/webhooks antes das rotas de produção existentes.
-    registerMercadoPagoTestMode(app);
     registerCheckoutWithShipping(app);
     registerMercadoPagoWebhookCompat(app);
     registerMercadoPagoV2(app);
