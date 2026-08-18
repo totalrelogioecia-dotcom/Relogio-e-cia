@@ -15,7 +15,7 @@
     box.innerHTML=`
       <div class="enrichment-copy">
         <strong>Busca inteligente — Casio e G-Shock</strong>
-        <span>Digite a referência exata para buscar fotos e especificações nos catálogos oficiais da Casio e G-Shock.</span>
+        <span>Digite a referência exata. A busca testa também as variações brasileiras de referência usadas nos catálogos oficiais.</span>
       </div>
       <button type="button" id="buscar-referencia" class="btn btn-outline">Buscar dados pela referência</button>
       <div id="enrichment-status" class="enrichment-status" aria-live="polite"></div>`;
@@ -23,11 +23,33 @@
     $('#buscar-referencia').onclick=buscar;
   }
 
+  function skuVariants(raw){
+    const clean=String(raw||'').trim().toUpperCase().replace(/\s+/g,'').replace(/[–—]/g,'-');
+    if(!clean)return [];
+    const out=[clean];
+    // O Portal/Casio Brasil frequentemente exibe a referência comercial sem o sufixo regional,
+    // enquanto a ficha oficial pode estar cadastrada com DF/DR/D.
+    if(!/(?:DF|DR)$/.test(clean))out.push(clean+'DF',clean+'DR');
+    if(!/D$/.test(clean))out.push(clean+'D');
+    if(/DF$/.test(clean))out.push(clean.replace(/DF$/,''));
+    if(/DR$/.test(clean))out.push(clean.replace(/DR$/,''));
+    return [...new Set(out.filter(Boolean))];
+  }
+
   async function consultar(sku,signal){
-    const r=await fetch(`/api/casio-enrichment?sku=${encodeURIComponent(sku)}`,{cache:'no-store',signal});
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(data.error||'Não foi possível localizar essa referência.');
-    return data;
+    let lastError='Não foi possível localizar essa referência.';
+    for(const candidate of skuVariants(sku)){
+      const r=await fetch(`/api/casio-enrichment?sku=${encodeURIComponent(candidate)}`,{cache:'no-store',signal});
+      const data=await r.json().catch(()=>({}));
+      if(r.ok){
+        data.sku_original=sku;
+        data.sku_consultado=candidate;
+        return data;
+      }
+      if(data.error)lastError=data.error;
+      if(r.status!==404)throw new Error(lastError);
+    }
+    throw new Error('Não encontrei essa referência nas variações do catálogo oficial Casio/G-Shock. Confira se a referência foi copiada completa.');
   }
 
   async function buscar(){
@@ -36,13 +58,14 @@
     const btn=$('#buscar-referencia');
     if(!sku){status.innerHTML='<span class="bad">Informe primeiro a referência/SKU.</span>';return;}
     btn.disabled=true;btn.textContent='Buscando...';
-    status.textContent='Consultando os catálogos oficiais Casio/G-Shock...';
+    status.textContent='Consultando a referência e as variações brasileiras Casio/G-Shock...';
     const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),45000);
+    const timer=setTimeout(()=>controller.abort(),60000);
     try{
       const data=await consultar(sku,controller.signal);
       mostrarPreview(data);
-      status.innerHTML=`<span class="ok">Encontrado em ${esc(data.origem||'fonte oficial Casio/G-Shock')}. Revise antes de aplicar.</span>`;
+      const variation=data.sku_consultado&&data.sku_consultado.toUpperCase()!==sku.toUpperCase()?` (localizada como ${esc(data.sku_consultado)})`:'';
+      status.innerHTML=`<span class="ok">Encontrado em ${esc(data.origem||'fonte oficial Casio/G-Shock')}${variation}. Revise antes de aplicar.</span>`;
     }catch(e){
       const m=e?.name==='AbortError'?'A consulta demorou demais. Tente novamente em alguns segundos.':(e.message||'Não foi possível buscar essa referência.');
       status.innerHTML=`<span class="bad">${esc(m)}</span>`;
@@ -70,7 +93,7 @@
       <button type="button" class="admin-modal-close" id="enrichment-close" aria-label="Fechar">×</button>
       <p class="eyebrow">${esc(data.marca||'Dados oficiais')}</p>
       <h2 id="enrichment-title">${esc(data.nome||data.sku)}</h2>
-      <p class="admin-muted">Referência ${esc(data.sku)} · ${esc(data.origem||'Fonte oficial')}</p>
+      <p class="admin-muted">Referência ${esc(data.sku_original||data.sku)}${data.sku_consultado&&data.sku_consultado!==data.sku_original?` · ficha localizada como ${esc(data.sku_consultado)}`:''} · ${esc(data.origem||'Fonte oficial')}</p>
       ${photos.length?`<div class="enrichment-photos">${photos.slice(0,5).map((u,i)=>`<img src="${escAttr(previewPhoto(u))}" alt="Foto oficial ${i+1}" loading="lazy" onerror="this.style.display='none'">`).join('')}</div>`:''}
       ${data.desc?`<div class="enrichment-description"><strong>Descrição encontrada</strong><p>${esc(data.desc)}</p></div>`:''}
       <div class="enrichment-specs">${specs||'<p class="admin-muted">A referência foi encontrada, mas a ficha técnica não pôde ser estruturada automaticamente.</p>'}</div>
@@ -88,7 +111,8 @@
 
   function setIf(selector,value,replace){const el=$(selector);if(!el||!String(value||'').trim())return;if(replace||!String(el.value||'').trim())el.value=String(value).trim();}
   function aplicar(data,replace){
-    setIf('#p-sku',data.sku,replace);setIf('#p-nome',data.nome,replace);setIf('#p-marca',data.marca,replace);setIf('#p-categoria',data.categoria||'Relógios',replace);setIf('#p-desc',data.desc,replace);
+    // Mantém a referência digitada pelo lojista. O sufixo regional usado só para localizar a ficha não substitui o SKU comercial.
+    setIf('#p-sku',data.sku_original||data.sku,replace);setIf('#p-nome',data.nome,replace);setIf('#p-marca',data.marca,replace);setIf('#p-categoria',data.categoria||'Relógios',replace);setIf('#p-desc',data.desc,replace);
     Object.entries(data.detalhes||{}).forEach(([k,v])=>setIf(`#pd-${k}`,v,replace));
     const photos=(data.fotos||[]).filter(Boolean).slice(0,8);const hasExisting=!!$('#photo-preview img')||!!String($('#p-fotos')?.value||'').trim();
     if(photos.length&&(replace||!hasExisting)){try{if(typeof setPhotos==='function'){setPhotos(photos);const area=$('#p-fotos');if(area)area.value='';}}catch{}}
