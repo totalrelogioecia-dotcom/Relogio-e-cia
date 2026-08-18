@@ -55,6 +55,28 @@ if (!originalExpress.__relogioAuthPatched) {
       next();
     });
 
+    // O bootstrap registra as rotas do Mercado Pago antes do express.json() global
+    // de server.js. Por isso o webhook precisa do parser aqui, antes dos handlers.
+    // O Mercado Pago também envia type e data.id na query; normalizamos esses
+    // valores no body para manter compatibilidade com os handlers já existentes.
+    app.use('/api/mercadopago/webhook', express.json({ limit: '1mb' }), (req, res, next) => {
+      req.body = req.body || {};
+
+      if (!req.body.type && !req.body.topic) {
+        if (req.query?.type) req.body.type = req.query.type;
+        else if (req.query?.topic) req.body.topic = req.query.topic;
+      }
+
+      if (!req.body?.data?.id && req.query?.['data.id']) {
+        req.body.data = {
+          ...(req.body.data || {}),
+          id: req.query['data.id']
+        };
+      }
+
+      next();
+    });
+
     registerCheckoutWithShipping(app);
     registerMercadoPagoWebhookCompat(app);
     registerMercadoPagoV2(app);
