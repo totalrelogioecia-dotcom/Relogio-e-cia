@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel administrativo — Relógio e Cia</title>
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="admin-payment-reasons.css"><link rel="stylesheet" href="admin-shipping.css"><link rel="stylesheet" href="admin-melhorenvio.css">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="admin-payment-reasons.css"><link rel="stylesheet" href="admin-shipping.css"><link rel="stylesheet" href="admin-melhorenvio.css"><link rel="stylesheet" href="admin-product-enrichment.css">
 </head><body class="admin-page">
 <header class="site-header"><nav class="nav"><a href="index.html" class="brand-mark"><span class="sq"></span><span class="word">Relógio e Cia<small>Painel administrativo</small></span></a><a href="index.html" class="nav-cta">Ver loja</a></nav></header>
 <main class="admin-main">
@@ -25,7 +25,7 @@
 <input type="hidden" id="p-id">
 <div class="admin-grid">
 <div class="form-field"><label>Nome</label><input id="p-nome"></div><div class="form-field"><label>Marca</label><input id="p-marca"></div>
-<div class="form-field"><label>Categoria</label><input id="p-categoria" value="Relógios"></div><div class="form-field"><label>SKU</label><input id="p-sku"></div>
+<div class="form-field"><label>Categoria</label><input id="p-categoria" value="Relógios"></div><div class="form-field"><label>SKU / Referência</label><input id="p-sku" placeholder="Ex.: MDV-107D-1A3V"></div>
 <div class="form-field"><label>Preço (R$)</label><input id="p-preco" type="number" step="0.01" min="0"></div><div class="form-field"><label>Estoque</label><input id="p-estoque" type="number" step="1" min="0"></div>
 </div>
 <div class="form-field"><label>Descrição</label><textarea id="p-desc" rows="4"></textarea></div>
@@ -51,4 +51,4 @@
 </div>
 <div id="tab-pedidos" style="display:none"><div class="admin-toolbar"><h2>Pedidos</h2><button id="refresh-orders" class="btn btn-outline">Atualizar</button></div><div id="orders-list" class="admin-table-wrap"></div></div>
 </section>
-</main><script src="admin-shipping.js"></script><script src="admin-product-details.js"></script><script src="admin.js"></script><script src="admin-payment-reasons.js"></script><script src="admin-order-sync.js"></script><script src="admin-melhorenvio.js"></script></body></html>
+</main><script src="admin-shipping.js"></script><script src="admin-product-details.js"></script><script src="admin-product-enrichment.js"></script><script src="admin.js"></script><script src="admin-payment-reasons.js"></script><script src="admin-order-sync.js"></script><script src="admin-melhorenvio.js"></script></body></html>
