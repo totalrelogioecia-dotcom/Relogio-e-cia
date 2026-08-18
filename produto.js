@@ -19,7 +19,7 @@
     const specs=[
       ['Marca',p.marca],['Referência',p.sku],['Categoria',p.categoria],
       ['Movimento',d.movimento],['Material da caixa',d.caixa_material],['Material da pulseira',d.pulseira_material],
-      ['Cor',d.cor],['Diâmetro da caixa',d.diametro],['Resistência à água',d.resistencia_agua],
+      ['Cor',d.cor],['Dimensões da caixa',d.diametro],['Resistência à água',d.resistencia_agua],
       ['Vidro',d.vidro],['Garantia',d.garantia],['Conteúdo da embalagem',d.conteudo_embalagem]
     ].filter(([,v])=>String(v||'').trim());
     return specs.map(([k,v])=>`<div class="spec-item"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
