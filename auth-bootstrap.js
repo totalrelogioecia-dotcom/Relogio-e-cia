@@ -7,6 +7,7 @@ const { registerShippingRoutes } = require('./shipping-routes');
 const { registerCheckoutWithShipping } = require('./checkout-with-shipping');
 const { registerMelhorEnvioOAuthRoutes } = require('./melhorenvio-oauth-routes');
 const { registerProductDetailsRoutes } = require('./product-details-routes');
+const { registerCasioEnrichmentV2 } = require('./casio-enrichment-v2');
 const { registerImageProxy } = require('./image-proxy');
 const { registerOrientEnrichment } = require('./orient-enrichment');
 
@@ -19,6 +20,9 @@ if (!originalExpress.__relogioAuthPatched) {
     registerMelhorEnvioOAuthRoutes(app);
     registerShippingRoutes(app);
     registerProductDetailsRoutes(app);
+    // A rota Casio v2 precisa ser registrada antes da implementação antiga,
+    // pois ambas usam /api/product-enrichment. O Express usa a primeira rota compatível.
+    registerCasioEnrichmentV2(app);
     registerImageProxy(app);
     registerOrientEnrichment(app);
 
