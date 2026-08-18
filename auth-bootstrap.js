@@ -6,6 +6,7 @@ const { registerMercadoPagoWebhookCompat } = require('./mercadopago-webhook-comp
 const { registerShippingRoutes } = require('./shipping-routes');
 const { registerCheckoutWithShipping } = require('./checkout-with-shipping');
 const { registerMelhorEnvioOAuthRoutes } = require('./melhorenvio-oauth-routes');
+const { registerProductDetailsRoutes } = require('./product-details-routes');
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
@@ -15,6 +16,7 @@ if (!originalExpress.__relogioAuthPatched) {
     registerAuthRoutes(app);
     registerMelhorEnvioOAuthRoutes(app);
     registerShippingRoutes(app);
+    registerProductDetailsRoutes(app);
 
     app.get('/api/storage-status', (req, res) => {
       res.set('Cache-Control', 'no-store');
