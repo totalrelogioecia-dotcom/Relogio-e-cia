@@ -1,202 +1,40 @@
-const { URL } = require('url');
+const { URL, URLSearchParams } = require('url');
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; RelogioECia/1.0; +https://relogio-e-cia.onrender.com)';
+const OFFICIAL_BASE = 'https://www.orientrelogios.com.br/';
 const PANEL_BASE = 'https://painelfotos.orientnet.com.br/';
 const cache = new Map();
 
-function cleanCode(value) {
-  return String(value || '').trim().toUpperCase().replace(/[^A-Z0-9._/-]/g, '').slice(0, 60);
+function cleanCode(value){return String(value||'').trim().toUpperCase().replace(/[^A-Z0-9._/-]/g,'').slice(0,60);}
+function decodeHtml(value){return String(value||'').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;|&#x27;/gi,"'").replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&nbsp;/gi,' ').replace(/\\u002F/gi,'/').replace(/\\\//g,'/');}
+function isAllowedHost(hostname){const h=String(hostname||'').toLowerCase();return h==='orientrelogios.com.br'||h.endsWith('.orientrelogios.com.br')||h==='orientnet.com.br'||h.endsWith('.orientnet.com.br');}
+function allowedOrientUrl(raw){try{const u=new URL(raw,OFFICIAL_BASE);return u.protocol==='https:'&&isAllowedHost(u.hostname);}catch{return false;}}
+function absoluteUrl(raw,base=OFFICIAL_BASE){try{const value=decodeHtml(raw).trim();if(!value||/^(?:data:|javascript:|#)/i.test(value))return '';const u=new URL(value,base);return allowedOrientUrl(u.toString())?u.toString():'';}catch{return '';}}
+function attrs(tag){const out={};for(const m of String(tag||'').matchAll(/([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g))out[m[1].toLowerCase()]=decodeHtml(m[2]??m[3]??m[4]??'');return out;}
+function stripHtml(html){return decodeHtml(String(html||'')).replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<br\s*\/?\s*>/gi,'\n').replace(/<\/(?:p|div|li|h\d|tr|td|th)>/gi,'\n').replace(/<[^>]+>/g,' ').replace(/[\t\r]+/g,' ').replace(/ +/g,' ').replace(/\n\s*\n+/g,'\n').trim();}
+function extractMeta(html,key,attr='name'){const k=String(key).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');for(const re of [new RegExp(`<meta[^>]+${attr}=["']${k}["'][^>]+content=["']([^"']+)["']`,'i'),new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+${attr}=["']${k}["']`,'i')]){const m=html.match(re);if(m?.[1])return decodeHtml(m[1]).replace(/\s+/g,' ').trim();}return '';}
+function extractTitle(html,code){for(const re of [/<h1[^>]*>([\s\S]*?)<\/h1>/gi,/<h2[^>]*>([\s\S]*?)<\/h2>/gi,/<title[^>]*>([\s\S]*?)<\/title>/gi]){let m;while((m=re.exec(html))){const v=decodeHtml(m[1]).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();if(v&&(!code||v.toUpperCase().includes(code)))return v.slice(0,220);}}return code;}
+function pick(text,labels,max=240){const lines=String(text||'').split('\n').map(x=>x.trim()).filter(Boolean);for(let i=0;i<lines.length;i++){for(const label of labels){const safe=label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const m=lines[i].match(new RegExp(`^${safe}\\s*[:：]?\\s*(.*)$`,'i'));if(!m)continue;let v=String(m[1]||'').trim();if(!v&&lines[i+1])v=lines[i+1].trim();if(v&&v.length<=max)return v;}}return '';}
+function inferMovement(text){const m=pick(text,['Movimento','Mecanismo','Calibre']);if(m)return m;if(/(^|\n)autom[aá]tico(?:\n|$)/i.test(text))return 'Automático';if(/(^|\n)quartz(?:\n|$)/i.test(text))return 'Quartz';return '';}
+function parseCharacteristics(v){const s=String(v||'');const caixa=(s.match(/caixa\s+em\s+([^,;]+?)(?:\s+e\s+pulseira|$)/i)||[])[1]||'';const pulseira=(s.match(/pulseira\s+em\s+([^,;]+)/i)||[])[1]||'';return {caixa_material:caixa.trim(),pulseira_material:pulseira.trim()};}
+function normalizeSpecs(html){const text=stripHtml(html);const caracteristicas=pick(text,['Características','Caracteristicas']);const parsed=parseCharacteristics(caracteristicas);const visor=pick(text,['Visor','Mostrador','Cor do visor']);const pressao=pick(text,['Pressão','Pressao','Resistência à água','Resistencia a agua']);const detalhes={movimento:inferMovement(text),genero:pick(text,['Gênero','Genero']),visor,cor:visor,vidro:pick(text,['Vidro','Cristal']),funcoes:pick(text,['Funções','Funcoes']),resistencia_agua:pressao,diametro:pick(text,['Diâmetro da caixa','Diametro da caixa','Diâmetro','Diametro']),caixa_material:parsed.caixa_material,pulseira_material:parsed.pulseira_material,garantia:pick(text,['Garantia']),conteudo_embalagem:pick(text,['Conteúdo da embalagem','Conteudo da embalagem'])};return Object.fromEntries(Object.entries(detalhes).filter(([,v])=>String(v||'').trim()));}
+function makeDescription(details,meta){if(meta)return meta.slice(0,1200);const parts=[];if(details.genero)parts.push(`Gênero: ${details.genero}.`);if(details.visor)parts.push(`Visor: ${details.visor}.`);if(details.funcoes)parts.push(`Funções: ${details.funcoes}.`);if(details.resistencia_agua)parts.push(`Resistência à água: ${details.resistencia_agua}.`);if(details.caixa_material||details.pulseira_material)parts.push(`Construção: caixa ${details.caixa_material||'não informada'} e pulseira ${details.pulseira_material||'não informada'}.`);return parts.join(' ').slice(0,1200);}
+function collectImages(html,code,base,max=10){const found=[];for(const re of [/(?:src|data-src|data-original|href)\s*=\s*["']([^"']+\.(?:jpe?g|png|webp)(?:\?[^"']*)?)["']/gi,/https:\/\/[^\s"'<>]+\.(?:jpe?g|png|webp)(?:\?[^\s"'<>]*)?/gi]){let m;while((m=re.exec(decodeHtml(html)))){const u=absoluteUrl(m[1]||m[0],base);if(u&&!found.includes(u))found.push(u);}}const compact=code.toLowerCase().replace(/[^a-z0-9]/g,'');const score=u=>{let s=0;const l=decodeURIComponent(u).toLowerCase(),c=l.replace(/[^a-z0-9]/g,'');if(l.includes(code.toLowerCase()))s+=120;if(compact&&c.includes(compact))s+=90;if(/produto|relogio|foto|image|img/.test(l))s+=15;if(/logo|icon|banner|bg|facebook|instagram|youtube|sprite/.test(l))s-=100;return s;};return found.sort((a,b)=>score(b)-score(a)).filter(u=>score(u)>=0).slice(0,max);}
+async function fetchTimed(url,options={},timeout=7000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeout);try{return await fetch(url,{...options,signal:controller.signal,redirect:'follow'});}finally{clearTimeout(timer);}}
+async function fetchBinary(url){if(!allowedOrientUrl(url))return null;const r=await fetchTimed(url,{headers:{'User-Agent':USER_AGENT,'Accept':'image/avif,image/webp,image/apng,image/*,*/*;q=0.8','Referer':url.includes('orientnet.com.br')?PANEL_BASE:OFFICIAL_BASE}},5500);if(!r.ok)return null;const type=String(r.headers.get('content-type')||'').toLowerCase();if(!type.startsWith('image/'))return null;return {type,bytes:Buffer.from(await r.arrayBuffer())};}
+function containsCode(html,code){const upper=decodeHtml(html).toUpperCase();return upper.includes(code)||upper.includes(code.replace(/[^A-Z0-9]/g,''));}
+function candidateLinks(html,base,code){const out=[];for(const m of String(html||'').matchAll(/href\s*=\s*["']([^"']+)["']/gi)){const u=absoluteUrl(m[1],base);if(!u||out.includes(u))continue;const low=decodeURIComponent(u).toLowerCase();if(low.includes(code.toLowerCase())||/produtos?_interno\.asp|relogio-orient/i.test(low))out.push(u);}return out.slice(0,12);}
+function findSearchForms(html){const out=[];for(const m of String(html||'').matchAll(/<form\b([^>]*)>([\s\S]*?)<\/form>/gi)){const whole=m[0],a=attrs(m[1]);if(!/digite\s*c[oó]digo|busca\s+de\s+produtos|pesquise\s+por/i.test(stripHtml(whole)))continue;const inputs=[];for(const im of whole.matchAll(/<input\b([^>]*)>/gi)){const ia=attrs(im[1]);if(ia.name)inputs.push(ia);}out.push({action:a.action||OFFICIAL_BASE,method:(a.method||'get').toLowerCase(),inputs});}return out;}
+async function submitSearchForm(form,code){const target=absoluteUrl(form.action,OFFICIAL_BASE)||OFFICIAL_BASE;const params=new URLSearchParams();let queryField='';for(const input of form.inputs){const type=(input.type||'text').toLowerCase();if(type==='hidden'&&input.name)params.set(input.name,input.value||'');if(!queryField&&['text','search'].includes(type)&&input.name)queryField=input.name;}if(!queryField)return null;params.set(queryField,code);let r;if(form.method==='post'){r=await fetchTimed(target,{method:'POST',headers:{'User-Agent':USER_AGENT,'Accept':'text/html,application/xhtml+xml','Content-Type':'application/x-www-form-urlencoded','Referer':OFFICIAL_BASE},body:params.toString()},7000);}else{const u=new URL(target);for(const [k,v] of params)u.searchParams.set(k,v);r=await fetchTimed(u.toString(),{headers:{'User-Agent':USER_AGENT,'Accept':'text/html,application/xhtml+xml','Referer':OFFICIAL_BASE}},7000);}if(!r.ok)return null;return {html:await r.text(),url:r.url};}
+async function findOfficialProduct(code){const home=await fetchTimed(OFFICIAL_BASE,{headers:{'User-Agent':USER_AGENT,'Accept':'text/html,application/xhtml+xml','Accept-Language':'pt-BR,pt;q=0.9'}},7000);if(!home.ok)throw new Error('Site oficial da Orient indisponível.');const homeHtml=await home.text();for(const form of findSearchForms(homeHtml)){try{const result=await submitSearchForm(form,code);if(!result)continue;if(containsCode(result.html,code)&&Object.keys(normalizeSpecs(result.html)).length>=2)return result;for(const link of candidateLinks(result.html,result.url,code)){try{const r=await fetchTimed(link,{headers:{'User-Agent':USER_AGENT,'Accept':'text/html,application/xhtml+xml','Referer':result.url}},6000);if(!r.ok)continue;const html=await r.text();if(containsCode(html,code))return {html,url:r.url};}catch{}}}catch{}}
+  for(const url of [`${OFFICIAL_BASE}?s=${encodeURIComponent(code)}`,`${OFFICIAL_BASE}busca/?q=${encodeURIComponent(code)}`]){try{const r=await fetchTimed(url,{headers:{'User-Agent':USER_AGENT,'Accept':'text/html,application/xhtml+xml'}},5000);if(!r.ok)continue;const html=await r.text();for(const link of candidateLinks(html,r.url,code)){const p=await fetchTimed(link,{headers:{'User-Agent':USER_AGENT,'Accept':'text/html,application/xhtml+xml','Referer':r.url}},5000);if(p.ok){const ph=await p.text();if(containsCode(ph,code))return {html:ph,url:p.url};}}}catch{}}
+  return null;
 }
-
-function decodeHtml(value) {
-  return String(value || '')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&#x27;/gi, "'")
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/\\u002F/gi, '/')
-    .replace(/\\\//g, '/');
-}
-
-function isOrientHost(hostname) {
-  const h = String(hostname || '').toLowerCase();
-  return h === 'orientnet.com.br' || h.endsWith('.orientnet.com.br');
-}
-
-function allowedOrientUrl(raw) {
-  try {
-    const u = new URL(raw, PANEL_BASE);
-    return u.protocol === 'https:' && isOrientHost(u.hostname);
-  } catch {
-    return false;
-  }
-}
-
-function absoluteOrientUrl(raw) {
-  try {
-    const value = decodeHtml(raw).trim();
-    if (!value || /^(?:data:|javascript:|#)/i.test(value)) return '';
-    const u = new URL(value, PANEL_BASE);
-    return allowedOrientUrl(u.toString()) ? u.toString() : '';
-  } catch {
-    return '';
-  }
-}
-
-function extractTitle(html, code) {
-  const text = decodeHtml(html);
-  const patterns = [
-    /<(?:h1|h2|h3)[^>]*>([\s\S]*?)<\/(?:h1|h2|h3)>/gi,
-    /<title[^>]*>([\s\S]*?)<\/title>/gi
-  ];
-  for (const re of patterns) {
-    let m;
-    while ((m = re.exec(text))) {
-      const value = String(m[1] || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-      if (!value || /painel de fotos|orient relógio|orient relogio/i.test(value)) continue;
-      if (value.toUpperCase().includes(code) || /rel[oó]gio|watch|modelo/i.test(value)) return value.slice(0, 180);
-    }
-  }
-  return '';
-}
-
-function extractDescription(html) {
-  const patterns = [
-    /<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i,
-    /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i
-  ];
-  for (const re of patterns) {
-    const m = html.match(re);
-    const value = decodeHtml(m?.[1] || '').replace(/\s+/g, ' ').trim();
-    if (value && !/painel de fotos/i.test(value)) return value.slice(0, 1000);
-  }
-  return '';
-}
-
-function collectImages(html, code, max = 8) {
-  const normalized = decodeHtml(html);
-  const candidates = [];
-  const patterns = [
-    /(?:src|data-src|href)\s*=\s*["']([^"']+\.(?:jpe?g|png|webp)(?:\?[^"']*)?)["']/gi,
-    /https:\/\/[^\s"'<>]+\.(?:jpe?g|png|webp)(?:\?[^\s"'<>]*)?/gi,
-    /\/[A-Za-z0-9_./%?=&-]+\.(?:jpe?g|png|webp)(?:\?[^\s"'<>]*)?/gi
-  ];
-  for (const re of patterns) {
-    let m;
-    while ((m = re.exec(normalized))) {
-      const raw = m[1] || m[0];
-      const url = absoluteOrientUrl(raw.replace(/[),;]+$/g, ''));
-      if (!url || candidates.includes(url)) continue;
-      candidates.push(url);
-    }
-  }
-  const compactCode = code.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const score = url => {
-    const lower = decodeURIComponent(url).toLowerCase();
-    const compact = lower.replace(/[^a-z0-9]/g, '');
-    let points = 0;
-    if (lower.includes(code.toLowerCase())) points += 100;
-    if (compactCode && compact.includes(compactCode)) points += 80;
-    if (/produto|relogio|rel[oó]gio|foto|image|img|modelo/.test(lower)) points += 15;
-    if (/logo|icon|icone|banner|background|bg|facebook|instagram|youtube/.test(lower)) points -= 80;
-    return points;
-  };
-  return candidates.sort((a,b)=>score(b)-score(a)).filter(u=>score(u) >= 0).slice(0,max);
-}
-
-async function fetchBinary(url) {
-  if (!allowedOrientUrl(url)) return null;
-  const r = await fetch(url, {
-    headers: {
-      'User-Agent': USER_AGENT,
-      'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-      'Referer': PANEL_BASE
-    },
-    redirect: 'follow'
-  });
-  if (!r.ok) return null;
-  const type = String(r.headers.get('content-type') || '').toLowerCase();
-  if (!type.startsWith('image/')) return null;
-  return { type, bytes: Buffer.from(await r.arrayBuffer()) };
-}
-
-async function enrichOrient(code) {
-  const clean = cleanCode(code);
-  if (!clean) throw Object.assign(new Error('Referência Orient inválida.'), { statusCode: 400 });
-  const key = `orient:${clean}`;
-  if (cache.has(key)) return cache.get(key);
-
-  const pageUrl = `${PANEL_BASE}?Codigo=${encodeURIComponent(clean)}`;
-  const response = await fetch(pageUrl, {
-    headers: {
-      'User-Agent': USER_AGENT,
-      'Accept': 'text/html,application/xhtml+xml',
-      'Accept-Language': 'pt-BR,pt;q=0.9'
-    },
-    redirect: 'follow'
-  });
-  if (!response.ok) throw Object.assign(new Error('Não foi possível consultar o Painel de Fotos da Orient.'), { statusCode: 502 });
-  const html = await response.text();
-  const rawPhotos = collectImages(html, clean, 12);
-  const validPhotos = [];
-  for (const url of rawPhotos) {
-    if (validPhotos.length >= 8) break;
-    try {
-      if (await fetchBinary(url)) validPhotos.push(`/api/orient-image?url=${encodeURIComponent(url)}`);
-    } catch {}
-  }
-
-  // O painel é principalmente uma fonte oficial de imagens; quando não houver
-  // ficha técnica publicada nele, deixamos esses campos vazios para não inventar dados.
-  const foundTitle = extractTitle(html, clean);
-  if (!validPhotos.length && !foundTitle && !html.toUpperCase().includes(clean)) {
-    throw Object.assign(new Error('Não encontrei essa referência no Painel de Fotos da Orient.'), { statusCode: 404 });
-  }
-
-  const result = {
-    sku: clean,
-    nome: foundTitle,
-    marca: 'Orient',
-    categoria: 'Relógios',
-    desc: extractDescription(html),
-    fotos: validPhotos,
-    detalhes: {},
-    fonte: response.url || pageUrl,
-    origem: 'Painel de Fotos oficial Orient',
-    aviso: validPhotos.length ? '' : 'A referência foi localizada, mas nenhuma foto utilizável foi encontrada automaticamente.'
-  };
-  cache.set(key, result);
-  return result;
-}
-
-function registerOrientEnrichment(app) {
-  app.get('/api/orient-image', async (req, res) => {
-    try {
-      const raw = String(req.query?.url || '').trim();
-      if (!raw || !allowedOrientUrl(raw)) return res.status(403).send('Imagem Orient não permitida.');
-      const image = await fetchBinary(raw);
-      if (!image) return res.status(404).send('Imagem Orient indisponível.');
-      res.set('Content-Type', image.type);
-      res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
-      res.set('X-Content-Type-Options', 'nosniff');
-      res.send(image.bytes);
-    } catch (error) {
-      console.error('Erro no proxy de imagem Orient:', error.message);
-      res.status(502).send('Não foi possível carregar a imagem Orient.');
-    }
-  });
-
-  app.get('/api/orient-enrichment', async (req, res) => {
-    try {
-      const data = await enrichOrient(req.query?.sku);
-      res.set('Cache-Control', 'no-store');
-      res.json(data);
-    } catch (error) {
-      res.status(Number(error?.statusCode) || 502).json({ error: error.message || 'Não foi possível consultar a Orient.' });
-    }
-  });
-}
-
-module.exports = { registerOrientEnrichment };
+async function panelPhotos(code){try{const pageUrl=`${PANEL_BASE}?Codigo=${encodeURIComponent(code)}`;const r=await fetchTimed(pageUrl,{headers:{'User-Agent':USER_AGENT,'Accept':'text/html,application/xhtml+xml','Accept-Language':'pt-BR,pt;q=0.9'}},5500);if(!r.ok)return [];const html=await r.text();const candidates=collectImages(html,code,r.url,10),valid=[];for(const u of candidates){if(valid.length>=5)break;try{if(await fetchBinary(u))valid.push(u);}catch{}}return valid;}catch{return [];}}
+async function enrichOrient(code){const clean=cleanCode(code);if(!clean)throw Object.assign(new Error('Referência Orient inválida.'),{statusCode:400});const key=`orient:${clean}`;if(cache.has(key))return cache.get(key);
+  const official=await findOfficialProduct(clean).catch(()=>null);if(!official)throw Object.assign(new Error('Não encontrei essa referência no site oficial da Orient.'),{statusCode:404});
+  const details=normalizeSpecs(official.html);const officialImages=collectImages(official.html,clean,official.url,12),photos=[];for(const u of officialImages){if(photos.length>=5)break;try{if(await fetchBinary(u))photos.push(u);}catch{}}
+  if(photos.length<2){for(const u of await panelPhotos(clean)){if(!photos.includes(u))photos.push(u);if(photos.length>=5)break;}}
+  const metaDesc=extractMeta(official.html,'description','name')||extractMeta(official.html,'og:description','property');const result={sku:clean,nome:extractTitle(official.html,clean),marca:'Orient',categoria:'Relógios',desc:makeDescription(details,metaDesc),fotos:photos.map(u=>`/api/orient-image?url=${encodeURIComponent(u)}`),detalhes:details,fonte:official.url,origem:'Site oficial Orient Relógios',aviso:photos.length?'':'Dados técnicos encontrados no site oficial; nenhuma foto utilizável foi localizada automaticamente.'};cache.set(key,result);return result;}
+function registerOrientEnrichment(app){app.get('/api/orient-image',async(req,res)=>{try{const raw=String(req.query?.url||'').trim();if(!raw||!allowedOrientUrl(raw))return res.status(403).send('Imagem Orient não permitida.');const image=await fetchBinary(raw);if(!image)return res.status(404).send('Imagem Orient indisponível.');res.set('Content-Type',image.type);res.set('Cache-Control','public, max-age=86400, stale-while-revalidate=604800');res.set('X-Content-Type-Options','nosniff');res.send(image.bytes);}catch(error){console.error('Erro no proxy de imagem Orient:',error.message);res.status(502).send('Não foi possível carregar a imagem Orient.');}});app.get('/api/orient-enrichment',async(req,res)=>{try{const data=await enrichOrient(req.query?.sku);res.set('Cache-Control','no-store');res.json(data);}catch(error){res.status(Number(error?.statusCode)||502).json({error:error.message||'Não foi possível consultar a Orient.'});}});}
+module.exports={registerOrientEnrichment};
