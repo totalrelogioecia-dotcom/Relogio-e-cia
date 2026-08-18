@@ -8,6 +8,7 @@ const { registerCheckoutWithShipping } = require('./checkout-with-shipping');
 const { registerMelhorEnvioOAuthRoutes } = require('./melhorenvio-oauth-routes');
 const { registerProductDetailsRoutes } = require('./product-details-routes');
 const { registerImageProxy } = require('./image-proxy');
+const { registerOrientEnrichment } = require('./orient-enrichment');
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
@@ -19,6 +20,7 @@ if (!originalExpress.__relogioAuthPatched) {
     registerShippingRoutes(app);
     registerProductDetailsRoutes(app);
     registerImageProxy(app);
+    registerOrientEnrichment(app);
 
     app.get('/api/storage-status', (req, res) => {
       res.set('Cache-Control', 'no-store');
