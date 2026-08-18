@@ -2,7 +2,7 @@
   const root=document.getElementById('product-page');
   if(!root)return;
 
-  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
   const escAttr=v=>esc(v).replace(/`/g,'&#96;');
   const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const params=new URLSearchParams(location.search);
@@ -95,6 +95,7 @@
     }catch(e){box.innerHTML=`<div class="form-error">${esc(e.message)}</div>`}
   }
 
+  async function loadDetails(){try{const r=await fetch('/api/product-details',{cache:'no-store'});if(!r.ok)return {};const v=await r.json();return v&&typeof v==='object'?v:{}}catch{return {}}}
   function fail(){root.innerHTML='<div class="product-error"><strong>Produto não encontrado.</strong><br><a href="produtos.html">Voltar ao catálogo</a></div>'}
-  quandoCatalogoPronto(()=>{const p=PRODUTOS.find(x=>Number(x.id)===id&&x.ativo!==false);if(!p)return fail();render(p,PRODUTOS)});
+  quandoCatalogoPronto(async()=>{const p=PRODUTOS.find(x=>Number(x.id)===id&&x.ativo!==false);if(!p)return fail();const details=await loadDetails();p.detalhes=details[String(p.id)]||{};render(p,PRODUTOS)});
 })();
