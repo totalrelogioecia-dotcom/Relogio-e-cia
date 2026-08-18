@@ -131,7 +131,7 @@
 
   function criarCardHome(produto, marca) {
     const foto = fotoProduto(produto);
-    const urlMarca = `produtos.html?marca=${encodeURIComponent(marca)}`;
+    const urlProduto = `produto.html?id=${encodeURIComponent(produto.id)}`;
     const nome = escapeHtml(produto.nome || 'Relógio');
     const sku = escapeHtml(produto.sku || '');
     const preco = typeof formatarPreco === 'function'
@@ -140,7 +140,7 @@
 
     return `
       <article class="home-watch-card" data-home-product="${Number(produto.id)}">
-        <a class="home-watch-photo" href="${urlMarca}" aria-label="Ver ${nome} no catálogo">
+        <a class="home-watch-photo" href="${urlProduto}" aria-label="Ver detalhes de ${nome}">
           ${foto
             ? `<img src="${escapeHtml(foto)}" alt="${nome}" loading="lazy" onerror="tratarErroFoto(this)">`
             : '<span class="card-photo-placeholder">Foto em breve</span>'}
@@ -150,7 +150,7 @@
           <h3>${nome}</h3>
           <p class="home-watch-price">${preco}<small>5% de desconto no PIX</small></p>
           <div class="home-watch-actions">
-            <a class="btn btn-outline" href="${urlMarca}">Ver modelos</a>
+            <a class="btn btn-outline" href="${urlProduto}">Ver detalhes</a>
             <button class="btn btn-primary" type="button" data-home-add="${Number(produto.id)}">Adicionar</button>
           </div>
         </div>
