@@ -91,14 +91,32 @@
       const edit = row.querySelector('[data-edit]');
       const first = row.querySelector('td');
       if (!edit || !first) return;
-      row.querySelector('.shipping-product-status')?.remove();
+
       const d = shippingMap[String(edit.dataset.edit)] || {};
       const ok = complete({ weight_kg:d.weight_kg, width_cm:d.width_cm, height_cm:d.height_cm, length_cm:d.length_cm });
-      const badge = document.createElement('span');
-      badge.className = `shipping-product-status ${ok ? 'ok' : 'pending'}`;
-      badge.textContent = ok ? 'Frete pronto' : 'Frete pendente';
-      first.appendChild(document.createElement('br'));
-      first.appendChild(badge);
+      const nextClass = `shipping-product-status ${ok ? 'ok' : 'pending'}`;
+      const nextText = ok ? 'Frete pronto' : 'Frete pendente';
+
+      // Cria o indicador uma única vez. A versão anterior removia e recriava
+      // o badge dentro de um MutationObserver, gerando um ciclo de mutações
+      // que acrescentava <br> sem parar e fazia as linhas crescerem verticalmente.
+      let badge = row.querySelector('.shipping-product-status');
+      if (!badge) {
+        let spacer = row.querySelector('.shipping-product-status-break');
+        if (!spacer) {
+          spacer = document.createElement('br');
+          spacer.className = 'shipping-product-status-break';
+          first.appendChild(spacer);
+        }
+        badge = document.createElement('span');
+        badge.className = nextClass;
+        badge.textContent = nextText;
+        first.appendChild(badge);
+        return;
+      }
+
+      if (badge.className !== nextClass) badge.className = nextClass;
+      if (badge.textContent !== nextText) badge.textContent = nextText;
     });
   }
 
