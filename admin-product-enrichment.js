@@ -13,7 +13,7 @@
     box.innerHTML=`
       <div class="enrichment-copy">
         <strong>Preenchimento inteligente</strong>
-        <span>Digite a referência exata e busque fotos e especificações no site oficial do fabricante.</span>
+        <span>Digite a referência exata. Se a marca estiver preenchida, ela será priorizada; caso contrário, tentaremos Casio e Orient automaticamente.</span>
       </div>
       <button type="button" id="buscar-referencia" class="btn btn-outline">Buscar dados pela referência</button>
       <div id="enrichment-status" class="enrichment-status" aria-live="polite"></div>`;
@@ -23,11 +23,29 @@
 
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function escAttr(v){return esc(v).replace(/`/g,'&#96;');}
-  function isOrient(){return /^orient$/i.test($('#p-marca')?.value?.trim()||'');}
+  function brandValue(){return ($('#p-marca')?.value||'').trim().toLowerCase();}
   function previewPhotoUrl(u){
     const value=String(u||'');
     if(value.startsWith('/api/'))return value;
     return `/api/image-proxy?url=${encodeURIComponent(value)}`;
+  }
+
+  function searchEndpoints(){
+    const brand=brandValue();
+    if(brand==='orient')return ['/api/orient-enrichment','/api/product-enrichment'];
+    if(brand==='casio'||brand==='g-shock'||brand==='gshock')return ['/api/product-enrichment','/api/orient-enrichment'];
+    return ['/api/product-enrichment','/api/orient-enrichment'];
+  }
+
+  async function fetchEnrichment(endpoint,sku){
+    const r=await fetch(`${endpoint}?sku=${encodeURIComponent(sku)}`,{cache:'no-store'});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok){
+      const err=new Error(data.error||'Não foi possível localizar a referência.');
+      err.status=r.status;
+      throw err;
+    }
+    return data;
   }
 
   async function buscar(){
@@ -35,17 +53,33 @@
     const status=$('#enrichment-status');
     const btn=$('#buscar-referencia');
     if(!sku){status.innerHTML='<span class="bad">Informe primeiro a referência/SKU.</span>';return;}
-    btn.disabled=true;btn.textContent='Buscando...';status.textContent='Consultando o site oficial...';
+    btn.disabled=true;btn.textContent='Buscando...';status.textContent='Consultando as fontes oficiais...';
     try{
-      const endpoint=isOrient()?'/api/orient-enrichment':'/api/product-enrichment';
-      const r=await fetch(`${endpoint}?sku=${encodeURIComponent(sku)}`,{cache:'no-store'});
-      const data=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error(data.error||'Não foi possível localizar a referência.');
+      let data=null;
+      let lastError=null;
+      const endpoints=searchEndpoints();
+      for(let i=0;i<endpoints.length;i++){
+        try{
+          status.textContent=i===0?'Consultando a fonte principal...':'Não achei na primeira fonte. Tentando outra marca...';
+          data=await fetchEnrichment(endpoints[i],sku);
+          if(data)break;
+        }catch(e){
+          lastError=e;
+          // 404 significa "não achei" e permite tentar a próxima fonte.
+          // Falhas temporárias 5xx também não devem impedir o fallback.
+        }
+      }
+      if(!data)throw lastError||new Error('Não foi possível localizar essa referência na Casio nem na Orient.');
       lastResult=data;
       mostrarPreview(data);
-      status.innerHTML='<span class="ok">Dados oficiais encontrados. Revise antes de aplicar.</span>';
-    }catch(e){lastResult=null;status.innerHTML=`<span class="bad">${esc(e.message)}</span>`;}
-    finally{btn.disabled=false;btn.textContent='Buscar dados pela referência';}
+      status.innerHTML=`<span class="ok">Dados encontrados em ${esc(data.origem||data.marca||'fonte oficial')}. Revise antes de aplicar.</span>`;
+    }catch(e){
+      lastResult=null;
+      status.innerHTML=`<span class="bad">${esc(e.message||'Não foi possível buscar essa referência.')}</span>`;
+    }finally{
+      btn.disabled=false;
+      btn.textContent='Buscar dados pela referência';
+    }
   }
 
   function specRows(d){
@@ -63,7 +97,7 @@
       <button type="button" class="admin-modal-close" id="enrichment-close">×</button>
       <p class="eyebrow">Dados oficiais</p><h2>${esc(data.nome||data.sku)}</h2>
       <p class="admin-muted">Referência ${esc(data.sku)} · ${esc(data.origem||'Fabricante')}</p>
-      ${photos.length?`<div class="enrichment-photos">${photos.map((u,i)=>`<img src="${escAttr(previewPhotoUrl(u))}" alt="Foto ${i+1}">`).join('')}</div>`:''}
+      ${photos.length?`<div class="enrichment-photos">${photos.map((u,i)=>`<img src="${escAttr(previewPhotoUrl(u))}" alt="Foto ${i+1}" loading="lazy" onerror="this.style.display='none'">`).join('')}</div>`:''}
       ${data.desc?`<div class="enrichment-description"><strong>Descrição encontrada</strong><p>${esc(data.desc)}</p></div>`:''}
       ${data.aviso?`<p class="admin-muted">${esc(data.aviso)}</p>`:''}
       <div class="enrichment-specs">${specRows(data.detalhes||{})||'<p class="admin-muted">Nenhuma especificação estruturada foi encontrada automaticamente.</p>'}</div>
