@@ -60,8 +60,12 @@ const OFFICIAL_PHOTOS = {
     'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/md/mdv/mdv-107d-1a1v/assets/MDV-107D-1A1V.png.transform/main-visual-sp/image.png',
     'https://www.casio.com/content/dam/casio/product-info/locales/us/en/timepiece/product/watch/M/MD/MDV/MDV-107D-1A1V/assets/MDV-107D-1A1V.png'
   ],
-  'MDV-107D-1A3V': ['https://www.casio.com/content/dam/casio/product-info/locales/us/en/timepiece/product/watch/M/MD/MDV/MDV-107D-1A3V/assets/MDV-107D-1A3V.png'],
-  'MDV-107D-1A2V': ['https://www.casio.com/content/dam/casio/product-info/locales/us/en/timepiece/product/watch/M/MD/MDV-107D-1A2V/assets/MDV-107D-1A2V.png'],
+  'MDV-107D-1A3V': [
+    'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/md/mdv/mdv-107d-1a3v/assets/MDV-107D-1A3V.png.transform/main-visual-sp/image.png'
+  ],
+  'MDV-107D-1A2V': [
+    'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/md/mdv/mdv-107d-1a2v/assets/MDV-107D-1A2V.png.transform/main-visual-sp/image.png'
+  ],
   'LA670WGA-1': [
     'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA6/LA670WGA-1/assets/LA670WGA-1.png.transform/main-visual-sp/image.png',
     'https://www.casio.com/content/dam/casio/product-info/locales/us/en/timepiece/product/watch/L/LA/LA6/LA670WGA-1/assets/LA670WGA-1.png'
