@@ -109,9 +109,15 @@ async function fetchTimed(url,timeout=8000,headers={}){
   finally{clearTimeout(timer);}
 }
 function candidates(sku){
+  // Tentamos mais de um catálogo oficial porque alguns modelos aparecem em uma região
+  // antes de outra. Ex.: W-218H-1AV está disponível no Brasil, Portugal, Latin e Intl.
   return [
     {brand:'Casio',url:`https://www.casio.com/br/watches/casio/product.${encodeURIComponent(sku)}/`},
     {brand:'G-Shock',url:`https://www.casio.com/br/watches/gshock/product.${encodeURIComponent(sku)}/`},
+    {brand:'Casio',url:`https://www.casio.com/pt/watches/casio/product.${encodeURIComponent(sku)}/`},
+    {brand:'G-Shock',url:`https://www.casio.com/pt/watches/gshock/product.${encodeURIComponent(sku)}/`},
+    {brand:'Casio',url:`https://www.casio.com/latin/watches/casio/product.${encodeURIComponent(sku)}/`},
+    {brand:'G-Shock',url:`https://www.casio.com/latin/watches/gshock/product.${encodeURIComponent(sku)}/`},
     {brand:'Casio',url:`https://www.casio.com/intl/watches/casio/product.${encodeURIComponent(sku)}/`},
     {brand:'G-Shock',url:`https://www.casio.com/intl/watches/gshock/product.${encodeURIComponent(sku)}/`}
   ];
@@ -128,20 +134,19 @@ function urlMatchesSku(url,sku){
 }
 async function directPage(candidate,sku){
   try{
-    const r=await fetchTimed(candidate.url,7000,{'Accept':'text/html,application/xhtml+xml','Cache-Control':'no-cache'});
+    const r=await fetchTimed(candidate.url,8500,{'Accept':'text/html,application/xhtml+xml','Cache-Control':'no-cache'});
     if(!r.ok)return null;
     const content=await r.text();
     const finalUrl=r.url||candidate.url;
-    // Algumas páginas novas da Casio são renderizadas via JavaScript e o HTML inicial
-    // não contém a referência. Se a própria URL oficial resolvida continua apontando
-    // para product.<SKU>, consideramos a página válida e usamos o leitor como reforço.
-    if(!containsSku(content,sku)&&!urlMatchesSku(finalUrl,sku))return null;
+    // Se a URL oficial continua apontando para product.<SKU>, aceitamos a página mesmo
+    // quando o HTML inicial é renderizado por JavaScript e ainda não contém a referência.
+    if(!containsSku(content,sku)&&!urlMatchesSku(finalUrl,sku)&&!urlMatchesSku(candidate.url,sku))return null;
     return {...candidate,content,finalUrl,via:'direct'};
   }catch{return null;}
 }
 async function readerPage(candidate,sku){
   try{
-    const r=await fetchTimed(`${READER}${candidate.url}`,12000,{'Accept':'text/plain'});
+    const r=await fetchTimed(`${READER}${candidate.url}`,14000,{'Accept':'text/plain'});
     if(!r.ok)return null;
     const content=await r.text();
     if(!containsSku(content,sku)&&!urlMatchesSku(candidate.url,sku))return null;
@@ -157,8 +162,6 @@ async function findPage(raw){
     const list=candidates(sku);
     const direct=await firstMatch(list,directPage,sku);
     if(direct){
-      // Se o HTML direto veio quase vazio, tenta o leitor da mesma URL para obter
-      // fotos e ficha técnica sem transformar uma página oficial válida em 404.
       if(plain(direct.content).length<500){
         const reinforced=await readerPage({brand:direct.brand,url:direct.finalUrl||direct.url},sku);
         if(reinforced)return {sku,...reinforced};
@@ -183,7 +186,7 @@ async function enrich(raw){
   if(!requested)throw Object.assign(new Error('Informe uma referência Casio ou G-Shock.'),{statusCode:400});
   if(cache.has(requested))return cache.get(requested);
   const page=await findPage(requested);
-  if(!page)throw Object.assign(new Error(`Não encontrei ${requested} no catálogo oficial da Casio/G-Shock.`),{statusCode:404});
+  if(!page)throw Object.assign(new Error(`Não encontrei ${requested} nos catálogos oficiais Casio/G-Shock. A referência pode estar correta, mas o catálogo pode estar bloqueando consultas automáticas temporariamente.`),{statusCode:404});
   const detalhes=specs(page.content);
   const fotos=images(page.content,page.sku,6);
   const result={sku:requested,nome:extractTitle(page.content,page.sku),marca:page.brand,categoria:'Relógios',desc:description(page.content),fotos,detalhes,fonte:page.finalUrl,origem:page.brand==='G-Shock'?'Catálogo oficial G-Shock':'Catálogo oficial Casio',aviso:fotos.length?'':'A referência foi confirmada no catálogo oficial, mas nenhuma foto pôde ser extraída automaticamente desta página.'};
