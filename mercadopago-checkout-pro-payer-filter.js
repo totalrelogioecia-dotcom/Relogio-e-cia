@@ -30,7 +30,19 @@ function configureCheckoutProPayerFilter() {
           delete nextArgs.body.payer;
         }
       }
-      return originalPreferenceCreate.call(this, nextArgs);
+
+      const response = await originalPreferenceCreate.call(this, nextArgs);
+
+      // Durante os testes do Checkout Pro, usamos explicitamente o endereço
+      // sandbox retornado pelo próprio Mercado Pago. Quando a loja for para
+      // produção, este pequeno override deve ser removido para voltar ao
+      // init_point produtivo.
+      if (response?.sandbox_init_point) {
+        console.log('Mercado Pago Checkout Pro: usando sandbox_init_point para teste.');
+        return { ...response, init_point: response.sandbox_init_point };
+      }
+
+      return response;
     };
 
     Preference.prototype.__relogioPayerFilterPatched = true;
