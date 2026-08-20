@@ -477,8 +477,7 @@ function registerMercadoPagoClean(app) {
         payment_methods: {
           excluded_payment_types: [
             { id: 'ticket' },
-            { id: 'bank_transfer' },
-            { id: 'account_money' }
+            { id: 'bank_transfer' }
           ],
           installments: 12
         },
