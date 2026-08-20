@@ -592,9 +592,19 @@ function registerMercadoPagoClean(app) {
       await applyPayment(payment);
       return res.sendStatus(200);
     } catch (error) {
+      const status = errorStatus(error);
+
+      if (status === 404) {
+        console.warn('Mercado Pago clean: webhook válido, pagamento não encontrado', {
+          paymentId
+        });
+        return res.sendStatus(200);
+      }
+
       console.error('Mercado Pago clean: falha ao processar webhook', {
         paymentId,
-        message: error.message
+        message: error.message,
+        status
       });
       return res.sendStatus(500);
     }
