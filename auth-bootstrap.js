@@ -1,5 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const { Preference, WebhookSignatureValidator } = require('mercadopago');
 const { registerAuthRoutes, userFromRequest } = require('./auth');
 const { storageStatus } = require('./persistent-store');
@@ -41,14 +43,11 @@ if (WebhookSignatureValidator?.validate && !WebhookSignatureValidator.__relogioE
     const secretValue = String(secret || '').trim();
     const exactDataId = String(dataId || '').trim();
     const requestId = String(xRequestId || '').trim();
-
     if (!ts || !received || !secretValue) throw new Error('Invalid webhook signature: MissingSignatureData');
-
     let manifest = '';
     if (exactDataId) manifest += `id:${exactDataId};`;
     if (requestId) manifest += `request-id:${requestId};`;
     manifest += `ts:${ts};`;
-
     const expected = crypto.createHmac('sha256', secretValue).update(manifest).digest('hex');
     if (!safeHexEqual(received, expected)) throw new Error('Invalid webhook signature: SignatureMismatch');
     return true;
@@ -74,12 +73,23 @@ if (!originalExpress.__relogioAuthPatched) {
   const wrappedExpress = function (...args) {
     const app = originalExpress(...args);
 
+    // Injeta os recursos de cupom somente na página do carrinho, mantendo o HTML
+    // base simples e garantindo que o script seja carregado depois do frete.
+    app.get('/carrinho.html', (req, res, next) => {
+      try {
+        const file = path.join(__dirname, 'carrinho.html');
+        let html = fs.readFileSync(file, 'utf8');
+        if (!html.includes('cart-coupons.css')) html = html.replace('</head>', '<link rel="stylesheet" href="cart-coupons.css">\n</head>');
+        if (!html.includes('cart-coupons.js')) html = html.replace('<script src="mercadopago-checkout-client.js"></script>', '<script src="cart-coupons.js"></script>\n<script src="mercadopago-checkout-client.js"></script>');
+        res.type('html').send(html);
+      } catch (error) { next(error); }
+    });
+
     registerAuthRoutes(app);
     registerMelhorEnvioOAuthRoutes(app);
     registerShippingRoutes(app);
     registerProductDetailsRoutes(app);
     registerCouponRoutes(app);
-
     registerCasioEnrichmentV2(app);
     registerImageProxy(app);
     registerOrientEnrichment(app);
@@ -93,7 +103,6 @@ if (!originalExpress.__relogioAuthPatched) {
       try {
         const user = userFromRequest(req);
         if (!user) return next();
-
         req.body = req.body || {};
         req.body.payer = {
           ...(req.body.payer || {}),
@@ -110,13 +119,9 @@ if (!originalExpress.__relogioAuthPatched) {
       next();
     });
 
-    // Cupons de frete grátis têm um checkout dedicado para que o valor do frete
-    // seja zerado somente no servidor, depois de validar novamente código e limites.
     registerCouponCheckout(app);
-
     registerMercadoPagoOrdersPix(app);
     registerMercadoPagoClean(app);
-
     return app;
   };
 
