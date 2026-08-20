@@ -26,6 +26,21 @@ function accessToken() {
   return token;
 }
 
+function apiErrorDetails(data) {
+  const errors = Array.isArray(data?.errors) ? data.errors : [];
+  return errors.map((item, index) => {
+    if (!item || typeof item !== 'object') return `#${index + 1}: ${String(item)}`;
+    const parts = [
+      item.code ? `code=${item.code}` : '',
+      item.message ? `message=${item.message}` : '',
+      item.detail ? `detail=${item.detail}` : '',
+      item.description ? `description=${item.description}` : '',
+      item.field ? `field=${item.field}` : ''
+    ].filter(Boolean);
+    return `#${index + 1}: ${parts.join(', ') || JSON.stringify(item)}`;
+  }).join(' | ');
+}
+
 async function mpRequest(url, options = {}) {
   const response = await fetch(url, {
     ...options,
@@ -38,10 +53,12 @@ async function mpRequest(url, options = {}) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = data?.message || data?.error || data?.cause?.[0]?.description || `Mercado Pago respondeu HTTP ${response.status}.`;
+    const details = apiErrorDetails(data);
+    const message = data?.message || data?.error || data?.cause?.[0]?.description || details || `Mercado Pago respondeu HTTP ${response.status}.`;
     const error = new Error(message);
     error.status = response.status;
     error.data = data;
+    error.details = details;
     throw error;
   }
   return data;
@@ -175,7 +192,13 @@ function registerMercadoPagoOrdersPix(app) {
         const orders = read(ORDERS, []); const index = orders.findIndex(o => o.id === orderId);
         if (index >= 0) { orders[index].status = 'checkout_error'; orders[index].payment_status = 'checkout_error'; orders[index].checkout_error = String(error.message).slice(0, 500); orders[index].updated_at = new Date().toISOString(); await persist(orders).catch(() => {}); }
       }
-      console.error('Mercado Pago Orders: erro no PIX', { orderId, message: error.message, status: error.status || 502, data: error.data || null });
+      console.error('Mercado Pago Orders: erro no PIX', {
+        orderId,
+        message: error.message,
+        status: error.status || 502,
+        details: error.details || null,
+        response: error.data ? JSON.stringify(error.data) : null
+      });
       return res.status(error.status >= 400 && error.status < 500 ? error.status : 502).json({ error: error.message || 'Não foi possível criar o PIX.' });
     }
   });
