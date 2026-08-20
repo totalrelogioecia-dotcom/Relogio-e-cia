@@ -1,18 +1,13 @@
 const express = require('express');
 const { registerAuthRoutes, userFromRequest } = require('./auth');
 const { storageStatus } = require('./persistent-store');
-const { registerMercadoPagoV2 } = require('./mercadopago-v2');
-const { registerMercadoPagoWebhookCompat } = require('./mercadopago-webhook-compat');
 const { registerShippingRoutes } = require('./shipping-routes');
-const { registerCheckoutWithShipping } = require('./checkout-with-shipping');
 const { registerMelhorEnvioOAuthRoutes } = require('./melhorenvio-oauth-routes');
 const { registerProductDetailsRoutes } = require('./product-details-routes');
 const { registerCasioEnrichmentV2 } = require('./casio-enrichment-v2');
 const { registerImageProxy } = require('./image-proxy');
 const { registerOrientEnrichment } = require('./orient-enrichment');
-const { configureCheckoutProPayerFilter } = require('./mercadopago-checkout-pro-payer-filter');
-
-configureCheckoutProPayerFilter();
+const { registerMercadoPagoClean } = require('./mercadopago-clean');
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
@@ -23,6 +18,7 @@ if (!originalExpress.__relogioAuthPatched) {
     registerMelhorEnvioOAuthRoutes(app);
     registerShippingRoutes(app);
     registerProductDetailsRoutes(app);
+
     // A rota Casio v2 precisa ser registrada antes da implementação antiga,
     // pois ambas usam /api/product-enrichment. O Express usa a primeira rota compatível.
     registerCasioEnrichmentV2(app);
@@ -34,6 +30,8 @@ if (!originalExpress.__relogioAuthPatched) {
       res.json(storageStatus());
     });
 
+    // A conta autenticada no backend é a fonte de verdade para os dados do cliente.
+    // O frontend continua enviando apenas o mínimo necessário para compatibilidade.
     app.use('/api/checkout', express.json({ limit: '1mb' }), (req, res, next) => {
       try {
         const user = userFromRequest(req);
@@ -55,31 +53,10 @@ if (!originalExpress.__relogioAuthPatched) {
       next();
     });
 
-    // O bootstrap registra as rotas do Mercado Pago antes do express.json() global
-    // de server.js. Por isso o webhook precisa do parser aqui, antes dos handlers.
-    // O Mercado Pago também envia type e data.id na query; normalizamos esses
-    // valores no body para manter compatibilidade com os handlers já existentes.
-    app.use('/api/mercadopago/webhook', express.json({ limit: '1mb' }), (req, res, next) => {
-      req.body = req.body || {};
-
-      if (!req.body.type && !req.body.topic) {
-        if (req.query?.type) req.body.type = req.query.type;
-        else if (req.query?.topic) req.body.topic = req.query.topic;
-      }
-
-      if (!req.body?.data?.id && req.query?.['data.id']) {
-        req.body.data = {
-          ...(req.body.data || {}),
-          id: req.query['data.id']
-        };
-      }
-
-      next();
-    });
-
-    registerCheckoutWithShipping(app);
-    registerMercadoPagoWebhookCompat(app);
-    registerMercadoPagoV2(app);
+    // Única implementação de Mercado Pago ativa nesta branch.
+    // Os módulos antigos permanecem no repositório apenas como referência/rollback,
+    // mas não são carregados nem registram rotas.
+    registerMercadoPagoClean(app);
 
     return app;
   };
