@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel administrativo — Relógio e Cia</title>
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="admin-payment-reasons.css"><link rel="stylesheet" href="admin-shipping.css"><link rel="stylesheet" href="admin-melhorenvio.css">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="admin-payment-reasons.css"><link rel="stylesheet" href="admin-shipping.css"><link rel="stylesheet" href="admin-melhorenvio.css"><link rel="stylesheet" href="admin-coupons.css">
 </head><body class="admin-page">
 <header class="site-header"><nav class="nav"><a href="index.html" class="brand-mark"><span class="sq"></span><span class="word">Relógio e Cia<small>Painel administrativo</small></span></a><a href="index.html" class="nav-cta">Ver loja</a></nav></header>
 <main class="admin-main">
@@ -17,7 +17,7 @@
 <section id="dashboard" style="display:none">
 <div class="admin-head"><div><p class="eyebrow">Controle da loja</p><h1>Painel administrativo</h1></div><button id="logout-btn" class="btn btn-outline">Sair</button></div>
 <div id="admin-msg" class="form-success" style="display:none"></div>
-<div class="admin-tabs"><button class="active" data-tab="produtos">📦 Produtos</button><button data-tab="pedidos">🛒 Pedidos</button></div>
+<div class="admin-tabs"><button class="active" data-tab="produtos">📦 Produtos</button><button data-tab="pedidos">🛒 Pedidos</button><button data-tab="cupons">🎟️ Cupons</button></div>
 <div id="tab-produtos">
 <div class="admin-toolbar"><h2>Produtos</h2><button id="novo-produto" class="btn btn-primary">+ Novo produto</button></div>
 <div class="admin-card" id="product-editor" style="display:none">
@@ -50,5 +50,25 @@
 <div id="products-list" class="admin-table-wrap"></div>
 </div>
 <div id="tab-pedidos" style="display:none"><div class="admin-toolbar"><h2>Pedidos</h2><button id="refresh-orders" class="btn btn-outline">Atualizar</button></div><div id="orders-list" class="admin-table-wrap"></div></div>
+<div id="tab-cupons" style="display:none">
+  <div class="admin-toolbar"><div><h2>Cupons de frete grátis</h2><p class="coupon-help">Crie códigos promocionais e defina limites de uso, compra mínima e validade. O desconto do frete é sempre validado novamente no servidor antes do pagamento.</p></div><button id="novo-cupom" class="btn btn-primary">+ Novo cupom</button></div>
+  <div id="coupon-admin-msg" class="form-success" style="display:none"></div>
+  <div class="admin-card" id="coupon-editor" style="display:none">
+    <h3 id="coupon-editor-title">Novo cupom de frete grátis</h3>
+    <input type="hidden" id="coupon-id">
+    <div class="coupon-grid">
+      <div class="form-field"><label>Código do cupom</label><input id="coupon-code" maxlength="32" placeholder="Ex.: FRETEGRATIS"></div>
+      <div class="form-field"><label>Compra mínima (R$)</label><input id="coupon-min" type="number" min="0" step="0.01" value="0"></div>
+      <div class="form-field"><label>Limite total de usos</label><input id="coupon-max-uses" type="number" min="1" step="1" placeholder="Em branco = ilimitado"></div>
+      <div class="form-field"><label>Limite por cliente</label><input id="coupon-per-customer" type="number" min="1" step="1" value="1" placeholder="Em branco = ilimitado"></div>
+      <div class="form-field"><label>Disponível a partir de</label><input id="coupon-starts" type="datetime-local"></div>
+      <div class="form-field"><label>Expira em</label><input id="coupon-expires" type="datetime-local"></div>
+    </div>
+    <label class="switch"><input id="coupon-active" type="checkbox" checked><span>Cupom ativo</span></label>
+    <p class="coupon-inline-note">O cupom zera somente o valor do frete. O desconto de 5% do PIX continua sendo aplicado normalmente sobre os produtos.</p>
+    <div class="editor-actions"><button id="salvar-cupom" class="btn btn-primary">Salvar cupom</button><button id="cancelar-cupom" class="btn btn-outline">Cancelar</button></div>
+  </div>
+  <div id="coupons-list" class="admin-table-wrap"></div>
+</div>
 </section>
-</main><script src="admin-shipping.js"></script><script src="admin-product-details.js"></script><script src="admin.js"></script><script src="admin-payment-reasons.js"></script><script src="admin-order-sync.js"></script><script src="admin-melhorenvio.js"></script></body></html>
+</main><script src="admin-shipping.js"></script><script src="admin-product-details.js"></script><script src="admin.js"></script><script src="admin-payment-reasons.js"></script><script src="admin-order-sync.js"></script><script src="admin-melhorenvio.js"></script><script src="admin-coupons.js"></script></body></html>
