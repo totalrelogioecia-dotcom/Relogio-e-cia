@@ -1,0 +1,41 @@
+name: Mercado Pago clean check
+
+on:
+  push:
+    branches:
+      - mercadopago-clean-rebuild
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check mercadopago-clean.js
+          node --check mercadopago-checkout-client.js
+          node --check auth-bootstrap.js
+
+      - name: Check Mercado Pago SDK exports
+        run: |
+          node - <<'NODE'
+          const sdk = require('mercadopago');
+          const required = ['MercadoPagoConfig', 'Preference', 'Payment', 'WebhookSignatureValidator'];
+          const missing = required.filter(name => !sdk[name]);
+          if (missing.length) {
+            throw new Error(`Missing Mercado Pago SDK exports: ${missing.join(', ')}`);
+          }
+          console.log('Mercado Pago SDK exports OK:', required.join(', '));
+          NODE
