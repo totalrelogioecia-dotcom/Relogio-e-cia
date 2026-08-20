@@ -1,4 +1,5 @@
 const express = require('express');
+const { Preference } = require('mercadopago');
 const { registerAuthRoutes, userFromRequest } = require('./auth');
 const { storageStatus } = require('./persistent-store');
 const { registerShippingRoutes } = require('./shipping-routes');
@@ -11,6 +12,24 @@ const { registerMercadoPagoClean } = require('./mercadopago-clean');
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
+  // Checkout Pro: a URL de Webhook configurada no painel da aplicação deve ser a
+  // fonte da notificação assinada. Se notification_url for enviada dentro da
+  // preferência, ela tem prioridade e pode chegar por um fluxo diferente do
+  // segredo configurado no painel. Removemos apenas de Preference.create;
+  // pagamentos PIX diretos continuam usando sua própria notification_url.
+  if (!Preference.prototype.__relogioSignedWebhookPatched) {
+    const originalPreferenceCreate = Preference.prototype.create;
+    Preference.prototype.create = function (args = {}) {
+      if (args?.body?.notification_url) {
+        const body = { ...args.body };
+        delete body.notification_url;
+        args = { ...args, body };
+      }
+      return originalPreferenceCreate.call(this, args);
+    };
+    Preference.prototype.__relogioSignedWebhookPatched = true;
+  }
+
   const wrappedExpress = function (...args) {
     const app = originalExpress(...args);
 
