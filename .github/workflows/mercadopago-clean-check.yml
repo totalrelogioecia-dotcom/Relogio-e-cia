@@ -27,6 +27,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check mercadopago-clean.js
+          node --check mercadopago-orders-pix.js
           node --check mercadopago-checkout-client.js
           node --check auth-bootstrap.js
 
