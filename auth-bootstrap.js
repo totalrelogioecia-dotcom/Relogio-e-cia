@@ -9,6 +9,8 @@ const { registerProductDetailsRoutes } = require('./product-details-routes');
 const { registerCasioEnrichmentV2 } = require('./casio-enrichment-v2');
 const { registerImageProxy } = require('./image-proxy');
 const { registerOrientEnrichment } = require('./orient-enrichment');
+const { registerCouponRoutes } = require('./coupon-routes');
+const { registerCouponCheckout } = require('./coupon-checkout');
 const { registerMercadoPagoOrdersPix } = require('./mercadopago-orders-pix');
 const { registerMercadoPagoClean } = require('./mercadopago-clean');
 
@@ -31,11 +33,6 @@ function safeHexEqual(a, b) {
   return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
-// O SDK do Mercado Pago pode normalizar o data.id durante a validação. Isso não
-// altera IDs numéricos de payment, mas quebra a assinatura dos IDs alfanuméricos
-// de Order (ORD...). A documentação do Mercado Pago exige que o manifesto use o
-// data.id exatamente como chegou na query string. Mantemos a mesma interface do
-// SDK, mas calculamos o HMAC sem alterar maiúsculas/minúsculas do identificador.
 if (WebhookSignatureValidator?.validate && !WebhookSignatureValidator.__relogioExactDataIdPatched) {
   WebhookSignatureValidator.validate = function ({ xSignature, xRequestId, dataId, secret } = {}) {
     const signature = parseMercadoPagoSignature(xSignature);
@@ -61,11 +58,6 @@ if (WebhookSignatureValidator?.validate && !WebhookSignatureValidator.__relogioE
 
 const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
-  // Checkout Pro: a URL de Webhook configurada no painel da aplicação deve ser a
-  // fonte da notificação assinada. Se notification_url for enviada dentro da
-  // preferência, ela tem prioridade e pode chegar por um fluxo diferente do
-  // segredo configurado no painel. Removemos apenas de Preference.create;
-  // pagamentos PIX usam Orders API e o tópico Order configurado no painel.
   if (!Preference.prototype.__relogioSignedWebhookPatched) {
     const originalPreferenceCreate = Preference.prototype.create;
     Preference.prototype.create = function (args = {}) {
@@ -86,9 +78,8 @@ if (!originalExpress.__relogioAuthPatched) {
     registerMelhorEnvioOAuthRoutes(app);
     registerShippingRoutes(app);
     registerProductDetailsRoutes(app);
+    registerCouponRoutes(app);
 
-    // A rota Casio v2 precisa ser registrada antes da implementação antiga,
-    // pois ambas usam /api/product-enrichment. O Express usa a primeira rota compatível.
     registerCasioEnrichmentV2(app);
     registerImageProxy(app);
     registerOrientEnrichment(app);
@@ -98,8 +89,6 @@ if (!originalExpress.__relogioAuthPatched) {
       res.json(storageStatus());
     });
 
-    // A conta autenticada no backend é a fonte de verdade para os dados do cliente.
-    // O frontend continua enviando apenas o mínimo necessário para compatibilidade.
     app.use('/api/checkout', express.json({ limit: '1mb' }), (req, res, next) => {
       try {
         const user = userFromRequest(req);
@@ -121,13 +110,11 @@ if (!originalExpress.__relogioAuthPatched) {
       next();
     });
 
-    // PIX usa a API Orders recomendada pelo Mercado Pago. Esta rota vem antes
-    // do Checkout Pro para interceptar somente metodo=pix; cartão continua igual.
-    // O payer enviado é sempre o cliente real/autenticado; não há mais substituição
-    // automática por usuário de sandbox nesta branch.
-    registerMercadoPagoOrdersPix(app);
+    // Cupons de frete grátis têm um checkout dedicado para que o valor do frete
+    // seja zerado somente no servidor, depois de validar novamente código e limites.
+    registerCouponCheckout(app);
 
-    // Checkout Pro limpo continua responsável por cartão e pelas rotas compatíveis.
+    registerMercadoPagoOrdersPix(app);
     registerMercadoPagoClean(app);
 
     return app;
