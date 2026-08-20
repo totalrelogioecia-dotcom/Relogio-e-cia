@@ -31,6 +31,40 @@ if (!originalExpress.__relogioAuthPatched) {
     Preference.prototype.__relogioSignedWebhookPatched = true;
   }
 
+  // A API Orders exige dados predefinidos para testes de PIX. O Render informa
+  // automaticamente a branch em RENDER_GIT_BRANCH; portanto este adaptador só
+  // atua na branch de homologação e deixa produção usar os dados reais do cliente.
+  if (
+    process.env.RENDER_GIT_BRANCH === 'mercadopago-clean-rebuild' &&
+    typeof global.fetch === 'function' &&
+    !global.__relogioMercadoPagoSandboxFetchPatched
+  ) {
+    const originalFetch = global.fetch;
+    global.fetch = async function (input, init = {}) {
+      try {
+        const url = typeof input === 'string' ? input : String(input?.url || '');
+        const method = String(init?.method || 'GET').toUpperCase();
+        if (url === 'https://api.mercadopago.com/v1/orders' && method === 'POST' && typeof init.body === 'string') {
+          const payload = JSON.parse(init.body);
+          const payment = payload?.transactions?.payments?.[0];
+          if (payment?.payment_method?.id === 'pix') {
+            payload.payer = {
+              ...(payload.payer || {}),
+              email: 'test_user_br@testuser.com',
+              first_name: 'APRO'
+            };
+            init = { ...init, body: JSON.stringify(payload) };
+            console.log('Mercado Pago Orders: payer de sandbox aplicado para teste PIX.');
+          }
+        }
+      } catch (error) {
+        console.warn('Mercado Pago Orders: não foi possível aplicar payer de sandbox:', error.message);
+      }
+      return originalFetch(input, init);
+    };
+    global.__relogioMercadoPagoSandboxFetchPatched = true;
+  }
+
   const wrappedExpress = function (...args) {
     const app = originalExpress(...args);
 
