@@ -8,6 +8,7 @@ const { registerProductDetailsRoutes } = require('./product-details-routes');
 const { registerCasioEnrichmentV2 } = require('./casio-enrichment-v2');
 const { registerImageProxy } = require('./image-proxy');
 const { registerOrientEnrichment } = require('./orient-enrichment');
+const { registerMercadoPagoOrdersPix } = require('./mercadopago-orders-pix');
 const { registerMercadoPagoClean } = require('./mercadopago-clean');
 
 const originalExpress = express;
@@ -16,7 +17,7 @@ if (!originalExpress.__relogioAuthPatched) {
   // fonte da notificação assinada. Se notification_url for enviada dentro da
   // preferência, ela tem prioridade e pode chegar por um fluxo diferente do
   // segredo configurado no painel. Removemos apenas de Preference.create;
-  // pagamentos PIX diretos continuam usando sua própria notification_url.
+  // pagamentos PIX usam Orders API e o tópico Order configurado no painel.
   if (!Preference.prototype.__relogioSignedWebhookPatched) {
     const originalPreferenceCreate = Preference.prototype.create;
     Preference.prototype.create = function (args = {}) {
@@ -72,9 +73,11 @@ if (!originalExpress.__relogioAuthPatched) {
       next();
     });
 
-    // Única implementação de Mercado Pago ativa nesta branch.
-    // Os módulos antigos permanecem no repositório apenas como referência/rollback,
-    // mas não são carregados nem registram rotas.
+    // PIX usa a API Orders recomendada pelo Mercado Pago. Esta rota vem antes
+    // do Checkout Pro para interceptar somente metodo=pix; cartão continua igual.
+    registerMercadoPagoOrdersPix(app);
+
+    // Checkout Pro limpo continua responsável por cartão e pelas rotas compatíveis.
     registerMercadoPagoClean(app);
 
     return app;
