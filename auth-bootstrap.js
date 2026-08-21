@@ -6,6 +6,8 @@ const { AsyncLocalStorage } = require('async_hooks');
 const { Preference, WebhookSignatureValidator } = require('mercadopago');
 const { registerAuthRoutes, userFromRequest } = require('./auth');
 const { registerCheckoutProfileRoutes, validCpf } = require('./checkout-profile');
+const { registerCustomerAddressRoutes } = require('./customer-address-routes');
+const { resolveUserAddress, stripMeta } = require('./customer-address-service');
 const { storageStatus } = require('./persistent-store');
 const { registerShippingRoutes } = require('./shipping-routes');
 const { registerMelhorEnvioOAuthRoutes } = require('./melhorenvio-oauth-routes');
@@ -43,31 +45,22 @@ function preferencePayer(payer) {
 
   const areaCode = digits(payer.telefone?.area_code).slice(0, 4);
   const phoneNumber = digits(payer.telefone?.number).slice(0, 15);
-  if (areaCode && phoneNumber) {
-    result.phone = { area_code: areaCode, number: phoneNumber };
-  }
+  if (areaCode && phoneNumber) result.phone = { area_code: areaCode, number: phoneNumber };
 
   const identificationType = String(payer.identificacao?.type || '').trim().toUpperCase().slice(0, 20);
   const identificationNumber = digits(payer.identificacao?.number).slice(0, 30);
-  if (identificationType && identificationNumber) {
-    result.identification = { type: identificationType, number: identificationNumber };
-  }
+  if (identificationType && identificationNumber) result.identification = { type: identificationType, number: identificationNumber };
 
   const address = payer.endereco || {};
   const zipCode = digits(address.zip_code).slice(0, 8);
   const streetName = String(address.street_name || '').trim().slice(0, 120);
   const streetNumber = String(address.street_number || '').trim().slice(0, 20);
   if (zipCode && streetName && streetNumber) {
-    result.address = {
-      zip_code: zipCode,
-      street_name: streetName,
-      street_number: streetNumber
-    };
+    result.address = { zip_code: zipCode, street_name: streetName, street_number: streetNumber };
   }
 
   const dateCreated = String(payer.date_created || '').trim();
   if (dateCreated) result.date_created = dateCreated;
-
   return result;
 }
 
@@ -117,25 +110,11 @@ if (!originalExpress.__relogioAuthPatched) {
     Preference.prototype.create = async function (args = {}) {
       if (args?.body) {
         const body = { ...args.body };
-
-        // O webhook principal é configurado no painel do Mercado Pago.
-        // Mantemos a preferência sem notification_url para evitar rotas concorrentes.
         if (body.notification_url) delete body.notification_url;
-
-        // Durante o checkout, aproveita os dados reais já cadastrados na conta
-        // para enriquecer a preferência do Checkout Pro. Isso ajuda a análise
-        // antifraude sem inventar dados do comprador.
         const contextualPayer = preferencePayer(checkoutContext.getStore()?.payer);
-        if (contextualPayer) {
-          body.payer = {
-            ...(body.payer || {}),
-            ...contextualPayer
-          };
-        }
-
+        if (contextualPayer) body.payer = { ...(body.payer || {}), ...contextualPayer };
         args = { ...args, body };
       }
-
       const response = await originalPreferenceCreate.call(this, args);
       const context = checkoutContext.getStore();
       if (context && response?.init_point) context.initPoint = String(response.init_point);
@@ -148,14 +127,10 @@ if (!originalExpress.__relogioAuthPatched) {
     const app = originalExpress(...args);
 
     function injectLegalFooterScript(html) {
-      if (!html.includes('legal-footer.js')) {
-        html = html.replace('</body>', '<script src="legal-footer.js"></script>\n</body>');
-      }
+      if (!html.includes('legal-footer.js')) html = html.replace('</body>', '<script src="legal-footer.js"></script>\n</body>');
       return html;
     }
 
-    // Injeta os recursos de cupom somente na página do carrinho, mantendo o HTML
-    // base simples e garantindo que o script seja carregado depois do frete.
     app.get('/carrinho.html', (req, res, next) => {
       try {
         const file = path.join(__dirname, 'carrinho.html');
@@ -167,16 +142,9 @@ if (!originalExpress.__relogioAuthPatched) {
       } catch (error) { next(error); }
     });
 
-    // As páginas públicas principais recebem o mesmo bloco legal no rodapé.
-    // Isso evita que Política de Privacidade, Termos e pós-venda apareçam só na Home.
     const legalPages = [
-      'produtos.html',
-      'produto.html',
-      'sobre.html',
-      'conta.html',
-      'trocas-estornos.html',
-      'politica-de-privacidade.html',
-      'termos-de-uso.html'
+      'produtos.html', 'produto.html', 'sobre.html', 'conta.html', 'trocas-estornos.html',
+      'politica-de-privacidade.html', 'termos-de-uso.html'
     ];
     for (const page of legalPages) {
       app.get(`/${page}`, (req, res, next) => {
@@ -189,6 +157,7 @@ if (!originalExpress.__relogioAuthPatched) {
     }
 
     registerAuthRoutes(app);
+    registerCustomerAddressRoutes(app);
     registerCheckoutProfileRoutes(app);
     registerReturnRequestRoutes(app);
     registerMelhorEnvioOAuthRoutes(app);
@@ -209,13 +178,31 @@ if (!originalExpress.__relogioAuthPatched) {
         const user = userFromRequest(req);
         if (user) {
           req.body = req.body || {};
+          const requestedAddressId = String(req.body?.shipping?.address_id || req.body?.delivery_address_id || '').trim();
+          const deliveryAddress = resolveUserAddress(user, requestedAddressId);
+          if (requestedAddressId && !deliveryAddress) {
+            return res.status(409).json({
+              error: 'O endereço de entrega selecionado não foi encontrado na sua conta.',
+              code: 'delivery_address_invalid'
+            });
+          }
+          if (!deliveryAddress) {
+            return res.status(409).json({
+              error: 'Cadastre um endereço de entrega antes de finalizar a compra.',
+              code: 'delivery_address_required'
+            });
+          }
+
+          req.body.shipping = req.body.shipping || {};
+          req.body.shipping.address_id = deliveryAddress.id;
           req.body.payer = {
             ...(req.body.payer || {}),
             nome: user.nome,
             email: user.email,
             telefone: user.telefone || undefined,
             identificacao: user.identificacao || undefined,
-            endereco: user.endereco || undefined,
+            endereco: stripMeta(deliveryAddress),
+            endereco_id: deliveryAddress.id,
             date_created: user.created_at || undefined
           };
 
@@ -232,15 +219,12 @@ if (!originalExpress.__relogioAuthPatched) {
 
       const originalJson = res.json.bind(res);
       const context = { payer: req.body?.payer || null, initPoint: null };
-
       res.json = payload => {
         if (payload && typeof payload === 'object' && payload.preference_id && !payload.init_point && context.initPoint) {
           payload = { ...payload, init_point: context.initPoint };
         }
         const response = originalJson(payload);
-        if (payload && typeof payload === 'object' && payload.order_id) {
-          queueOrderReceivedEmail(payload.order_id);
-        }
+        if (payload && typeof payload === 'object' && payload.order_id) queueOrderReceivedEmail(payload.order_id);
         return response;
       };
 
