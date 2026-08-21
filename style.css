@@ -5,6 +5,8 @@
    Tipos: Space Grotesk (display) · IBM Plex Sans (texto) · IBM Plex Mono (dados)
    ========================================================= */
 
+@import url('mobile-fixes.css');
+
 :root{
   --bg:            #FFFFFF;
   --bg-soft:       #F2F1EE;
