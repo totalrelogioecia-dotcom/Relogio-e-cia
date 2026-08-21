@@ -17,6 +17,8 @@ const { registerCouponRoutes } = require('./coupon-routes');
 const { registerCouponCheckout } = require('./coupon-checkout');
 const { registerMercadoPagoOrdersPix } = require('./mercadopago-orders-pix');
 const { registerMercadoPagoClean } = require('./mercadopago-clean');
+const { registerReturnRequestRoutes } = require('./return-requests');
+const { queueOrderReceivedEmail } = require('./order-email');
 
 const checkoutContext = new AsyncLocalStorage();
 
@@ -145,6 +147,13 @@ if (!originalExpress.__relogioAuthPatched) {
   const wrappedExpress = function (...args) {
     const app = originalExpress(...args);
 
+    function injectLegalFooterScript(html) {
+      if (!html.includes('legal-footer.js')) {
+        html = html.replace('</body>', '<script src="legal-footer.js"></script>\n</body>');
+      }
+      return html;
+    }
+
     // Injeta os recursos de cupom somente na página do carrinho, mantendo o HTML
     // base simples e garantindo que o script seja carregado depois do frete.
     app.get('/carrinho.html', (req, res, next) => {
@@ -153,12 +162,35 @@ if (!originalExpress.__relogioAuthPatched) {
         let html = fs.readFileSync(file, 'utf8');
         if (!html.includes('cart-coupons.css')) html = html.replace('</head>', '<link rel="stylesheet" href="cart-coupons.css">\n</head>');
         if (!html.includes('cart-coupons.js')) html = html.replace('<script src="mercadopago-checkout-client.js"></script>', '<script src="cart-coupons.js"></script>\n<script src="mercadopago-checkout-client.js"></script>');
+        html = injectLegalFooterScript(html);
         res.type('html').send(html);
       } catch (error) { next(error); }
     });
 
+    // As páginas públicas principais recebem o mesmo bloco legal no rodapé.
+    // Isso evita que Política de Privacidade, Termos e pós-venda apareçam só na Home.
+    const legalPages = [
+      'produtos.html',
+      'produto.html',
+      'sobre.html',
+      'conta.html',
+      'trocas-estornos.html',
+      'politica-de-privacidade.html',
+      'termos-de-uso.html'
+    ];
+    for (const page of legalPages) {
+      app.get(`/${page}`, (req, res, next) => {
+        try {
+          const file = path.join(__dirname, page);
+          const html = injectLegalFooterScript(fs.readFileSync(file, 'utf8'));
+          res.type('html').send(html);
+        } catch (error) { next(error); }
+      });
+    }
+
     registerAuthRoutes(app);
     registerCheckoutProfileRoutes(app);
+    registerReturnRequestRoutes(app);
     registerMelhorEnvioOAuthRoutes(app);
     registerShippingRoutes(app);
     registerProductDetailsRoutes(app);
@@ -205,7 +237,11 @@ if (!originalExpress.__relogioAuthPatched) {
         if (payload && typeof payload === 'object' && payload.preference_id && !payload.init_point && context.initPoint) {
           payload = { ...payload, init_point: context.initPoint };
         }
-        return originalJson(payload);
+        const response = originalJson(payload);
+        if (payload && typeof payload === 'object' && payload.order_id) {
+          queueOrderReceivedEmail(payload.order_id);
+        }
+        return response;
       };
 
       checkoutContext.run(context, () => next());
