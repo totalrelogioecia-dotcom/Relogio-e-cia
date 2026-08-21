@@ -203,22 +203,20 @@ function registerMercadoPagoOrdersPix(app) {
     }
   });
 
-  app.post('/api/mercadopago/webhook', express.json({ limit: '1mb' }), async (req, res, next) => {
-    const type = String(req.body?.type || req.query?.type || '').trim();
+  // A integração principal usa os eventos de pagamento para atualizar os pedidos.
+  // Eventos "order" não são necessários aqui. Respondemos 200 sem processá-los
+  // para que o Mercado Pago considere a entrega concluída e não faça retries.
+  // Como nenhum dado do evento é aplicado ao pedido, não há alteração de estado
+  // sem a validação do webhook de pagamento que continua no fluxo principal.
+  app.post('/api/mercadopago/webhook', express.json({ limit: '1mb' }), (req, res, next) => {
+    const type = String(req.body?.type || req.query?.type || '').trim().toLowerCase();
     if (type !== 'order' && type !== 'orders') return next();
-    const queryId = String(req.query?.['data.id'] || '').trim();
-    const orderId = queryId || String(req.body?.data?.id || '').trim();
-    if (!orderId) return res.sendStatus(200);
-    const secret = String(process.env.MERCADOPAGO_WEBHOOK_SECRET || '').trim();
-    if (!secret || !queryId) return res.sendStatus(secret ? 400 : 503);
-    try {
-      WebhookSignatureValidator.validate({ xSignature: req.headers['x-signature'], xRequestId: req.headers['x-request-id'], dataId: queryId, secret });
-    } catch (error) {
-      console.warn('Mercado Pago Orders: assinatura inválida', { orderId, message: error.message });
-      return res.sendStatus(401);
-    }
-    try { await applyOrder(await fetchOrder(orderId)); return res.sendStatus(200); }
-    catch (error) { console.error('Mercado Pago Orders: falha no webhook', { orderId, message: error.message }); return res.sendStatus(500); }
+
+    const orderId = String(req.query?.['data.id'] || req.body?.data?.id || '').trim();
+    console.log('Mercado Pago Orders: evento order reconhecido e ignorado', {
+      orderId: orderId || null
+    });
+    return res.sendStatus(200);
   });
 
   app.get('/api/order/:id', async (req, res, next) => {
