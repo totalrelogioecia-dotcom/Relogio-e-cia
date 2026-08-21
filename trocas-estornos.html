@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="trocas-estornos.css">
+<link rel="stylesheet" href="return-request-form.css">
 </head>
 <body>
 <header class="site-header">
@@ -21,7 +22,7 @@
       <li><a href="sobre.html#loja">Nossa loja</a></li>
     </ul>
     <div class="nav-utility">
-      <a href="conta.html" class="nav-icon-link">Conta</a>
+      <a href="conta.html" class="nav-icon-link" id="nav-conta-link">Conta</a>
       <a href="carrinho.html" class="nav-icon-link">Carrinho <span class="cart-badge" id="cart-badge" data-zero="1">0</span></a>
     </div>
     <a href="produtos.html" class="nav-cta">Ver catálogo</a>
@@ -42,15 +43,59 @@
   <div class="policy-wrap">
     <div class="policy-grid">
       <div>
+        <section class="policy-card return-form-card" id="solicitar">
+          <p class="policy-kicker">Abrir solicitação</p>
+          <h2>Solicite pelo próprio site</h2>
+          <p>Informe os dados do pedido abaixo. Se o número do pedido e o e-mail corresponderem à compra, o sistema gera um protocolo para você acompanhar o atendimento.</p>
+          <form id="return-request-form">
+            <div class="return-form-grid">
+              <div class="return-field">
+                <label for="return-order">Número do pedido</label>
+                <input id="return-order" name="order_id" required maxlength="80" placeholder="Ex.: PED-1787271668538-573820" autocomplete="off">
+              </div>
+              <div class="return-field">
+                <label for="return-email">E-mail usado na compra</label>
+                <input id="return-email" name="email" type="email" required maxlength="180" placeholder="seu@email.com" autocomplete="email">
+              </div>
+              <div class="return-field">
+                <label for="return-type">O que você precisa?</label>
+                <select id="return-type" name="type" required>
+                  <option value="troca">Troca</option>
+                  <option value="devolucao">Devolução</option>
+                  <option value="estorno">Estorno ou cancelamento</option>
+                  <option value="garantia">Garantia ou defeito</option>
+                  <option value="outro">Outro atendimento</option>
+                </select>
+              </div>
+              <div class="return-field">
+                <label for="return-reason">Motivo</label>
+                <input id="return-reason" name="reason" required maxlength="220" placeholder="Ex.: produto chegou avariado">
+              </div>
+            </div>
+            <div class="return-field">
+              <label for="return-message">Explique a solicitação</label>
+              <textarea id="return-message" name="message" required maxlength="3000" minlength="10" placeholder="Conte o que aconteceu e qual solução você deseja."></textarea>
+            </div>
+            <div class="return-field">
+              <label for="return-files">Fotos do produto (opcional)</label>
+              <input id="return-files" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+              <small>Até 3 imagens. Elas são reduzidas antes do envio para facilitar o atendimento.</small>
+              <div id="return-files-list" class="return-files-list"></div>
+            </div>
+            <button id="return-submit" class="return-submit" type="submit">Enviar solicitação</button>
+            <div id="return-form-message" class="return-feedback" role="status"></div>
+          </form>
+        </section>
+
         <section class="policy-card">
           <h2>Como solicitar</h2>
           <ol class="policy-checklist">
-            <li>Entre em contato informando o número do pedido, seu nome e o e-mail usado na compra.</li>
-            <li>Explique se deseja troca, devolução ou estorno e conte brevemente o motivo da solicitação.</li>
-            <li>Se o produto chegou avariado, incorreto ou apresentou algum problema, envie fotos ou vídeos quando possível para agilizar a análise.</li>
-            <li>Aguarde nossas instruções antes de enviar o produto. Nós informaremos o procedimento e, quando aplicável, a forma de postagem.</li>
+            <li>Tenha em mãos o número do pedido e o e-mail usado na compra.</li>
+            <li>Escolha se deseja troca, devolução, estorno, garantia ou outro atendimento e descreva o motivo.</li>
+            <li>Se o produto chegou avariado, incorreto ou apresentou algum problema, anexe fotos quando possível para agilizar a análise.</li>
+            <li>Depois do envio, guarde o protocolo e aguarde nossas instruções antes de postar qualquer produto.</li>
           </ol>
-          <div class="policy-note"><strong>Importante:</strong> não envie senhas, dados completos de cartão ou outras informações financeiras por e-mail ou telefone.</div>
+          <div class="policy-note"><strong>Importante:</strong> não envie senhas, dados completos de cartão ou outras informações financeiras no formulário, por e-mail ou telefone.</div>
         </section>
 
         <section class="policy-card">
@@ -96,15 +141,27 @@
         <section class="policy-card policy-contact">
           <p class="policy-kicker" style="color:#fff;opacity:.65">Fale conosco</p>
           <h2>Solicitar troca ou estorno</h2>
-          <p>Tenha em mãos o número do pedido e o e-mail utilizado na compra.</p>
+          <p>Você pode usar o formulário desta página ou falar com a gente pelos canais abaixo.</p>
           <ul>
             <li><strong>Telefone:</strong><br><a href="tel:+555196311864">(51) 9631-1864</a></li>
             <li><strong>E-mail:</strong><br><a href="mailto:totalrelogioecia@gmail.com?subject=Solicita%C3%A7%C3%A3o%20de%20troca%20ou%20estorno">totalrelogioecia@gmail.com</a></li>
             <li><strong>Horário:</strong><br>Segunda a sábado, das 10h às 22h.<br>Domingos, das 14h às 20h.</li>
           </ul>
           <div class="policy-actions">
-            <a class="btn-light" href="mailto:totalrelogioecia@gmail.com?subject=Solicita%C3%A7%C3%A3o%20de%20troca%20ou%20estorno">Solicitar por e-mail</a>
+            <a class="btn-light" href="#solicitar">Abrir solicitação no site</a>
+            <a class="btn-dark-outline" href="mailto:totalrelogioecia@gmail.com?subject=Solicita%C3%A7%C3%A3o%20de%20troca%20ou%20estorno">Solicitar por e-mail</a>
             <a class="btn-dark-outline" href="tel:+555196311864">Ligar para atendimento</a>
+          </div>
+
+          <div class="return-status-box">
+            <h3>Acompanhar protocolo</h3>
+            <p>Informe o protocolo recebido e o mesmo e-mail utilizado na solicitação.</p>
+            <form id="return-status-form">
+              <input id="return-protocol" required maxlength="80" placeholder="ATD-20260821-ABC123">
+              <input id="return-status-email" required type="email" maxlength="180" placeholder="seu@email.com">
+              <button type="submit">Consultar andamento</button>
+            </form>
+            <div id="return-status-result" class="return-status-result" role="status"></div>
           </div>
         </section>
       </aside>
@@ -118,7 +175,7 @@
     <div>
       <div class="footer-grid">
         <div><h5>Relógio e Cia</h5><p>Relógios e acessórios das melhores marcas, com loja física e atendimento especializado há mais de 20 anos.</p></div>
-        <div><h5>Navegação</h5><ul><li><a href="index.html">Início</a></li><li><a href="produtos.html">Produtos</a></li><li><a href="sobre.html">Sobre nós</a></li><li><a href="trocas-estornos.html">Trocas e estornos</a></li></ul></div>
+        <div><h5>Navegação</h5><ul><li><a href="index.html">Início</a></li><li><a href="produtos.html">Produtos</a></li><li><a href="sobre.html">Sobre nós</a></li><li><a href="trocas-estornos.html">Trocas, devoluções e estornos</a></li><li><a href="politica-de-privacidade.html">Política de Privacidade</a></li><li><a href="termos-de-uso.html">Termos de Uso</a></li></ul></div>
         <div><h5>Marcas</h5><ul><li><a href="produtos.html?marca=Technos">Technos</a></li><li><a href="produtos.html?marca=Casio">Casio</a></li><li><a href="produtos.html?marca=G-Shock">G-Shock</a></li><li><a href="produtos.html?marca=Citizen">Citizen</a></li><li><a href="produtos.html?marca=Orient">Orient</a></li></ul></div>
         <div><h5>Atendimento</h5><ul><li><a href="tel:+555196311864">(51) 9631-1864</a></li><li><a href="mailto:totalrelogioecia@gmail.com">totalrelogioecia@gmail.com</a></li><li><a href="sobre.html#loja">Av. Cristóvão Colombo, 545 — Independência, Porto Alegre - RS</a></li></ul></div>
       </div>
@@ -128,5 +185,6 @@
 </footer>
 
 <script src="script.js"></script>
+<script src="return-request-form.js"></script>
 </body>
 </html>
