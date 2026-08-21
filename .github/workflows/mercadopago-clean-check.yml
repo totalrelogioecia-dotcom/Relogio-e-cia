@@ -30,6 +30,11 @@ jobs:
           node --check mercadopago-orders-pix.js
           node --check mercadopago-checkout-client.js
           node --check auth-bootstrap.js
+          node --check return-requests.js
+          node --check order-email.js
+          node --check admin-returns.js
+          node --check return-request-form.js
+          node --check legal-footer.js
 
       - name: Check Mercado Pago SDK exports
         run: |
