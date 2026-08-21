@@ -30,6 +30,11 @@ jobs:
           node --check mercadopago-orders-pix.js
           node --check mercadopago-checkout-client.js
           node --check auth-bootstrap.js
+          node --check customer-address-service.js
+          node --check customer-address-routes.js
+          node --check customer-addresses.js
+          node --check shipping-addresses.js
+          node --check shipping-cart.js
           node --check return-requests.js
           node --check order-email.js
           node --check admin-returns.js
