@@ -1,0 +1,24 @@
+name: Export backup
+
+on:
+  push:
+    branches:
+      - backup-export-20260821
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Create ZIP
+        run: zip -r Relogio-e-cia-main.zip . -x '.git/*' '.github/workflows/backup-export.yml'
+      - name: Upload backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: relogio-e-cia-backup
+          path: Relogio-e-cia-main.zip
+          retention-days: 1
