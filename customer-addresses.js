@@ -83,7 +83,30 @@
       <div id="customer-address-form-host"></div>
       <p id="customer-address-message" class="customer-address-message"></p>`;
     profile.insertAdjacentElement('afterend', host);
-    document.getElementById('address-new').addEventListener('click', () => openForm());
+    host.addEventListener('click', event => {
+      const button = event.target.closest('button');
+      if (!button || !host.contains(button)) return;
+
+      if (button.id === 'address-new') {
+        event.preventDefault();
+        openForm();
+        return;
+      }
+      if (button.id === 'addr-save') {
+        event.preventDefault();
+        saveForm();
+        return;
+      }
+      if (button.id === 'addr-cancel') {
+        event.preventDefault();
+        closeForm();
+        return;
+      }
+      if (button.dataset.action) {
+        event.preventDefault();
+        handleCardAction(button);
+      }
+    });
     return true;
   }
 
@@ -102,7 +125,6 @@
         </div>
       </article>`).join('');
 
-    list.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', handleCardAction));
   }
 
   function showMessage(text, kind = 'ok') {
@@ -113,7 +135,7 @@
   }
 
   function formAddress() {
-    const current = addresses.find(address => address.id === editingId) || {};
+    const current = addresses.find(address => String(address.id) === String(editingId)) || {};
     return current;
   }
 
@@ -143,8 +165,11 @@
     cep.addEventListener('input', () => { cep.value = formatCep(cep.value); if (digits(cep.value).length === 8) lookupCep(); });
     cep.addEventListener('blur', lookupCep);
     uf.addEventListener('input', () => { uf.value = uf.value.replace(/[^a-z]/gi, '').slice(0, 2).toUpperCase(); });
-    document.getElementById('addr-save').addEventListener('click', saveForm);
-    document.getElementById('addr-cancel').addEventListener('click', closeForm);
+    const form = host.querySelector('.customer-address-form');
+    requestAnimationFrame(() => {
+      form?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById(editingId ? 'addr-label' : 'addr-cep')?.focus({ preventScroll: true });
+    });
   }
 
   function closeForm() {
@@ -199,10 +224,10 @@
     }
   }
 
-  async function handleCardAction(event) {
-    const card = event.currentTarget.closest('[data-address-id]');
-    const id = card?.dataset.addressId;
-    const action = event.currentTarget.dataset.action;
+  async function handleCardAction(button) {
+    const card = button.closest('[data-address-id]');
+    const id = String(card?.dataset.addressId || '');
+    const action = button.dataset.action;
     if (!id) return;
     if (action === 'edit') return openForm(id);
     if (action === 'delete' && !confirm('Excluir este endereço?')) return;
