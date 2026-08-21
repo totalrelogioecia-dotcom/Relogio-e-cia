@@ -5,8 +5,11 @@ const { URL } = require('url');
 const BASE = 'https://www.casio.com/';
 const SEARCH_READER = 'https://s.jina.ai/';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
+const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const CATALOG_FILE = path.join(__dirname, 'data', 'casio-official-catalog.json');
+const PRODUCTS_FILE = path.join(DATA, 'products.json');
 const memoryCache = new Map();
+let catalogSnapshot = { mtimeMs: -1, products: {} };
 
 function cleanSku(raw) {
   return String(raw || '')
@@ -84,10 +87,23 @@ function containsSku(content, sku) {
 
 function readCatalog() {
   try {
+    const stat = fs.statSync(CATALOG_FILE);
+    if (catalogSnapshot.mtimeMs === stat.mtimeMs) return catalogSnapshot.products;
     const parsed = JSON.parse(fs.readFileSync(CATALOG_FILE, 'utf8'));
-    return parsed && typeof parsed.products === 'object' ? parsed.products : {};
+    const products = parsed && typeof parsed.products === 'object' ? parsed.products : {};
+    catalogSnapshot = { mtimeMs: stat.mtimeMs, products };
+    return products;
   } catch {
-    return {};
+    return catalogSnapshot.products || {};
+  }
+}
+
+function readStoreProducts() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
   }
 }
 
@@ -104,6 +120,126 @@ function fromLocalCatalog(raw) {
     };
   }
   return null;
+}
+
+function normalizeSearch(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function storeProductBySku(products) {
+  const map = new Map();
+  for (const product of products) {
+    const sku = cleanSku(product?.sku);
+    if (sku && !map.has(sku)) map.set(sku, product);
+  }
+  return map;
+}
+
+function catalogStatus(product) {
+  if (!product) return 'base';
+  if (product.ativo === false) return 'oculto';
+  if (Number(product.estoque) > 0) return 'em_estoque';
+  return 'sem_estoque';
+}
+
+function catalogList(req, res) {
+  const query = normalizeSearch(req.query?.q).slice(0, 80);
+  const requestedStatus = String(req.query?.status || 'todos').trim().toLowerCase();
+  const allowedStatus = new Set(['todos', 'base', 'em_estoque', 'sem_estoque', 'oculto']);
+  const filterStatus = allowedStatus.has(requestedStatus) ? requestedStatus : 'todos';
+  const limit = Math.min(50, Math.max(1, Number(req.query?.limit) || 30));
+  const offset = Math.max(0, Number(req.query?.offset) || 0);
+
+  const catalog = readCatalog();
+  const storeProducts = readStoreProducts();
+  const storeMap = storeProductBySku(storeProducts);
+  const catalogEntries = Object.entries(catalog);
+
+  const rows = catalogEntries.map(([key, item]) => {
+    const sku = cleanSku(item?.sku || key);
+    const product = storeMap.get(sku) || null;
+    const status = catalogStatus(product);
+    const nome = String(item?.nome || product?.nome || sku).trim();
+    const marca = String(item?.marca || product?.marca || '').trim();
+    const searchable = normalizeSearch(`${sku} ${nome} ${marca}`);
+    let score = 0;
+    if (query) {
+      const compactQuery = query.replace(/\s+/g, '');
+      const compactSku = sku.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (compactSku === compactQuery) score += 1000;
+      else if (compactSku.startsWith(compactQuery)) score += 500;
+      else if (compactSku.includes(compactQuery)) score += 300;
+      if (normalizeSearch(nome).startsWith(query)) score += 120;
+      if (searchable.includes(query)) score += 60;
+    }
+    return {
+      sku,
+      nome,
+      marca,
+      foto: Array.isArray(item?.fotos) ? String(item.fotos[0] || '') : '',
+      status,
+      estoque: Math.max(0, Number(product?.estoque) || 0),
+      ativo: product ? product.ativo !== false : false,
+      product_id: product?.id ?? null,
+      searchable,
+      score
+    };
+  }).filter(row => (!query || row.searchable.includes(query) || row.sku.toLowerCase().replace(/[^a-z0-9]/g, '').includes(query.replace(/\s+/g, '')))
+    && (filterStatus === 'todos' || row.status === filterStatus));
+
+  rows.sort((a, b) => b.score - a.score || a.marca.localeCompare(b.marca, 'pt-BR') || a.sku.localeCompare(b.sku, 'pt-BR'));
+  const total = rows.length;
+  const items = rows.slice(offset, offset + limit).map(({ searchable, score, ...row }) => row);
+
+  res.set('Cache-Control', 'no-store');
+  res.json({
+    items,
+    total,
+    limit,
+    offset,
+    counts: {
+      catalogo: catalogEntries.length,
+      loja: storeProducts.length
+    }
+  });
+}
+
+function catalogDetail(req, res) {
+  const requested = cleanSku(req.params?.sku);
+  const catalog = readCatalog();
+  let item = null;
+  let foundSku = '';
+  for (const sku of variants(requested)) {
+    if (catalog[sku]) {
+      item = catalog[sku];
+      foundSku = sku;
+      break;
+    }
+  }
+  if (!item) return res.status(404).json({ error: 'Modelo não encontrado no catálogo base.' });
+
+  const storeProducts = readStoreProducts();
+  const product = storeProductBySku(storeProducts).get(cleanSku(item.sku || foundSku)) || null;
+  res.set('Cache-Control', 'no-store');
+  res.json({
+    item: {
+      ...item,
+      sku: cleanSku(item.sku || foundSku),
+      modo: 'catalogo-local'
+    },
+    product: product ? {
+      id: product.id,
+      sku: product.sku,
+      nome: product.nome,
+      estoque: Math.max(0, Number(product.estoque) || 0),
+      ativo: product.ativo !== false
+    } : null
+  });
 }
 
 function pick(text, labels, max = 500) {
@@ -310,6 +446,8 @@ function handler(req, res) {
 }
 
 function registerCasioEnrichmentV2(app) {
+  app.get('/api/admin/catalog-base', catalogList);
+  app.get('/api/admin/catalog-base/:sku', catalogDetail);
   app.get('/api/admin/casio-enrichment', handler);
   app.get('/api/casio-enrichment', handler);
   app.get('/api/product-enrichment', handler);
