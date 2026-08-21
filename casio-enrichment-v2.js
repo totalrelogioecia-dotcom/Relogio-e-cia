@@ -1,10 +1,12 @@
+const fs = require('fs');
+const path = require('path');
 const { URL } = require('url');
 
 const BASE = 'https://www.casio.com/';
-const READER = 'https://r.jina.ai/';
 const SEARCH_READER = 'https://s.jina.ai/';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
-const cache = new Map();
+const CATALOG_FILE = path.join(__dirname, 'data', 'casio-official-catalog.json');
+const memoryCache = new Map();
 
 function cleanSku(raw) {
   return String(raw || '')
@@ -46,9 +48,11 @@ function plain(content) {
     .replace(/<br\s*\/?\s*>/gi, '\n')
     .replace(/<\/(?:p|div|li|h\d|tr|td|th|dt|dd)>/gi, '\n')
     .replace(/<[^>]+>/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/^#{1,6}\s*/gm, '')
     .replace(/^[-*+]\s+/gm, '')
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/[\t\r]+/g, ' ')
     .replace(/ +/g, ' ')
     .replace(/\n\s*\n+/g, '\n')
@@ -71,82 +75,71 @@ function blockedContent(content) {
   ].some(term => text.includes(term));
 }
 
-function extractMeta(html, key, attr = 'name') {
-  const safe = String(key).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const patterns = [
-    new RegExp(`<meta[^>]+${attr}=["']${safe}["'][^>]+content=["']([^"']+)["']`, 'i'),
-    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+${attr}=["']${safe}["']`, 'i')
-  ];
-  for (const re of patterns) {
-    const match = html.match(re);
-    if (match?.[1]) return decode(match[1]).replace(/\s+/g, ' ').trim();
-  }
-  return '';
+function containsSku(content, sku) {
+  if (blockedContent(content)) return false;
+  const compactText = plain(content).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const compactSku = cleanSku(sku).replace(/[^A-Z0-9]/g, '');
+  return Boolean(compactSku && compactText.includes(compactSku));
 }
 
-function extractTitle(content, sku) {
-  const html = String(content || '');
-  for (const re of [/<h1[^>]*>([\s\S]*?)<\/h1>/i, /<title[^>]*>([\s\S]*?)<\/title>/i, /^#\s+(.+)$/m, /^Title:\s*(.+)$/mi]) {
-    const match = html.match(re);
-    if (!match) continue;
-    const value = decode(match[1])
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/[*#]/g, '')
-      .replace(/\s+/g, ' ')
-      .replace(/\s*\|\s*CASIO.*$/i, '')
-      .trim();
-    if (value && !/access denied|forbidden/i.test(value) && value.toUpperCase().includes(sku)) return value;
+function readCatalog() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(CATALOG_FILE, 'utf8'));
+    return parsed && typeof parsed.products === 'object' ? parsed.products : {};
+  } catch {
+    return {};
   }
-  const meta = extractMeta(html, 'og:title', 'property').replace(/\s*\|\s*CASIO.*$/i, '').trim();
-  return /access denied|forbidden/i.test(meta) ? sku : (meta || sku);
 }
 
-function productName(content, sku, brand) {
-  const title = extractTitle(content, sku).replace(/\s+/g, ' ').trim();
-  const compactTitle = title.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const compactSku = sku.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (!title || compactTitle === compactSku || compactTitle === `${brand.toUpperCase().replace(/[^A-Z0-9]/g, '')}${compactSku}`) {
-    return `${brand} ${sku}`;
+function fromLocalCatalog(raw) {
+  const catalog = readCatalog();
+  for (const sku of variants(raw)) {
+    const item = catalog[sku];
+    if (!item) continue;
+    return {
+      ...item,
+      sku: cleanSku(item.sku || sku),
+      origem: item.origem || 'Catálogo oficial Casio sincronizado',
+      modo: 'catalogo-local'
+    };
   }
-  return title.slice(0, 140);
+  return null;
 }
 
-function pick(text, labels, max = 420) {
-  const lines = String(text || '').split('\n').map(x => x.trim()).filter(Boolean);
+function pick(text, labels, max = 500) {
+  const lines = plain(text).split('\n').map(line => line.trim()).filter(Boolean);
   for (let i = 0; i < lines.length; i += 1) {
+    const current = lines[i].replace(/^#+\s*/, '').trim();
     for (const label of labels) {
-      const safe = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const match = lines[i].match(new RegExp(`^${safe}\\s*[:：]?\\s*(.*)$`, 'i'));
-      if (!match) continue;
-      let value = String(match[1] || '').trim();
-      if (!value && lines[i + 1]) value = lines[i + 1].trim();
-      if (value && value.length <= max && !/^#{1,6}\s/.test(value)) return value;
+      const lower = current.toLocaleLowerCase('pt-BR');
+      const target = label.toLocaleLowerCase('pt-BR');
+      if (lower !== target && !lower.startsWith(target + ':')) continue;
+      let value = current.slice(label.length).replace(/^\s*[:：-]\s*/, '').trim();
+      if (!value) value = String(lines[i + 1] || '').replace(/^#+\s*/, '').trim();
+      if (value && value.length <= max) return value;
     }
   }
   return '';
 }
 
 function displayType(content) {
-  const lines = plain(content).split('\n').map(x => x.trim()).filter(Boolean).slice(0, 150);
-  for (const line of lines) {
-    const clean = line.toUpperCase().replace(/\s+/g, ' ').trim();
-    if (/^(DIGITAL[- /+]ANAL[ÓO]GICO|ANAL[ÓO]GICO[- /+]DIGITAL)$/.test(clean)) return 'Digital + analógico';
-    if (clean === 'DIGITAL') return 'Digital';
-    if (/^ANAL[ÓO]GICO$/.test(clean)) return 'Analógico';
-  }
+  const text = plain(content).toUpperCase();
+  if (/DIGITAL\s*[-+/ ]\s*ANAL[ÓO]GICO|ANAL[ÓO]GICO\s*[-+/ ]\s*DIGITAL/.test(text)) return 'Digital + analógico';
+  if (/\bDIGITAL\b/.test(text) && /\bANAL[ÓO]GICO\b/.test(text)) return 'Digital + analógico';
+  if (/\bDIGITAL\b/.test(text)) return 'Digital';
+  if (/\bANAL[ÓO]GICO\b/.test(text)) return 'Analógico';
   return '';
 }
 
 function specs(content) {
-  const text = plain(content);
   const details = {
-    movimento: pick(text, ['Movimento', 'Movement']) || displayType(content),
-    caixa_material: pick(text, ['Material da caixa e da moldura', 'Material da caixa e do bisel', 'Material da caixa', 'Case and bezel material', 'Case material']),
-    pulseira_material: pick(text, ['Pulseira', 'Bracelete', 'Band', 'Material da pulseira']),
-    cor: pick(text, ['Cor', 'Color', 'Cor da pulseira', 'Band color']),
-    diametro: pick(text, ['Tamanho do Relógio (Caixa|Visor) C x L x A', 'Tamanho do Relógio', 'Tamanho da caixa (C × L × A)', 'Tamanho da caixa', 'Case size (L× W× H)', 'Case size']),
-    resistencia_agua: pick(text, ['Resistente a água', 'Resistência à água', 'Resistência à água de', 'Water resistance']),
-    vidro: pick(text, ['Vidro', 'Glass'])
+    movimento: pick(content, ['Movimento', 'Movement']) || displayType(content),
+    caixa_material: pick(content, ['Material da caixa e da moldura', 'Material da caixa e do bisel', 'Material da caixa', 'Case and bezel material', 'Case material']),
+    pulseira_material: pick(content, ['Pulseira', 'Bracelete', 'Band', 'Material da pulseira']),
+    cor: pick(content, ['Cor', 'Color', 'Cor da pulseira', 'Band color']),
+    diametro: pick(content, ['Tamanho do Relógio (Caixa|Visor) C x L x A', 'Tamanho do Relógio', 'Tamanho da caixa (C × L × A)', 'Tamanho da caixa', 'Case size (L× W× H)', 'Case size']),
+    resistencia_agua: pick(content, ['Resistente a água', 'Resistência à água', 'Resistência à água de', 'Water resistance']),
+    vidro: pick(content, ['Vidro', 'Glass'])
   };
   return Object.fromEntries(Object.entries(details).filter(([, value]) => String(value || '').trim()));
 }
@@ -160,38 +153,59 @@ function absoluteImage(raw) {
   }
 }
 
-function images(content, sku, max = 8) {
+function images(content, sku, max = 6) {
   const found = [];
-  const normalized = decode(content);
   const patterns = [
     /https:\/\/www\.casio\.com\/content\/dam\/casio\/[^\s"'<>\])]+/gi,
     /\/content\/dam\/casio\/[^\s"'<>\])]+/gi
   ];
-
   for (const re of patterns) {
-    for (const raw of normalized.match(re) || []) {
-      const cleaned = raw.replace(/[\])},;]+$/g, '');
-      const url = absoluteImage(cleaned);
-      if (url && !found.includes(url) && /\.(?:png|jpe?g|webp)(?:\.|\?|$)/i.test(url)) found.push(url);
+    for (const raw of String(content || '').match(re) || []) {
+      const url = absoluteImage(raw.replace(/[\])},;]+$/g, ''));
+      if (url && !found.includes(url)) found.push(url);
     }
   }
-
-  const compact = sku.toLowerCase().replace(/-/g, '');
-  const score = url => {
-    const lower = url.toLowerCase();
-    const compactUrl = lower.replace(/-/g, '');
-    let value = 0;
-    if (lower.includes(sku.toLowerCase())) value += 120;
-    if (compactUrl.includes(compact)) value += 90;
-    if (/assets|main-visual|seq0?1|seq0?2|seq0?3|seq0?4/.test(lower)) value += 20;
-    if (/icon|logo|banner|payment|feature|size|scene|manual|qr/.test(lower)) value -= 100;
-    return value;
+  const compact = cleanSku(sku).toLowerCase().replace(/[^a-z0-9]/g, '');
+  const score = value => {
+    const lower = value.toLowerCase();
+    const normalized = lower.replace(/[^a-z0-9]/g, '');
+    let points = normalized.includes(compact) ? 180 : 0;
+    if (/seq0?1|seq0?2|seq0?3|main-visual|assets/.test(lower)) points += 30;
+    if (/icon|logo|banner|manual|qr|feature/.test(lower)) points -= 150;
+    return points;
   };
-
-  return found.sort((a, b) => score(b) - score(a)).filter(url => score(url) > 0).slice(0, max);
+  return found.sort((a, b) => score(b) - score(a)).filter(value => score(value) > 0).slice(0, max);
 }
 
-async function fetchTimed(url, timeout = 8000, headers = {}) {
+function description(content) {
+  const lines = plain(content).split('\n').map(line => line.trim()).filter(Boolean);
+  const useful = lines.find(line => line.length > 45 && line.length < 700 && /resistente|cron[oô]metro|alarme|bluetooth|solar|digital|anal[oó]gico|estrutura|design/i.test(line));
+  return String(useful || '').slice(0, 900);
+}
+
+function resultFromContent(content, sku, url, brand, origin) {
+  if (!containsSku(content, sku)) return null;
+  const lines = plain(content).split('\n').map(line => line.trim()).filter(Boolean);
+  const skuLine = lines.find(line => line.toUpperCase().replace(/[^A-Z0-9]/g, '').includes(cleanSku(sku).replace(/[^A-Z0-9]/g, '')) && line.length < 140);
+  const nome = skuLine && !/access denied|forbidden/i.test(skuLine)
+    ? (skuLine.toUpperCase() === cleanSku(sku) ? `${brand} ${cleanSku(sku)}` : skuLine)
+    : `${brand} ${cleanSku(sku)}`;
+
+  return {
+    sku: cleanSku(sku),
+    nome,
+    marca: brand,
+    categoria: 'Relógios',
+    desc: description(content),
+    fotos: images(content, sku, 6),
+    detalhes: specs(content),
+    fonte: url,
+    origem: origin,
+    modo: 'consulta-oficial'
+  };
+}
+
+async function fetchTimed(url, timeout, headers = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
@@ -209,184 +223,79 @@ async function fetchTimed(url, timeout = 8000, headers = {}) {
   }
 }
 
-function candidates(sku) {
-  return [
-    { brand: 'Casio', region: 'Brasil', url: `https://www.casio.com/br/watches/casio/product.${encodeURIComponent(sku)}/` },
-    { brand: 'G-Shock', region: 'Brasil', url: `https://www.casio.com/br/watches/gshock/product.${encodeURIComponent(sku)}/` },
-    { brand: 'Casio', region: 'Portugal', url: `https://www.casio.com/pt/watches/casio/product.${encodeURIComponent(sku)}/` },
-    { brand: 'G-Shock', region: 'Portugal', url: `https://www.casio.com/pt/watches/gshock/product.${encodeURIComponent(sku)}/` },
-    { brand: 'Casio', region: 'América Latina', url: `https://www.casio.com/latin/watches/casio/product.${encodeURIComponent(sku)}/` },
-    { brand: 'G-Shock', region: 'América Latina', url: `https://www.casio.com/latin/watches/gshock/product.${encodeURIComponent(sku)}/` },
-    { brand: 'Casio', region: 'Internacional', url: `https://www.casio.com/intl/watches/casio/product.${encodeURIComponent(sku)}/` },
-    { brand: 'G-Shock', region: 'Internacional', url: `https://www.casio.com/intl/watches/gshock/product.${encodeURIComponent(sku)}/` }
-  ];
-}
-
-function containsSku(content, sku) {
-  if (blockedContent(content)) return false;
-  const text = plain(content).toUpperCase();
-  return text.includes(sku) || text.replace(/-/g, '').includes(sku.replace(/-/g, ''));
-}
-
-async function directPage(candidate, sku) {
+async function searchIndexed(sku) {
   try {
-    const response = await fetchTimed(candidate.url, 9000, {
-      Accept: 'text/html,application/xhtml+xml',
-      'Cache-Control': 'no-cache, no-store'
-    });
-    if (!response.ok) return null;
-    const content = await response.text();
-    if (!containsSku(content, sku)) return null;
-    return { ...candidate, content, finalUrl: response.url || candidate.url, via: 'direct' };
-  } catch {
-    return null;
-  }
-}
-
-async function readerPage(candidate, sku) {
-  try {
-    const response = await fetchTimed(`${READER}${candidate.url}`, 38000, {
-      Accept: 'text/plain',
-      'x-engine': 'browser',
-      'x-timeout': '30',
-      'x-no-cache': 'true',
-      'x-cache-tolerance': '0',
-      'x-respond-with': 'markdown'
-    });
-    if (!response.ok) return null;
-    const content = await response.text();
-    if (!containsSku(content, sku)) return null;
-    return { ...candidate, content, finalUrl: candidate.url, via: 'reader' };
-  } catch {
-    return null;
-  }
-}
-
-async function searchReaderPage(sku) {
-  try {
-    const query = encodeURIComponent(`${sku} CASIO`);
-    const response = await fetchTimed(`${SEARCH_READER}${query}?site=casio.com`, 26000, {
+    const query = encodeURIComponent(`${cleanSku(sku)} CASIO`);
+    const response = await fetchTimed(`${SEARCH_READER}${query}?site=casio.com`, 5500, {
       Accept: 'application/json',
-      'x-no-cache': 'true',
-      'x-cache-tolerance': '0'
+      'x-cache-tolerance': '86400'
     });
     if (!response.ok) return null;
     const payload = await response.json().catch(() => null);
-    const results = Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []);
-
-    for (const item of results) {
+    const list = Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+    for (const item of list) {
       const url = String(item?.url || '').trim();
       const content = String(item?.content || item?.description || '').trim();
-      if (!url || !content || !containsSku(content, sku)) continue;
+      if (!url || !containsSku(content, sku)) continue;
       try {
         const parsed = new URL(url);
         if (!/(^|\.)casio\.com$/i.test(parsed.hostname)) continue;
-        const compactPath = decodeURIComponent(parsed.pathname).toUpperCase().replace(/-/g, '');
-        if (!compactPath.includes(`PRODUCT.${sku.replace(/-/g, '')}`)) continue;
+        if (!decodeURIComponent(parsed.pathname).toUpperCase().replace(/-/g, '').includes(`PRODUCT.${cleanSku(sku).replace(/-/g, '')}`)) continue;
         const brand = /\/gshock\//i.test(parsed.pathname) ? 'G-Shock' : 'Casio';
-        const region = /\/br\//i.test(parsed.pathname) ? 'Brasil' : (/\/pt\//i.test(parsed.pathname) ? 'Portugal' : 'Internacional');
-        return { brand, region, url, finalUrl: url, content, via: 'search-reader' };
+        const origin = /\/br\//i.test(parsed.pathname) ? (brand === 'G-Shock' ? 'Casio Brasil — G-Shock' : 'Casio Brasil') : 'Casio oficial';
+        const result = resultFromContent(content, sku, url, brand, origin);
+        if (result) return result;
       } catch {}
     }
   } catch {}
   return null;
 }
 
-async function firstMatch(list, fn, sku) {
-  const results = await Promise.all(list.map(candidate => fn(candidate, sku)));
+async function directBrazil(sku) {
+  const urls = [
+    { brand: 'Casio', url: `https://www.casio.com/br/watches/casio/product.${encodeURIComponent(sku)}/`, origin: 'Casio Brasil' },
+    { brand: 'G-Shock', url: `https://www.casio.com/br/watches/gshock/product.${encodeURIComponent(sku)}/`, origin: 'Casio Brasil — G-Shock' }
+  ];
+
+  const results = await Promise.all(urls.map(async item => {
+    try {
+      const response = await fetchTimed(item.url, 4200, { Accept: 'text/html,application/xhtml+xml' });
+      if (!response.ok) return null;
+      const content = await response.text();
+      return resultFromContent(content, sku, response.url || item.url, item.brand, item.origin);
+    } catch {
+      return null;
+    }
+  }));
   return results.find(Boolean) || null;
-}
-
-async function findPage(raw) {
-  for (const sku of variants(raw)) {
-    const list = candidates(sku);
-    const brazil = list.filter(candidate => candidate.region === 'Brasil');
-    const otherRegions = list.filter(candidate => candidate.region !== 'Brasil');
-
-    const directBrazil = await firstMatch(brazil, directPage, sku);
-    if (directBrazil) return { sku, ...directBrazil };
-
-    const readerBrazil = await firstMatch(brazil, readerPage, sku);
-    if (readerBrazil) return { sku, ...readerBrazil };
-
-    const directOther = await firstMatch(otherRegions, directPage, sku);
-    if (directOther) return { sku, ...directOther };
-
-    const readerOther = await firstMatch(otherRegions, readerPage, sku);
-    if (readerOther) return { sku, ...readerOther };
-
-    const searched = await searchReaderPage(sku);
-    if (searched) return { sku, ...searched };
-  }
-  return null;
-}
-
-function description(content) {
-  const html = String(content || '');
-  const meta = extractMeta(html, 'description', 'name') || extractMeta(html, 'og:description', 'property');
-  if (meta && !/access denied|forbidden/i.test(meta)) return meta.slice(0, 1200);
-
-  const lines = plain(content).split('\n').map(x => x.trim()).filter(Boolean);
-  const useful = lines.find(line => line.length > 40 && line.length < 700 && /resistente|cron[oô]metro|alarme|bluetooth|solar|autom[aá]tico|anal[oó]gico|digital|design|bateria/i.test(line));
-  return String(useful || '').slice(0, 1200);
 }
 
 async function enrich(raw) {
   const requested = cleanSku(raw);
   if (!requested) throw Object.assign(new Error('Informe uma referência Casio ou G-Shock.'), { statusCode: 400 });
-  if (cache.has(requested)) return cache.get(requested);
 
-  const page = await findPage(requested);
-  if (!page) {
-    throw Object.assign(
-      new Error(`A referência ${requested} não pôde ser lida automaticamente no catálogo oficial agora. A Casio está bloqueando a consulta, não significa que a referência esteja errada.`),
-      { statusCode: 503 }
-    );
+  const local = fromLocalCatalog(requested);
+  if (local) return local;
+  if (memoryCache.has(requested)) return memoryCache.get(requested);
+
+  for (const sku of variants(requested)) {
+    const indexed = await searchIndexed(sku);
+    if (indexed) {
+      memoryCache.set(requested, indexed);
+      return indexed;
+    }
+
+    const direct = await directBrazil(sku);
+    if (direct) {
+      memoryCache.set(requested, direct);
+      return direct;
+    }
   }
 
-  const detalhes = specs(page.content);
-  const fotos = images(page.content, page.sku, 8);
-  const result = {
-    sku: requested,
-    nome: productName(page.content, page.sku, page.brand),
-    marca: page.brand,
-    categoria: 'Relógios',
-    desc: description(page.content),
-    fotos,
-    detalhes,
-    fonte: page.finalUrl,
-    origem: page.region === 'Brasil'
-      ? (page.brand === 'G-Shock' ? 'Casio Brasil — G-Shock' : 'Casio Brasil')
-      : `Casio oficial — ${page.region}`,
-    aviso: fotos.length ? '' : 'A ficha foi encontrada. As fotos serão procuradas diretamente nos arquivos oficiais da Casio pelo navegador.'
-  };
-
-  cache.set(requested, result);
-  return result;
-}
-
-async function fetchImage(url) {
-  const safe = absoluteImage(url);
-  if (!safe) return null;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 6500);
-  try {
-    const response = await fetch(safe, {
-      signal: controller.signal,
-      redirect: 'follow',
-      headers: {
-        'User-Agent': USER_AGENT,
-        Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-        Referer: BASE
-      }
-    });
-    if (!response.ok) return null;
-    const type = String(response.headers.get('content-type') || '');
-    if (!type.startsWith('image/')) return null;
-    return { type, bytes: Buffer.from(await response.arrayBuffer()) };
-  } finally {
-    clearTimeout(timer);
-  }
+  throw Object.assign(
+    new Error(`A referência ${requested} ainda não está no catálogo local e a Casio bloqueou a consulta ao vivo. Tente novamente mais tarde ou sincronize o catálogo oficial.`),
+    { statusCode: 503 }
+  );
 }
 
 function handler(req, res) {
@@ -395,25 +304,15 @@ function handler(req, res) {
       res.set('Cache-Control', 'no-store');
       res.json(data);
     })
-    .catch(error => res.status(Number(error?.statusCode) || 502).json({ error: error.message || 'Não foi possível consultar a Casio/G-Shock.' }));
+    .catch(error => res.status(Number(error?.statusCode) || 502).json({
+      error: error.message || 'Não foi possível consultar a Casio/G-Shock.'
+    }));
 }
 
 function registerCasioEnrichmentV2(app) {
   app.get('/api/admin/casio-enrichment', handler);
   app.get('/api/casio-enrichment', handler);
   app.get('/api/product-enrichment', handler);
-
-  app.get('/api/casio-v2-image', async (req, res) => {
-    try {
-      const image = await fetchImage(String(req.query?.url || ''));
-      if (!image) return res.status(404).send('Imagem Casio indisponível.');
-      res.set('Content-Type', image.type);
-      res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
-      res.send(image.bytes);
-    } catch {
-      res.status(502).send('Não foi possível carregar a imagem Casio.');
-    }
-  });
 }
 
 module.exports = { registerCasioEnrichmentV2 };
