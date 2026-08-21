@@ -192,8 +192,6 @@ async function fetchTimed(url, timeout = 8000, headers = {}) {
 }
 
 function candidates(sku) {
-  // Prioriza o catálogo brasileiro. Os demais endereços também pertencem à Casio
-  // e servem apenas como fallback quando uma referência ainda não está publicada no Brasil.
   return [
     { brand: 'Casio', region: 'Brasil', url: `https://www.casio.com/br/watches/casio/product.${encodeURIComponent(sku)}/` },
     { brand: 'G-Shock', region: 'Brasil', url: `https://www.casio.com/br/watches/gshock/product.${encodeURIComponent(sku)}/` },
@@ -211,26 +209,16 @@ function containsSku(content, sku) {
   return text.includes(sku) || text.replace(/-/g, '').includes(sku.replace(/-/g, ''));
 }
 
-function urlMatchesSku(url, sku) {
-  try {
-    const pathname = decodeURIComponent(new URL(url).pathname).toUpperCase();
-    return pathname.includes(`PRODUCT.${sku}`) || pathname.replace(/-/g, '').includes(`PRODUCT.${sku.replace(/-/g, '')}`);
-  } catch {
-    return false;
-  }
-}
-
 async function directPage(candidate, sku) {
   try {
-    const response = await fetchTimed(candidate.url, 8500, {
+    const response = await fetchTimed(candidate.url, 9000, {
       Accept: 'text/html,application/xhtml+xml',
       'Cache-Control': 'no-cache'
     });
     if (!response.ok) return null;
     const content = await response.text();
-    const finalUrl = response.url || candidate.url;
-    if (!containsSku(content, sku) && !urlMatchesSku(finalUrl, sku) && !urlMatchesSku(candidate.url, sku)) return null;
-    return { ...candidate, content, finalUrl, via: 'direct' };
+    if (!containsSku(content, sku)) return null;
+    return { ...candidate, content, finalUrl: response.url || candidate.url, via: 'direct' };
   } catch {
     return null;
   }
@@ -238,12 +226,18 @@ async function directPage(candidate, sku) {
 
 async function readerPage(candidate, sku) {
   try {
-    // Fallback de leitura da mesma URL oficial quando a página da Casio entrega
-    // somente o esqueleto JavaScript ao servidor. A fonte exibida continua sendo a URL oficial.
-    const response = await fetchTimed(`${READER}${candidate.url}`, 14000, { Accept: 'text/plain' });
+    // Quando o datacenter do Render recebe bloqueio/HTML incompleto da Casio,
+    // o Reader abre a mesma URL oficial em navegador remoto. A fonte exibida
+    // ao lojista continua sendo a página oficial da Casio.
+    const response = await fetchTimed(`${READER}${candidate.url}`, 28000, {
+      Accept: 'text/plain',
+      'x-engine': 'browser',
+      'x-timeout': '20',
+      'x-cache-tolerance': '1800'
+    });
     if (!response.ok) return null;
     const content = await response.text();
-    if (!containsSku(content, sku) && !urlMatchesSku(candidate.url, sku)) return null;
+    if (!containsSku(content, sku)) return null;
     return { ...candidate, content, finalUrl: candidate.url, via: 'reader' };
   } catch {
     return null;
@@ -258,16 +252,24 @@ async function firstMatch(list, fn, sku) {
 async function findPage(raw) {
   for (const sku of variants(raw)) {
     const list = candidates(sku);
-    const direct = await firstMatch(list, directPage, sku);
-    if (direct) {
-      if (plain(direct.content).length < 500) {
-        const reinforced = await readerPage({ brand: direct.brand, region: direct.region, url: direct.finalUrl || direct.url }, sku);
-        if (reinforced) return { sku, ...reinforced };
-      }
-      return { sku, ...direct };
-    }
-    const reader = await firstMatch(list, readerPage, sku);
-    if (reader) return { sku, ...reader };
+    const brazil = list.filter(candidate => candidate.region === 'Brasil');
+    const otherRegions = list.filter(candidate => candidate.region !== 'Brasil');
+
+    // Primeiro fazemos só duas consultas ao Brasil. A versão anterior disparava
+    // oito URLs de uma vez e isso podia acionar bloqueios automáticos do catálogo.
+    const directBrazil = await firstMatch(brazil, directPage, sku);
+    if (directBrazil) return { sku, ...directBrazil };
+
+    // Principal fallback para o Render: navegador remoto lendo a mesma URL oficial.
+    const readerBrazil = await firstMatch(brazil, readerPage, sku);
+    if (readerBrazil) return { sku, ...readerBrazil };
+
+    // Só procura em outras regiões oficiais se o modelo realmente não aparecer no Brasil.
+    const directOther = await firstMatch(otherRegions, directPage, sku);
+    if (directOther) return { sku, ...directOther };
+
+    const readerOther = await firstMatch(otherRegions, readerPage, sku);
+    if (readerOther) return { sku, ...readerOther };
   }
   return null;
 }
@@ -290,8 +292,8 @@ async function enrich(raw) {
   const page = await findPage(requested);
   if (!page) {
     throw Object.assign(
-      new Error(`Não encontrei ${requested} nos catálogos oficiais Casio/G-Shock. Confira a referência e tente novamente.`),
-      { statusCode: 404 }
+      new Error(`Não consegui consultar ${requested} no catálogo oficial agora. A referência pode estar correta; tente novamente após alguns segundos.`),
+      { statusCode: 503 }
     );
   }
 
@@ -350,10 +352,7 @@ function handler(req, res) {
 }
 
 function registerCasioEnrichmentV2(app) {
-  // A interface administrativa usa esta rota protegida pela sessão do Admin.
   app.get('/api/admin/casio-enrichment', handler);
-
-  // Mantidos como aliases de compatibilidade para instalações anteriores.
   app.get('/api/casio-enrichment', handler);
   app.get('/api/product-enrichment', handler);
 
