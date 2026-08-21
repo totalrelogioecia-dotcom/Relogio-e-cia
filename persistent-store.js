@@ -14,7 +14,8 @@ const FILES = new Map([
   [path.resolve(path.join(DATA, 'shipping-products.json')), 'shipping_products'],
   [path.resolve(path.join(DATA, 'product-details.json')), 'product_details'],
   [path.resolve(path.join(DATA, 'melhorenvio-auth.json')), 'melhorenvio_auth'],
-  [path.resolve(path.join(DATA, 'account-reset.json')), 'account_reset']
+  [path.resolve(path.join(DATA, 'account-reset.json')), 'account_reset'],
+  [path.resolve(path.join(DATA, 'return-requests.json')), 'return_requests']
 ]);
 
 let pool = null;
@@ -156,7 +157,7 @@ async function initPersistentStore() {
 
   patchFileWrites();
   ready = true;
-  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio e migrações administrativas.');
+  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio, solicitações de pós-venda e migrações administrativas.');
   return { persistent: true, provider: 'postgresql' };
 }
 
