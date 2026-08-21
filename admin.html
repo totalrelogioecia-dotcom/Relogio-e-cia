@@ -17,7 +17,7 @@
 <section id="dashboard" style="display:none">
 <div class="admin-head"><div><p class="eyebrow">Controle da loja</p><h1>Painel administrativo</h1></div><button id="logout-btn" class="btn btn-outline">Sair</button></div>
 <div id="admin-msg" class="form-success" style="display:none"></div>
-<div class="admin-tabs"><button class="active" data-tab="produtos">📦 Produtos</button><button data-tab="pedidos">🛒 Pedidos</button><button data-tab="cupons">🎟️ Cupons</button></div>
+<div class="admin-tabs"><button class="active" data-tab="produtos">📦 Produtos</button><button data-tab="pedidos">🛒 Pedidos</button><button data-tab="cupons">🎟️ Cupons</button><button data-tab="trocas">↩️ Trocas/Estornos</button></div>
 <div id="tab-produtos">
 <div class="admin-toolbar"><h2>Produtos</h2><button id="novo-produto" class="btn btn-primary">+ Novo produto</button></div>
 <div class="admin-card" id="product-editor" style="display:none">
@@ -70,5 +70,9 @@
   </div>
   <div id="coupons-list" class="admin-table-wrap"></div>
 </div>
+<div id="tab-trocas" style="display:none">
+  <div class="admin-toolbar"><div><h2>Trocas, devoluções e estornos</h2><p class="admin-muted">Acompanhe as solicitações abertas pelos clientes e atualize o andamento de cada protocolo.</p></div><button id="refresh-return-requests" class="btn btn-outline">Atualizar</button></div>
+  <div id="return-requests-list" class="admin-table-wrap"></div>
+</div>
 </section>
-</main><script src="admin-shipping.js"></script><script src="admin-product-details.js"></script><script src="admin.js"></script><script src="admin-customer-documents.js"></script><script src="admin-payment-reasons.js"></script><script src="admin-order-sync.js"></script><script src="admin-melhorenvio.js"></script><script src="admin-coupons.js"></script></body></html>
+</main><script src="admin-shipping.js"></script><script src="admin-product-details.js"></script><script src="admin.js"></script><script src="admin-customer-documents.js"></script><script src="admin-payment-reasons.js"></script><script src="admin-order-sync.js"></script><script src="admin-melhorenvio.js"></script><script src="admin-coupons.js"></script><script src="admin-returns.js"></script></body></html>
