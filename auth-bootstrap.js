@@ -5,6 +5,7 @@ const path = require('path');
 const { AsyncLocalStorage } = require('async_hooks');
 const { Preference, WebhookSignatureValidator } = require('mercadopago');
 const { registerAuthRoutes, userFromRequest } = require('./auth');
+const { registerCheckoutProfileRoutes, validCpf } = require('./checkout-profile');
 const { storageStatus } = require('./persistent-store');
 const { registerShippingRoutes } = require('./shipping-routes');
 const { registerMelhorEnvioOAuthRoutes } = require('./melhorenvio-oauth-routes');
@@ -111,7 +112,7 @@ const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
   if (!Preference.prototype.__relogioSignedWebhookPatched) {
     const originalPreferenceCreate = Preference.prototype.create;
-    Preference.prototype.create = function (args = {}) {
+    Preference.prototype.create = async function (args = {}) {
       if (args?.body) {
         const body = { ...args.body };
 
@@ -121,7 +122,7 @@ if (!originalExpress.__relogioAuthPatched) {
 
         // Durante o checkout, aproveita os dados reais já cadastrados na conta
         // para enriquecer a preferência do Checkout Pro. Isso ajuda a análise
-        // antifraude sem inventar ou exigir dados que o cliente não informou.
+        // antifraude sem inventar dados do comprador.
         const contextualPayer = preferencePayer(checkoutContext.getStore()?.payer);
         if (contextualPayer) {
           body.payer = {
@@ -132,7 +133,11 @@ if (!originalExpress.__relogioAuthPatched) {
 
         args = { ...args, body };
       }
-      return originalPreferenceCreate.call(this, args);
+
+      const response = await originalPreferenceCreate.call(this, args);
+      const context = checkoutContext.getStore();
+      if (context && response?.init_point) context.initPoint = String(response.init_point);
+      return response;
     };
     Preference.prototype.__relogioSignedWebhookPatched = true;
   }
@@ -153,6 +158,7 @@ if (!originalExpress.__relogioAuthPatched) {
     });
 
     registerAuthRoutes(app);
+    registerCheckoutProfileRoutes(app);
     registerMelhorEnvioOAuthRoutes(app);
     registerShippingRoutes(app);
     registerProductDetailsRoutes(app);
@@ -180,12 +186,29 @@ if (!originalExpress.__relogioAuthPatched) {
             endereco: user.endereco || undefined,
             date_created: user.created_at || undefined
           };
+
+          if (!validCpf(req.body.payer?.identificacao?.number)) {
+            return res.status(409).json({
+              error: 'Para finalizar a compra, informe um CPF válido.',
+              code: 'cpf_required'
+            });
+          }
         }
       } catch (error) {
         console.warn('Não foi possível enriquecer o checkout com a conta:', error.message);
       }
 
-      checkoutContext.run({ payer: req.body?.payer || null }, () => next());
+      const originalJson = res.json.bind(res);
+      const context = { payer: req.body?.payer || null, initPoint: null };
+
+      res.json = payload => {
+        if (payload && typeof payload === 'object' && payload.preference_id && !payload.init_point && context.initPoint) {
+          payload = { ...payload, init_point: context.initPoint };
+        }
+        return originalJson(payload);
+      };
+
+      checkoutContext.run(context, () => next());
     });
 
     registerCouponCheckout(app);
