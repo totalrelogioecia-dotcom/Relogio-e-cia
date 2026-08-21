@@ -1,4 +1,13 @@
 (() => {
+  function ensureMobileStyles() {
+    if (document.querySelector('link[data-relogio-mobile-fixes]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'mobile-fixes.css';
+    link.setAttribute('data-relogio-mobile-fixes', '1');
+    document.head.appendChild(link);
+  }
+
   function ensureLink(list, href, label) {
     if (!list || list.querySelector(`a[href="${href}"]`)) return;
     const li = document.createElement('li');
@@ -10,6 +19,8 @@
   }
 
   function enhanceFooter() {
+    ensureMobileStyles();
+
     document.querySelectorAll('footer .footer-grid').forEach(grid => {
       const navigation = Array.from(grid.children).find(column => {
         const title = column.querySelector('h5')?.textContent?.trim().toLowerCase();
