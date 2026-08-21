@@ -2,6 +2,7 @@ const { URL } = require('url');
 
 const BASE = 'https://www.casio.com/';
 const READER = 'https://r.jina.ai/';
+const SEARCH_READER = 'https://s.jina.ai/';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
 const cache = new Map();
 
@@ -54,6 +55,22 @@ function plain(content) {
     .trim();
 }
 
+function blockedContent(content) {
+  const text = plain(content).toLowerCase();
+  if (!text) return true;
+  return [
+    'access denied',
+    'request blocked',
+    'the requested url was rejected',
+    "you don't have permission to access",
+    'you do not have permission to access',
+    'forbidden',
+    'reference #',
+    'akamai',
+    'security service to protect'
+  ].some(term => text.includes(term));
+}
+
 function extractMeta(html, key, attr = 'name') {
   const safe = String(key).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const patterns = [
@@ -78,9 +95,10 @@ function extractTitle(content, sku) {
       .replace(/\s+/g, ' ')
       .replace(/\s*\|\s*CASIO.*$/i, '')
       .trim();
-    if (value && value.toUpperCase().includes(sku)) return value;
+    if (value && !/access denied|forbidden/i.test(value) && value.toUpperCase().includes(sku)) return value;
   }
-  return extractMeta(html, 'og:title', 'property').replace(/\s*\|\s*CASIO.*$/i, '').trim() || sku;
+  const meta = extractMeta(html, 'og:title', 'property').replace(/\s*\|\s*CASIO.*$/i, '').trim();
+  return /access denied|forbidden/i.test(meta) ? sku : (meta || sku);
 }
 
 function productName(content, sku, brand) {
@@ -93,7 +111,7 @@ function productName(content, sku, brand) {
   return title.slice(0, 140);
 }
 
-function pick(text, labels, max = 320) {
+function pick(text, labels, max = 420) {
   const lines = String(text || '').split('\n').map(x => x.trim()).filter(Boolean);
   for (let i = 0; i < lines.length; i += 1) {
     for (const label of labels) {
@@ -102,14 +120,14 @@ function pick(text, labels, max = 320) {
       if (!match) continue;
       let value = String(match[1] || '').trim();
       if (!value && lines[i + 1]) value = lines[i + 1].trim();
-      if (value && value.length <= max) return value;
+      if (value && value.length <= max && !/^#{1,6}\s/.test(value)) return value;
     }
   }
   return '';
 }
 
 function displayType(content) {
-  const lines = plain(content).split('\n').map(x => x.trim()).filter(Boolean).slice(0, 120);
+  const lines = plain(content).split('\n').map(x => x.trim()).filter(Boolean).slice(0, 150);
   for (const line of lines) {
     const clean = line.toUpperCase().replace(/\s+/g, ' ').trim();
     if (/^(DIGITAL[- /+]ANAL[ÓO]GICO|ANAL[ÓO]GICO[- /+]DIGITAL)$/.test(clean)) return 'Digital + analógico';
@@ -142,12 +160,12 @@ function absoluteImage(raw) {
   }
 }
 
-function images(content, sku, max = 6) {
+function images(content, sku, max = 8) {
   const found = [];
   const normalized = decode(content);
   const patterns = [
-    /https:\/\/www\.casio\.com\/content\/dam\/casio\/[^\s"'<>]+/gi,
-    /\/content\/dam\/casio\/[^\s"'<>]+/gi
+    /https:\/\/www\.casio\.com\/content\/dam\/casio\/[^\s"'<>\])]+/gi,
+    /\/content\/dam\/casio\/[^\s"'<>\])]+/gi
   ];
 
   for (const re of patterns) {
@@ -165,7 +183,7 @@ function images(content, sku, max = 6) {
     let value = 0;
     if (lower.includes(sku.toLowerCase())) value += 120;
     if (compactUrl.includes(compact)) value += 90;
-    if (/assets|main-visual|seq1|seq2|seq3|_01|_02|_03/.test(lower)) value += 20;
+    if (/assets|main-visual|seq0?1|seq0?2|seq0?3|seq0?4/.test(lower)) value += 20;
     if (/icon|logo|banner|payment|feature|size|scene|manual|qr/.test(lower)) value -= 100;
     return value;
   };
@@ -205,6 +223,7 @@ function candidates(sku) {
 }
 
 function containsSku(content, sku) {
+  if (blockedContent(content)) return false;
   const text = plain(content).toUpperCase();
   return text.includes(sku) || text.replace(/-/g, '').includes(sku.replace(/-/g, ''));
 }
@@ -213,7 +232,7 @@ async function directPage(candidate, sku) {
   try {
     const response = await fetchTimed(candidate.url, 9000, {
       Accept: 'text/html,application/xhtml+xml',
-      'Cache-Control': 'no-cache'
+      'Cache-Control': 'no-cache, no-store'
     });
     if (!response.ok) return null;
     const content = await response.text();
@@ -226,14 +245,13 @@ async function directPage(candidate, sku) {
 
 async function readerPage(candidate, sku) {
   try {
-    // Quando o datacenter do Render recebe bloqueio/HTML incompleto da Casio,
-    // o Reader abre a mesma URL oficial em navegador remoto. A fonte exibida
-    // ao lojista continua sendo a página oficial da Casio.
-    const response = await fetchTimed(`${READER}${candidate.url}`, 28000, {
+    const response = await fetchTimed(`${READER}${candidate.url}`, 38000, {
       Accept: 'text/plain',
       'x-engine': 'browser',
-      'x-timeout': '20',
-      'x-cache-tolerance': '1800'
+      'x-timeout': '30',
+      'x-no-cache': 'true',
+      'x-cache-tolerance': '0',
+      'x-respond-with': 'markdown'
     });
     if (!response.ok) return null;
     const content = await response.text();
@@ -242,6 +260,36 @@ async function readerPage(candidate, sku) {
   } catch {
     return null;
   }
+}
+
+async function searchReaderPage(sku) {
+  try {
+    const query = encodeURIComponent(`${sku} CASIO`);
+    const response = await fetchTimed(`${SEARCH_READER}${query}?site=casio.com`, 26000, {
+      Accept: 'application/json',
+      'x-no-cache': 'true',
+      'x-cache-tolerance': '0'
+    });
+    if (!response.ok) return null;
+    const payload = await response.json().catch(() => null);
+    const results = Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+
+    for (const item of results) {
+      const url = String(item?.url || '').trim();
+      const content = String(item?.content || item?.description || '').trim();
+      if (!url || !content || !containsSku(content, sku)) continue;
+      try {
+        const parsed = new URL(url);
+        if (!/(^|\.)casio\.com$/i.test(parsed.hostname)) continue;
+        const compactPath = decodeURIComponent(parsed.pathname).toUpperCase().replace(/-/g, '');
+        if (!compactPath.includes(`PRODUCT.${sku.replace(/-/g, '')}`)) continue;
+        const brand = /\/gshock\//i.test(parsed.pathname) ? 'G-Shock' : 'Casio';
+        const region = /\/br\//i.test(parsed.pathname) ? 'Brasil' : (/\/pt\//i.test(parsed.pathname) ? 'Portugal' : 'Internacional');
+        return { brand, region, url, finalUrl: url, content, via: 'search-reader' };
+      } catch {}
+    }
+  } catch {}
+  return null;
 }
 
 async function firstMatch(list, fn, sku) {
@@ -255,21 +303,20 @@ async function findPage(raw) {
     const brazil = list.filter(candidate => candidate.region === 'Brasil');
     const otherRegions = list.filter(candidate => candidate.region !== 'Brasil');
 
-    // Primeiro fazemos só duas consultas ao Brasil. A versão anterior disparava
-    // oito URLs de uma vez e isso podia acionar bloqueios automáticos do catálogo.
     const directBrazil = await firstMatch(brazil, directPage, sku);
     if (directBrazil) return { sku, ...directBrazil };
 
-    // Principal fallback para o Render: navegador remoto lendo a mesma URL oficial.
     const readerBrazil = await firstMatch(brazil, readerPage, sku);
     if (readerBrazil) return { sku, ...readerBrazil };
 
-    // Só procura em outras regiões oficiais se o modelo realmente não aparecer no Brasil.
     const directOther = await firstMatch(otherRegions, directPage, sku);
     if (directOther) return { sku, ...directOther };
 
     const readerOther = await firstMatch(otherRegions, readerPage, sku);
     if (readerOther) return { sku, ...readerOther };
+
+    const searched = await searchReaderPage(sku);
+    if (searched) return { sku, ...searched };
   }
   return null;
 }
@@ -277,10 +324,10 @@ async function findPage(raw) {
 function description(content) {
   const html = String(content || '');
   const meta = extractMeta(html, 'description', 'name') || extractMeta(html, 'og:description', 'property');
-  if (meta) return meta.slice(0, 1200);
+  if (meta && !/access denied|forbidden/i.test(meta)) return meta.slice(0, 1200);
 
   const lines = plain(content).split('\n').map(x => x.trim()).filter(Boolean);
-  const useful = lines.find(line => line.length > 40 && line.length < 500 && /resistente|cron[oô]metro|alarme|bluetooth|solar|autom[aá]tico|anal[oó]gico|digital/i.test(line));
+  const useful = lines.find(line => line.length > 40 && line.length < 700 && /resistente|cron[oô]metro|alarme|bluetooth|solar|autom[aá]tico|anal[oó]gico|digital|design|bateria/i.test(line));
   return String(useful || '').slice(0, 1200);
 }
 
@@ -292,13 +339,13 @@ async function enrich(raw) {
   const page = await findPage(requested);
   if (!page) {
     throw Object.assign(
-      new Error(`Não consegui consultar ${requested} no catálogo oficial agora. A referência pode estar correta; tente novamente após alguns segundos.`),
+      new Error(`A referência ${requested} não pôde ser lida automaticamente no catálogo oficial agora. A Casio está bloqueando a consulta, não significa que a referência esteja errada.`),
       { statusCode: 503 }
     );
   }
 
   const detalhes = specs(page.content);
-  const fotos = images(page.content, page.sku, 6);
+  const fotos = images(page.content, page.sku, 8);
   const result = {
     sku: requested,
     nome: productName(page.content, page.sku, page.brand),
@@ -311,7 +358,7 @@ async function enrich(raw) {
     origem: page.region === 'Brasil'
       ? (page.brand === 'G-Shock' ? 'Casio Brasil — G-Shock' : 'Casio Brasil')
       : `Casio oficial — ${page.region}`,
-    aviso: fotos.length ? '' : 'A referência foi confirmada no catálogo oficial, mas nenhuma foto pôde ser extraída automaticamente desta página.'
+    aviso: fotos.length ? '' : 'A ficha foi encontrada. As fotos serão procuradas diretamente nos arquivos oficiais da Casio pelo navegador.'
   };
 
   cache.set(requested, result);
