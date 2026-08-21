@@ -35,6 +35,8 @@ jobs:
           node --check admin-returns.js
           node --check return-request-form.js
           node --check legal-footer.js
+          node --check casio-enrichment-v2.js
+          node --check admin-product-enrichment.js
 
       - name: Check Mercado Pago SDK exports
         run: |
