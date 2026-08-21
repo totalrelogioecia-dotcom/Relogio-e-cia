@@ -1,0 +1,11 @@
+[
+  {
+    "code": "FRETE",
+    "type": "free_shipping",
+    "active": true,
+    "min_subtotal": 0,
+    "max_shipping": null,
+    "starts_at": null,
+    "ends_at": null
+  }
+]
