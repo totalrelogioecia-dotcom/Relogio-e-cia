@@ -52,9 +52,7 @@
   function skuVariants(raw) {
     const clean = cleanSku(raw);
     if (!clean) return [];
-
     const out = [clean];
-    // Algumas referências comerciais brasileiras aparecem com ou sem o sufixo regional.
     if (!/(?:DF|DR)$/.test(clean)) out.push(clean + 'DF', clean + 'DR');
     if (/DF$/.test(clean)) out.push(clean.replace(/DF$/, ''));
     if (/DR$/.test(clean)) out.push(clean.replace(/DR$/, ''));
@@ -66,9 +64,33 @@
     return [
       { brand: 'Casio', region: 'Brasil', url: `https://www.casio.com/br/watches/casio/product.${encoded}/` },
       { brand: 'G-Shock', region: 'Brasil', url: `https://www.casio.com/br/watches/gshock/product.${encoded}/` },
+      { brand: 'Casio', region: 'Portugal', url: `https://www.casio.com/pt/watches/casio/product.${encoded}/` },
+      { brand: 'G-Shock', region: 'Portugal', url: `https://www.casio.com/pt/watches/gshock/product.${encoded}/` },
       { brand: 'Casio', region: 'Internacional', url: `https://www.casio.com/intl/watches/casio/product.${encoded}/` },
       { brand: 'G-Shock', region: 'Internacional', url: `https://www.casio.com/intl/watches/gshock/product.${encoded}/` }
     ];
+  }
+
+  function blockedText(value) {
+    const text = String(value || '').toLowerCase();
+    return [
+      'access denied',
+      'request blocked',
+      'the requested url was rejected',
+      "you don't have permission to access",
+      'you do not have permission to access',
+      'forbidden',
+      'reference #',
+      'akamai',
+      'security service to protect'
+    ].some(term => text.includes(term));
+  }
+
+  function containsSku(text, sku) {
+    if (blockedText(text)) return false;
+    const compactText = String(text || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const compact = compactSku(sku);
+    return Boolean(compact && compactText.includes(compact));
   }
 
   function htmlDocument(html) {
@@ -85,13 +107,24 @@
       .trim();
   }
 
-  function containsSku(text, sku) {
-    const compactText = String(text || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const compact = compactSku(sku);
-    return Boolean(compact && compactText.includes(compact));
+  function cleanReaderText(value) {
+    return String(value || '')
+      .replace(/^Title:.*$/gmi, '')
+      .replace(/^URL Source:.*$/gmi, '')
+      .replace(/^Published Time:.*$/gmi, '')
+      .replace(/^Markdown Content:.*$/gmi, '')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/^#{1,6}\s*/gm, '')
+      .replace(/^[-*+]\s+/gm, '')
+      .replace(/\r/g, '')
+      .replace(/[\t ]+/g, ' ')
+      .replace(/\n\s*\n+/g, '\n')
+      .trim();
   }
 
-  function pick(text, labels, max = 360) {
+  function pick(text, labels, max = 420) {
     const lines = String(text || '').split('\n').map(line => line.trim()).filter(Boolean);
     for (let i = 0; i < lines.length; i += 1) {
       const current = lines[i].replace(/^#+\s*/, '').trim();
@@ -99,10 +132,9 @@
         const normalizedCurrent = current.toLocaleLowerCase('pt-BR');
         const normalizedLabel = label.toLocaleLowerCase('pt-BR');
         if (normalizedCurrent !== normalizedLabel && !normalizedCurrent.startsWith(normalizedLabel + ':')) continue;
-
         let value = current.slice(label.length).replace(/^\s*[:：-]\s*/, '').trim();
-        if (!value) value = String(lines[i + 1] || '').trim();
-        if (value && value.length <= max && !labels.some(item => value.toLocaleLowerCase('pt-BR') === item.toLocaleLowerCase('pt-BR'))) return value;
+        if (!value) value = String(lines[i + 1] || '').replace(/^#+\s*/, '').trim();
+        if (value && value.length <= max && !blockedText(value)) return value;
       }
     }
     return '';
@@ -117,18 +149,63 @@
     return '';
   }
 
-  function officialImages(doc, sku, max = 6) {
+  function detailMap(text) {
+    const details = {
+      movimento: pick(text, ['Movimento', 'Movement']) || displayType(text),
+      caixa_material: pick(text, ['Material da caixa e da moldura', 'Material da caixa e do bisel', 'Material da caixa', 'Case and bezel material', 'Case material']),
+      pulseira_material: pick(text, ['Pulseira', 'Bracelete', 'Band', 'Material da pulseira']),
+      cor: pick(text, ['Cor', 'Color', 'Cor da pulseira', 'Band color']),
+      diametro: pick(text, ['Tamanho do Relógio (Caixa|Visor) C x L x A', 'Tamanho do Relógio', 'Tamanho da caixa (C × L × A)', 'Tamanho da caixa', 'Case size (L× W× H)', 'Case size']),
+      resistencia_agua: pick(text, ['Resistente a água', 'Resistência à água', 'Resistência à água de', 'Water resistance']),
+      vidro: pick(text, ['Vidro', 'Glass'])
+    };
+    Object.keys(details).forEach(key => {
+      if (!String(details[key] || '').trim()) delete details[key];
+    });
+    return details;
+  }
+
+  function absoluteOfficialImage(raw) {
+    try {
+      const url = new URL(String(raw || '').trim(), CASIO_BASE);
+      if (url.protocol !== 'https:' || url.hostname !== 'www.casio.com' || !url.pathname.startsWith('/content/dam/casio/')) return '';
+      return url.toString();
+    } catch {
+      return '';
+    }
+  }
+
+  function imageUrlsFromText(content, sku, max = 8) {
+    const found = [];
+    const patterns = [
+      /https:\/\/www\.casio\.com\/content\/dam\/casio\/[^\s"'<>\])]+/gi,
+      /\/content\/dam\/casio\/[^\s"'<>\])]+/gi
+    ];
+    for (const re of patterns) {
+      for (const raw of String(content || '').match(re) || []) {
+        const url = absoluteOfficialImage(raw.replace(/[\])},;]+$/g, ''));
+        if (url && !found.includes(url)) found.push(url);
+      }
+    }
+    const compact = compactSku(sku).toLowerCase();
+    const score = value => {
+      const lower = value.toLowerCase();
+      const compactUrl = lower.replace(/[^a-z0-9]/g, '');
+      let points = 0;
+      if (compact && compactUrl.includes(compact)) points += 180;
+      if (/seq0?1|seq0?2|seq0?3|seq0?4|main-visual|assets/.test(lower)) points += 30;
+      if (/icon|logo|banner|feature|manual|qr|size-guide/.test(lower)) points -= 180;
+      return points;
+    };
+    return found.sort((a, b) => score(b) - score(a)).filter(value => score(value) > 0).slice(0, max);
+  }
+
+  function officialImages(doc, sku, max = 8) {
     const found = [];
     const add = raw => {
-      if (!raw) return;
-      try {
-        const url = new URL(String(raw).trim(), CASIO_BASE);
-        if (url.protocol !== 'https:' || url.hostname !== 'www.casio.com' || !url.pathname.startsWith('/content/dam/casio/')) return;
-        const value = url.toString();
-        if (!found.includes(value)) found.push(value);
-      } catch {}
+      const value = absoluteOfficialImage(raw);
+      if (value && !found.includes(value)) found.push(value);
     };
-
     doc.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"]').forEach(node => add(node.getAttribute('content')));
     doc.querySelectorAll('img').forEach(img => {
       add(img.getAttribute('src'));
@@ -141,90 +218,193 @@
       const srcset = source.getAttribute('srcset') || source.getAttribute('data-srcset') || '';
       srcset.split(',').forEach(part => add(part.trim().split(/\s+/)[0]));
     });
-
-    const compact = compactSku(sku).toLowerCase();
-    const score = value => {
-      const lower = value.toLowerCase();
-      const compactUrl = lower.replace(/[^a-z0-9]/g, '');
-      let points = 0;
-      if (compact && compactUrl.includes(compact)) points += 180;
-      if (/seq0?1|seq0?2|seq0?3|main-visual|assets/.test(lower)) points += 30;
-      if (/icon|logo|banner|feature|manual|qr|size-guide/.test(lower)) points -= 180;
-      return points;
-    };
-
-    return found.sort((a, b) => score(b) - score(a)).filter(value => score(value) > 0).slice(0, max);
+    return [...new Set([...found, ...imageUrlsFromText(doc.documentElement?.outerHTML || '', sku, max)])].slice(0, max);
   }
 
-  function descriptionFrom(doc, text) {
-    const meta = doc.querySelector('meta[name="description"]')?.getAttribute('content')
-      || doc.querySelector('meta[property="og:description"]')?.getAttribute('content')
-      || '';
-    if (String(meta).trim()) return String(meta).replace(/\s+/g, ' ').trim().slice(0, 1200);
-
+  function descriptionFromText(text) {
     const lines = String(text || '').split('\n').map(line => line.trim()).filter(Boolean);
-    const useful = lines.find(line => line.length > 55 && line.length < 700 && /resistente|cron[oô]metro|alarme|bluetooth|solar|digital|anal[oó]gico|bateria|design/i.test(line));
+    const useful = lines.find(line => line.length > 55 && line.length < 900 && /resistente|cron[oô]metro|alarme|bluetooth|solar|digital|anal[oó]gico|bateria|design|estrutura/i.test(line));
     return String(useful || '').slice(0, 1200);
   }
 
   function parseOfficialHtml(html, sku, candidate) {
     const doc = htmlDocument(html);
     const text = pageText(doc);
-    if (!containsSku(text, sku)) return null;
+    if (blockedText(text) || !containsSku(text, sku)) return null;
 
     const h1 = String(doc.querySelector('h1')?.textContent || '').replace(/\s+/g, ' ').trim();
     const title = String(doc.querySelector('title')?.textContent || '').replace(/\s*\|\s*CASIO.*$/i, '').replace(/\s+/g, ' ').trim();
     const baseName = h1 || title || sku;
+    if (/access denied|forbidden/i.test(baseName)) return null;
+
     const nome = compactSku(baseName) === compactSku(sku) ? `${candidate.brand} ${sku}` : baseName.slice(0, 140);
+    const meta = doc.querySelector('meta[name="description"]')?.getAttribute('content')
+      || doc.querySelector('meta[property="og:description"]')?.getAttribute('content')
+      || '';
+    const fotos = officialImages(doc, sku, 8);
 
-    const detalhes = {
-      movimento: pick(text, ['Movimento', 'Movement']) || displayType(text),
-      caixa_material: pick(text, ['Material da caixa e da moldura', 'Material da caixa e do bisel', 'Material da caixa', 'Case and bezel material', 'Case material']),
-      pulseira_material: pick(text, ['Pulseira', 'Bracelete', 'Band', 'Material da pulseira']),
-      cor: pick(text, ['Cor', 'Color', 'Cor da pulseira', 'Band color']),
-      diametro: pick(text, ['Tamanho do Relógio (Caixa|Visor) C x L x A', 'Tamanho do Relógio', 'Tamanho da caixa (C × L × A)', 'Tamanho da caixa', 'Case size (L× W× H)', 'Case size']),
-      resistencia_agua: pick(text, ['Resistente a água', 'Resistência à água', 'Resistência à água de', 'Water resistance']),
-      vidro: pick(text, ['Vidro', 'Glass'])
-    };
-
-    Object.keys(detalhes).forEach(key => {
-      if (!String(detalhes[key] || '').trim()) delete detalhes[key];
-    });
-
-    const fotos = officialImages(doc, sku, 6);
     return {
       sku,
       nome,
       marca: candidate.brand,
       categoria: 'Relógios',
-      desc: descriptionFrom(doc, text),
+      desc: blockedText(meta) ? descriptionFromText(text) : (String(meta).trim() || descriptionFromText(text)),
       fotos,
-      detalhes,
+      detalhes: detailMap(text),
       fonte: candidate.url,
       origem: candidate.region === 'Brasil'
         ? (candidate.brand === 'G-Shock' ? 'Casio Brasil — G-Shock' : 'Casio Brasil')
         : `Casio oficial — ${candidate.region}`,
-      aviso: fotos.length ? '' : 'A referência foi confirmada no catálogo oficial, mas nenhuma foto pôde ser extraída automaticamente desta página.'
+      aviso: fotos.length ? '' : 'A ficha foi encontrada. As fotos serão procuradas diretamente nos arquivos oficiais da Casio.'
     };
   }
 
+  function parseOfficialText(content, sku, candidate) {
+    if (blockedText(content)) return null;
+    const text = cleanReaderText(content);
+    if (!containsSku(text, sku)) return null;
+
+    const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+    const titleLine = lines.find(line => containsSku(line, sku) && line.length < 160 && !/^https?:/i.test(line));
+    const baseName = titleLine || sku;
+    const nome = compactSku(baseName) === compactSku(sku) ? `${candidate.brand} ${sku}` : baseName.slice(0, 140);
+    const fotos = imageUrlsFromText(content, sku, 8);
+
+    return {
+      sku,
+      nome,
+      marca: candidate.brand,
+      categoria: 'Relógios',
+      desc: descriptionFromText(text),
+      fotos,
+      detalhes: detailMap(text),
+      fonte: candidate.url,
+      origem: candidate.region === 'Brasil'
+        ? (candidate.brand === 'G-Shock' ? 'Casio Brasil — G-Shock' : 'Casio Brasil')
+        : `Casio oficial — ${candidate.region}`,
+      aviso: fotos.length ? '' : 'A ficha foi encontrada. As fotos serão procuradas diretamente nos arquivos oficiais da Casio.'
+    };
+  }
+
+  async function fetchOfficialThroughJina(url, signal) {
+    const endpoint = `https://r.jina.ai/${url}`;
+    const response = await fetch(endpoint, {
+      cache: 'no-store',
+      signal,
+      headers: {
+        Accept: 'text/plain',
+        'x-engine': 'browser',
+        'x-timeout': '30',
+        'x-no-cache': 'true',
+        'x-cache-tolerance': '0',
+        'x-respond-with': 'markdown'
+      }
+    });
+    if (!response.ok) return '';
+    const content = await response.text();
+    return blockedText(content) ? '' : content;
+  }
+
   async function fetchOfficialThroughAllOrigins(url, signal) {
-    // Fallback usado apenas quando o servidor do Render não consegue abrir a Casio.
-    // O conteúdo consultado continua sendo a URL oficial informada em `url`.
-    const endpoint = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const endpoint = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&disableCache=true`;
     const response = await fetch(endpoint, { cache: 'no-store', signal, headers: { Accept: 'application/json' } });
     if (!response.ok) return '';
     const payload = await response.json().catch(() => null);
-    return String(payload?.contents || '');
+    const content = String(payload?.contents || '');
+    return blockedText(content) ? '' : content;
+  }
+
+  function productAssetCandidates(sku) {
+    const clean = cleanSku(sku);
+    const compact = compactSku(clean);
+    if (compact.length < 3) return [];
+    const dirs = `${compact.slice(0, 1)}/${compact.slice(0, 2)}/${compact.slice(0, 3)}`;
+    const base = `https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/${dirs}/${clean}/assets/`;
+    const urls = [];
+
+    const push = value => { if (value && !urls.includes(value)) urls.push(value); };
+    push(`${base}${clean}.png.transform/main-visual-sp/image.png`);
+    push(`${base}${clean}.jpg.transform/main-visual-sp/image.jpg`);
+    push(`${base}${clean}.png`);
+    push(`${base}${clean}.jpg`);
+
+    for (let index = 1; index <= 8; index += 1) {
+      for (const seq of [`Seq${index}`, `Seq0${index}`]) {
+        push(`${base}${clean}_${seq}.jpg.transform/main-visual-sp/image.jpg`);
+        push(`${base}${clean}_${seq}.png.transform/main-visual-sp/image.png`);
+        push(`${base}${clean}_${seq}.jpg`);
+        push(`${base}${clean}_${seq}.png`);
+      }
+    }
+    return urls;
+  }
+
+  function probeImage(url, signal, timeout = 7000) {
+    return new Promise(resolve => {
+      if (signal?.aborted) return resolve('');
+      const image = new Image();
+      let done = false;
+      const finish = value => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        image.onload = null;
+        image.onerror = null;
+        resolve(value);
+      };
+      const timer = setTimeout(() => finish(''), timeout);
+      image.onload = () => finish(image.naturalWidth > 120 && image.naturalHeight > 120 ? url : '');
+      image.onerror = () => finish('');
+      if (signal) signal.addEventListener('abort', () => finish(''), { once: true });
+      image.referrerPolicy = 'no-referrer';
+      image.src = url;
+    });
+  }
+
+  async function discoverOfficialPhotos(sku, signal, limit = 6) {
+    const candidates = productAssetCandidates(sku);
+    const found = [];
+    const batchSize = 8;
+    for (let start = 0; start < candidates.length && found.length < limit; start += batchSize) {
+      if (signal?.aborted) break;
+      const batch = candidates.slice(start, start + batchSize);
+      const results = await Promise.all(batch.map(url => probeImage(url, signal)));
+      for (const value of results) {
+        if (value && !found.includes(value)) found.push(value);
+        if (found.length >= limit) break;
+      }
+    }
+    return found.slice(0, limit);
+  }
+
+  async function completePhotos(data, sku, signal) {
+    const current = (data?.fotos || []).filter(Boolean);
+    if (current.length >= 3) return data;
+    try {
+      const discovered = await discoverOfficialPhotos(sku, signal, 6);
+      data.fotos = [...new Set([...current, ...discovered])].slice(0, 8);
+      if (data.fotos.length) data.aviso = '';
+    } catch {}
+    return data;
   }
 
   async function browserFallback(sku, signal) {
     for (const candidate of officialCandidates(sku)) {
       try {
+        const reader = await fetchOfficialThroughJina(candidate.url, signal);
+        if (reader) {
+          const parsed = parseOfficialText(reader, sku, candidate);
+          if (parsed) return completePhotos(parsed, sku, signal);
+        }
+      } catch (error) {
+        if (error?.name === 'AbortError') throw error;
+      }
+
+      try {
         const html = await fetchOfficialThroughAllOrigins(candidate.url, signal);
         if (!html) continue;
         const parsed = parseOfficialHtml(html, sku, candidate);
-        if (parsed) return parsed;
+        if (parsed) return completePhotos(parsed, sku, signal);
       } catch (error) {
         if (error?.name === 'AbortError') throw error;
       }
@@ -245,9 +425,10 @@
         });
         const data = await response.json().catch(() => ({}));
 
-        if (response.ok) {
+        if (response.ok && !blockedText(data?.nome) && !blockedText(data?.desc)) {
           data.sku_original = sku;
           data.sku_consultado = candidate;
+          await completePhotos(data, candidate, signal);
           return data;
         }
 
@@ -258,8 +439,6 @@
         if (/sessão administrativa/i.test(String(error?.message || ''))) throw error;
       }
 
-      // A Casio bloqueia algumas redes de datacenter. Nesse caso o próprio navegador
-      // tenta ler a mesma página oficial por uma camada CORS pública, sem mudar a fonte.
       const fallback = await browserFallback(candidate, signal);
       if (fallback) {
         fallback.sku_original = sku;
@@ -286,7 +465,7 @@
     status.textContent = 'Consultando o catálogo oficial Casio/G-Shock...';
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 75000);
+    const timer = setTimeout(() => controller.abort(), 105000);
 
     try {
       const data = await consultar(sku, controller.signal);
@@ -327,8 +506,6 @@
   }
 
   function previewPhoto(url) {
-    // <img> pode carregar a imagem oficial diretamente sem CORS. Isso evita
-    // obrigar o Render a baixar a imagem da Casio, que é justamente onde ocorre o bloqueio.
     return String(url || '');
   }
 
@@ -385,8 +562,6 @@
   }
 
   function aplicar(data, replace) {
-    // A referência digitada pelo lojista é mantida. Um eventual sufixo regional
-    // usado somente para localizar a ficha não substitui o SKU comercial.
     setIf('#p-sku', data.sku_original || data.sku, replace);
     setIf('#p-nome', data.nome, replace);
     setIf('#p-marca', data.marca, replace);
