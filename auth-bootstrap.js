@@ -2,6 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { AsyncLocalStorage } = require('async_hooks');
 const { Preference, WebhookSignatureValidator } = require('mercadopago');
 const { registerAuthRoutes, userFromRequest } = require('./auth');
 const { storageStatus } = require('./persistent-store');
@@ -15,6 +16,57 @@ const { registerCouponRoutes } = require('./coupon-routes');
 const { registerCouponCheckout } = require('./coupon-checkout');
 const { registerMercadoPagoOrdersPix } = require('./mercadopago-orders-pix');
 const { registerMercadoPagoClean } = require('./mercadopago-clean');
+
+const checkoutContext = new AsyncLocalStorage();
+
+function digits(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+function preferencePayer(payer) {
+  if (!payer || typeof payer !== 'object') return null;
+
+  const parts = String(payer.nome || '').trim().replace(/\s+/g, ' ').split(' ').filter(Boolean);
+  const name = (parts.shift() || '').slice(0, 80);
+  const surname = parts.join(' ').slice(0, 120);
+  const email = String(payer.email || '').trim().toLowerCase().slice(0, 180);
+
+  if (!email && !name) return null;
+
+  const result = {};
+  if (name) result.name = name;
+  if (surname) result.surname = surname;
+  if (email) result.email = email;
+
+  const areaCode = digits(payer.telefone?.area_code).slice(0, 4);
+  const phoneNumber = digits(payer.telefone?.number).slice(0, 15);
+  if (areaCode && phoneNumber) {
+    result.phone = { area_code: areaCode, number: phoneNumber };
+  }
+
+  const identificationType = String(payer.identificacao?.type || '').trim().toUpperCase().slice(0, 20);
+  const identificationNumber = digits(payer.identificacao?.number).slice(0, 30);
+  if (identificationType && identificationNumber) {
+    result.identification = { type: identificationType, number: identificationNumber };
+  }
+
+  const address = payer.endereco || {};
+  const zipCode = digits(address.zip_code).slice(0, 8);
+  const streetName = String(address.street_name || '').trim().slice(0, 120);
+  const streetNumber = String(address.street_number || '').trim().slice(0, 20);
+  if (zipCode && streetName && streetNumber) {
+    result.address = {
+      zip_code: zipCode,
+      street_name: streetName,
+      street_number: streetNumber
+    };
+  }
+
+  const dateCreated = String(payer.date_created || '').trim();
+  if (dateCreated) result.date_created = dateCreated;
+
+  return result;
+}
 
 function parseMercadoPagoSignature(value) {
   const result = {};
@@ -60,9 +112,24 @@ if (!originalExpress.__relogioAuthPatched) {
   if (!Preference.prototype.__relogioSignedWebhookPatched) {
     const originalPreferenceCreate = Preference.prototype.create;
     Preference.prototype.create = function (args = {}) {
-      if (args?.body?.notification_url) {
+      if (args?.body) {
         const body = { ...args.body };
-        delete body.notification_url;
+
+        // O webhook principal é configurado no painel do Mercado Pago.
+        // Mantemos a preferência sem notification_url para evitar rotas concorrentes.
+        if (body.notification_url) delete body.notification_url;
+
+        // Durante o checkout, aproveita os dados reais já cadastrados na conta
+        // para enriquecer a preferência do Checkout Pro. Isso ajuda a análise
+        // antifraude sem inventar ou exigir dados que o cliente não informou.
+        const contextualPayer = preferencePayer(checkoutContext.getStore()?.payer);
+        if (contextualPayer) {
+          body.payer = {
+            ...(body.payer || {}),
+            ...contextualPayer
+          };
+        }
+
         args = { ...args, body };
       }
       return originalPreferenceCreate.call(this, args);
@@ -102,21 +169,23 @@ if (!originalExpress.__relogioAuthPatched) {
     app.use('/api/checkout', express.json({ limit: '1mb' }), (req, res, next) => {
       try {
         const user = userFromRequest(req);
-        if (!user) return next();
-        req.body = req.body || {};
-        req.body.payer = {
-          ...(req.body.payer || {}),
-          nome: user.nome,
-          email: user.email,
-          telefone: user.telefone || undefined,
-          identificacao: user.identificacao || undefined,
-          endereco: user.endereco || undefined,
-          date_created: user.created_at || undefined
-        };
+        if (user) {
+          req.body = req.body || {};
+          req.body.payer = {
+            ...(req.body.payer || {}),
+            nome: user.nome,
+            email: user.email,
+            telefone: user.telefone || undefined,
+            identificacao: user.identificacao || undefined,
+            endereco: user.endereco || undefined,
+            date_created: user.created_at || undefined
+          };
+        }
       } catch (error) {
         console.warn('Não foi possível enriquecer o checkout com a conta:', error.message);
       }
-      next();
+
+      checkoutContext.run({ payer: req.body?.payer || null }, () => next());
     });
 
     registerCouponCheckout(app);
