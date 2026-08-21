@@ -81,6 +81,9 @@ process.on('SIGINT', () => shutdown('SIGINT'));
     runProductPhotoMigrations();
     await clearTestAccountsOnce();
     await flushPersistentStore();
+    // Instala a proteção do painel antes do bootstrap de autenticação e antes
+    // das rotas administrativas do servidor.
+    require('./admin-security-bootstrap');
     require('./auth-bootstrap');
     require('./server');
   } catch (error) {
