@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
-const { MercadoPagoConfig, Preference } = require('mercadopago');
+const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const { resolveSelectedShipping, isConfigured } = require('./shipping-service');
 const { validateCoupon, consumeCoupon } = require('./coupon-service');
 const { flushPersistentStore } = require('./persistent-store');
@@ -10,13 +10,11 @@ const { flushPersistentStore } = require('./persistent-store');
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
 const ORDERS = path.join(DATA, 'orders.json');
-const ORDERS_API = 'https://api.mercadopago.com/v1/orders';
 
 function read(file, fallback) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; } }
 function write(file, value) { fs.writeFileSync(file, JSON.stringify(value, null, 2), 'utf8'); }
 function digits(value) { return String(value || '').replace(/\D/g, ''); }
 function money(value) { return Number(Number(value || 0).toFixed(2)); }
-function amountString(value) { return money(value).toFixed(2); }
 
 function accessToken() {
   const value = String(process.env.MERCADOPAGO_ACCESS_TOKEN || '').trim();
@@ -24,28 +22,9 @@ function accessToken() {
   return value;
 }
 
-function sdkPreference() {
-  return new Preference(new MercadoPagoConfig({ accessToken: accessToken(), options: { timeout: 10000, maxRetries: 2 } }));
-}
-
-async function mpRequest(url, options = {}) {
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken()}`,
-      ...(options.headers || {})
-    }
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const error = new Error(data?.message || data?.error || `Mercado Pago respondeu HTTP ${response.status}.`);
-    error.status = response.status;
-    error.data = data;
-    throw error;
-  }
-  return data;
+function sdkClients() {
+  const client = new MercadoPagoConfig({ accessToken: accessToken(), options: { timeout: 10000, maxRetries: 2 } });
+  return { preference: new Preference(client), payment: new Payment(client) };
 }
 
 function normalizeItems(rawItems) {
@@ -81,6 +60,39 @@ function preferencePayer(payer) {
   return result;
 }
 
+function paymentPayer(payer) {
+  const name = splitName(payer?.nome);
+  const result = {
+    email: String(payer?.email || '').trim().toLowerCase().slice(0, 180),
+    first_name: name.first
+  };
+  if (name.last) result.last_name = name.last;
+
+  const type = String(payer?.identificacao?.type || '').trim().toUpperCase();
+  const number = digits(payer?.identificacao?.number);
+  if (type && number) result.identification = { type, number };
+
+  const areaCode = digits(payer?.telefone?.area_code).slice(0, 4);
+  const phone = digits(payer?.telefone?.number).slice(0, 15);
+  if (areaCode && phone) result.phone = { area_code: areaCode, number: phone };
+
+  const address = payer?.endereco || {};
+  const zip = digits(address.zip_code).slice(0, 8);
+  const street = String(address.street_name || '').trim().slice(0, 120);
+  const streetNumber = String(address.street_number || '').trim().slice(0, 20);
+  if (zip && street && streetNumber) {
+    result.address = {
+      zip_code: zip,
+      street_name: street,
+      street_number: streetNumber,
+      neighborhood: String(address.neighborhood || '').trim().slice(0, 120) || undefined,
+      city: String(address.city_name || '').trim().slice(0, 120) || undefined,
+      federal_unit: String(address.state_code || '').trim().toUpperCase().slice(0, 2) || undefined
+    };
+  }
+  return result;
+}
+
 function receiverAddress(payer) {
   const address = payer?.endereco || {};
   const zip = digits(address.zip_code).slice(0, 8);
@@ -100,6 +112,17 @@ function publicBaseUrl() {
   const base = String(process.env.PUBLIC_URL || '').trim().replace(/\/+$/, '');
   if (!base.startsWith('https://')) throw Object.assign(new Error('PUBLIC_URL precisa estar configurada com HTTPS.'), { status: 503 });
   return base;
+}
+
+function safeMpError(error) {
+  const raw = error?.cause || error?.data || error?.api_response?.response || null;
+  if (!raw || typeof raw !== 'object') return raw;
+  try {
+    return JSON.parse(JSON.stringify(raw, (key, value) => {
+      if (/token|authorization|secret|password/i.test(key)) return '[oculto]';
+      return value;
+    }));
+  } catch { return String(raw); }
 }
 
 async function persistOrder(order) {
@@ -171,36 +194,50 @@ function registerCouponCheckout(app) {
       await persistOrder(localOrder);
 
       if (method === 'pix') {
-        const mpOrder = await mpRequest(ORDERS_API, {
-          method: 'POST',
-          headers: { 'X-Idempotency-Key': crypto.randomUUID() },
-          body: JSON.stringify({
-            type: 'online',
-            processing_mode: 'automatic',
+        const { payment } = sdkClients();
+        const data = await payment.create({
+          body: {
+            transaction_amount: total,
+            description: `Pedido ${orderId}`,
+            statement_descriptor: statementDescriptor(),
+            payment_method_id: 'pix',
             external_reference: orderId,
-            total_amount: amountString(total),
-            payer: { email: String(payer.email).trim().toLowerCase().slice(0, 180) },
-            transactions: { payments: [{ amount: amountString(total), payment_method: { id: 'pix', type: 'bank_transfer' } }] }
-          })
+            notification_url: `${base}/api/mercadopago/webhook`,
+            payer: paymentPayer(payer),
+            additional_info: {
+              items: items.map(item => ({
+                id: String(item.sku || item.id),
+                title: item.nome.slice(0, 256),
+                quantity: item.quantidade,
+                unit_price: money(item.unit_price * 0.95)
+              }))
+            }
+          },
+          requestOptions: { idempotencyKey: crypto.randomUUID() }
         });
-        const payment = mpOrder?.transactions?.payments?.[0] || {};
-        localOrder.mp_order_id = String(mpOrder.id || '');
-        localOrder.payment_id = payment?.id ? String(payment.id) : null;
-        localOrder.payment_status = String(payment?.status || mpOrder?.status || 'pending');
-        localOrder.status = ['processed', 'approved'].includes(String(mpOrder?.status || payment?.status || '').toLowerCase()) ? 'paid' : 'pending';
+
+        const tx = data?.point_of_interaction?.transaction_data || {};
+        if (!data?.id || !tx.qr_code || !tx.qr_code_base64) {
+          throw Object.assign(new Error('O Mercado Pago não retornou o QR Code do PIX.'), { status: 502, data });
+        }
+
+        localOrder.payment_id = String(data.id);
+        localOrder.payment_status = String(data.status || 'pending');
+        localOrder.status = data.status === 'approved' ? 'paid' : 'pending';
         localOrder.pix = {
-          qr_code: payment?.payment_method?.qr_code || null,
-          qr_code_base64: payment?.payment_method?.qr_code_base64 || null,
-          ticket_url: payment?.payment_method?.ticket_url || null
+          qr_code: String(tx.qr_code),
+          qr_code_base64: String(tx.qr_code_base64),
+          ticket_url: tx.ticket_url ? String(tx.ticket_url) : null
         };
         localOrder.updated_at = new Date().toISOString();
         await persistOrder(localOrder);
         await consumeCoupon(validation.coupon.id, payer.email, orderId);
         const redirectUrl = `${base}/pagamento-pix.html?pedido=${encodeURIComponent(orderId)}`;
-        return res.json({ order_id: orderId, payment_id: localOrder.payment_id, mp_order_id: localOrder.mp_order_id, redirect_url: redirectUrl, init_point: redirectUrl, coupon: localOrder.coupon });
+        console.log('Checkout PIX com cupom criado:', { orderId, payment_id: localOrder.payment_id, shipping_original: originalShipping, shipping_charged: 0, coupon: validation.coupon.code, total });
+        return res.json({ order_id: orderId, payment_id: localOrder.payment_id, redirect_url: redirectUrl, init_point: redirectUrl, coupon: localOrder.coupon });
       }
 
-      const preference = sdkPreference();
+      const { preference } = sdkClients();
       const pref = await preference.create({
         body: {
           items: items.map(item => ({ id: String(item.sku || item.id), title: item.nome.slice(0, 256), quantity: item.quantidade, currency_id: 'BRL', unit_price: item.unit_price })),
@@ -214,21 +251,28 @@ function registerCouponCheckout(app) {
             failure: `${base}/pagamento.html?status=failure&pedido=${encodeURIComponent(orderId)}`,
             pending: `${base}/pagamento.html?status=pending&pedido=${encodeURIComponent(orderId)}`
           },
-          auto_return: 'approved'
+          auto_return: 'approved',
+          notification_url: `${base}/api/mercadopago/webhook`
         },
         requestOptions: { idempotencyKey: crypto.randomUUID() }
       });
-      if (!pref?.id) throw new Error('O Mercado Pago não retornou o ID da preferência.');
+      if (!pref?.id || !pref?.init_point) throw new Error('O Mercado Pago não retornou a preferência completa.');
       localOrder.status = 'pending';
       localOrder.payment_status = 'pending';
       localOrder.preference_id = String(pref.id);
       localOrder.updated_at = new Date().toISOString();
       await persistOrder(localOrder);
       await consumeCoupon(validation.coupon.id, payer.email, orderId);
-      return res.json({ order_id: orderId, preference_id: localOrder.preference_id, coupon: localOrder.coupon });
+      return res.json({ order_id: orderId, preference_id: localOrder.preference_id, init_point: pref.init_point, coupon: localOrder.coupon });
     } catch (error) {
-      console.error('Checkout com cupom de frete grátis falhou:', { orderId, message: error.message, status: error.status || 500 });
-      return res.status(error.status >= 400 && error.status < 500 ? error.status : 502).json({ error: error.message || 'Não foi possível aplicar o cupom.' });
+      console.error('Checkout com cupom de frete grátis falhou:', {
+        orderId,
+        message: error?.message || null,
+        status: error?.status || error?.statusCode || error?.api_response?.status || 500,
+        mercado_pago: safeMpError(error)
+      });
+      const status = Number(error?.status || error?.statusCode || error?.api_response?.status || error?.cause?.status) || 502;
+      return res.status(status >= 400 && status < 500 ? status : 502).json({ error: error?.message || 'Não foi possível aplicar o cupom.' });
     }
   });
 }
