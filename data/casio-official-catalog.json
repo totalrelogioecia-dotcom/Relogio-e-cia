@@ -1,0 +1,50 @@
+{
+  "updated_at": "2026-08-21T21:45:00.000Z",
+  "source": "Casio Brasil",
+  "products": {
+    "W-218H-1AV": {
+      "sku": "W-218H-1AV",
+      "nome": "Casio W-218H-1AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital esportivo com resistência à água de 50 metros, cronômetro de 1/100 de segundo, alarme diário e iluminação LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/W-218H-1AV/assets/W-218H-1AV_Seq1.jpg.transform/main-visual-sp/image.jpg",
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/W-218H-1AV/assets/W-218H-1AV_Seq2.jpg.transform/main-visual-sp/image.jpg",
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/W-218H-1AV/assets/W-218H-1AV_Seq3.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "44.4 × 43.2 × 10.8 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.W-218H-1AV/",
+      "origem": "Casio Brasil"
+    },
+    "GA-2100-1A1": {
+      "sku": "GA-2100-1A1",
+      "nome": "G-Shock GA-2100-1A1",
+      "marca": "G-Shock",
+      "categoria": "Relógios",
+      "desc": "G-Shock digital-analógico da série GA-2100 com estrutura Carbon Core Guard, caixa fina em carbono/resina e resistência à água de 200 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GA/GA2/GA-2100-1A1/assets/GA-2100-1A1_Seq01.png.transform/main-visual-sp/image.png",
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GA/GA2/GA-2100-1A1/assets/GA-2100-1A1_Seq02.jpg.transform/main-visual-sp/image.jpg",
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GA/GA2/GA-2100-1A1/assets/GA-2100-1A1_Seq03.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital + analógico",
+        "caixa_material": "Carbono/resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48.5 × 45.4 × 11.8 mm",
+        "resistencia_agua": "Resistência à água até 200 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/gshock/product.GA-2100-1A1/",
+      "origem": "Casio Brasil — G-Shock"
+    }
+  }
+}
