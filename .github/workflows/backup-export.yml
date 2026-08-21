@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - backup-export-20260821
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
