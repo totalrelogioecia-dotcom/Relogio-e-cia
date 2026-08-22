@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-22T14:31:08.307Z",
+  "updated_at": "2026-08-22T15:58:03.624Z",
   "source": "Casio Brasil — catálogo oficial verificado",
   "products": {
     "F-91W-1": {
@@ -521,6 +521,1386 @@
       },
       "fonte": "https://www.casio.com/br/watches/gshock/product.GX-56BB-1/",
       "origem": "Casio Brasil — G-Shock"
+    },
+    "MTD-135D-3AV": {
+      "sku": "MTD-135D-3AV",
+      "nome": "Casio MTD-135D-3AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico esportivo Casio com mostrador verde, calendário, pulseira de aço e resistência à água de 100 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MT/MTD/mtd-135d-3av/assets/MTD-135D-3AV.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "47 × 44 × 10.5 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MTD-135D-3AV/",
+      "origem": "Casio Brasil"
+    },
+    "MTP-V002G-1B": {
+      "sku": "MTP-V002G-1B",
+      "nome": "Casio MTP-V002G-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico clássico Casio em tom dourado, com exibição de data e pulseira de aço inoxidável.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MT/MTP/MTP-V002G-1B/assets/MTP-V002G-1B_01.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "44 × 37 × 9.6 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MTP-V002G-1B/",
+      "origem": "Casio Brasil"
+    },
+    "MDV-107-1A3V": {
+      "sku": "MDV-107-1A3V",
+      "nome": "Casio MDV-107-1A3V",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico de mergulho Casio com moldura anti-inversão, fundo com trava de rosca e resistência à água de 200 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/md/mdv/mdv-107-1a3v/assets/MDV-107-1A3V_l.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "49.5 × 44.2 × 12.1 mm",
+        "resistencia_agua": "Resistência à água até 200 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MDV-107-1A3V/",
+      "origem": "Casio Brasil"
+    },
+    "MDV-107-1A2V": {
+      "sku": "MDV-107-1A2V",
+      "nome": "Casio MDV-107-1A2V",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico de mergulho Casio com moldura anti-inversão, fundo com trava de rosca e resistência à água de 200 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MD/MDV/MDV-107-1A2V/assets/MDV-107-1A2V_1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "49.5 × 44.2 × 12.1 mm",
+        "resistencia_agua": "Resistência à água até 200 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MDV-107-1A2V/",
+      "origem": "Casio Brasil"
+    },
+    "EFV-620D-1A2V": {
+      "sku": "EFV-620D-1A2V",
+      "nome": "Casio EFV-620D-1A2V",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Cronógrafo EDIFICE de design esportivo inspirado no automobilismo, com caixa e pulseira de aço e resistência de 100 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/E/EF/EFV/efv-620d-1a2v/assets/EFV-620D-1A2VU.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "55 × 50.5 × 11.8 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/edifice/product.EFV-620D-1A2V/",
+      "origem": "Casio Brasil — EDIFICE"
+    },
+    "EFV-620D-1A4V": {
+      "sku": "EFV-620D-1A4V",
+      "nome": "Casio EFV-620D-1A4V",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Cronógrafo EDIFICE de design esportivo inspirado no automobilismo, com caixa e pulseira de aço e resistência de 100 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/E/EF/EFV/efv-620d-1a4v/assets/EFV-620D-1A4VU.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "55 × 50.5 × 11.8 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/edifice/product.EFV-620D-1A4V/",
+      "origem": "Casio Brasil — EDIFICE"
+    },
+    "EFV-540D-1A2V": {
+      "sku": "EFV-540D-1A2V",
+      "nome": "Casio EFV-540D-1A2V",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Cronógrafo EDIFICE de médio porte com mostradores internos, pulseira de aço inoxidável e resistência à água de 100 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/E/EF/EFV/EFV-540D-1A2V/assets/EFV-540D-1A2V_Seq1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "48.5 × 43.8 × 11.6 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/edifice/product.EFV-540D-1A2V/",
+      "origem": "Casio Brasil — EDIFICE"
+    },
+    "EFV-540D-1AV": {
+      "sku": "EFV-540D-1AV",
+      "nome": "Casio EFV-540D-1AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Cronógrafo EDIFICE de médio porte com mostradores internos, pulseira de aço inoxidável e resistência à água de 100 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/E/EF/EFV/EFV-540D-1AV/assets/EFV-540D-1AV_Seq1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "48.5 × 43.8 × 11.6 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/edifice/product.EFV-540D-1AV/",
+      "origem": "Casio Brasil — EDIFICE"
+    },
+    "EFV-570D-2AV": {
+      "sku": "EFV-570D-2AV",
+      "nome": "Casio EFV-570D-2AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Cronógrafo EDIFICE de médio porte com mostradores internos, pulseira de aço inoxidável e resistência à água de 100 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/E/EF/EFV/EFV-570D-2AV/assets/EFV-570D-2AV_Seq1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "48.5 × 43.8 × 11.6 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/edifice/product.EFV-570D-2AV/",
+      "origem": "Casio Brasil — EDIFICE"
+    },
+    "LTP-V005L-7B": {
+      "sku": "LTP-V005L-7B",
+      "nome": "Casio LTP-V005L-7B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio de perfil fino, design clássico e mostrador de alta legibilidade.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V005L-7B/assets/LTP-V005L-7B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de couro",
+        "diametro": "34 × 28.2 × 7.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V005L-7B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V005L-1B": {
+      "sku": "LTP-V005L-1B",
+      "nome": "Casio LTP-V005L-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio de perfil fino, design clássico e mostrador de alta legibilidade.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V005L-1B/assets/LTP-V005L-1B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de couro",
+        "diametro": "34 × 28.2 × 7.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V005L-1B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V005GL-1B": {
+      "sku": "LTP-V005GL-1B",
+      "nome": "Casio LTP-V005GL-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio de perfil fino, design clássico e mostrador de alta legibilidade.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V005GL-1B/assets/LTP-V005GL-1B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de couro",
+        "diametro": "34 × 28.2 × 7.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V005GL-1B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V005GL-7B": {
+      "sku": "LTP-V005GL-7B",
+      "nome": "Casio LTP-V005GL-7B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio de perfil fino, design clássico e mostrador de alta legibilidade.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V005GL-7B/assets/LTP-V005GL-7B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de couro",
+        "diametro": "34 × 28.2 × 7.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V005GL-7B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V002GL-7B": {
+      "sku": "LTP-V002GL-7B",
+      "nome": "Casio LTP-V002GL-7B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio com exibição de data e design clássico para uso diário.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V002GL-7B/assets/LTP-V002GL-7B.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de couro",
+        "diametro": "31 × 25 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V002GL-7B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V002GL-7B2": {
+      "sku": "LTP-V002GL-7B2",
+      "nome": "Casio LTP-V002GL-7B2",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio com exibição de data e design clássico para uso diário.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V002GL-7B2/assets/LTP-V002GL-7B2_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de couro",
+        "diametro": "31 × 25 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V002GL-7B2/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V002GL-1B": {
+      "sku": "LTP-V002GL-1B",
+      "nome": "Casio LTP-V002GL-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio com exibição de data e design clássico para uso diário.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V002GL-1B/assets/LTP-V002GL-1B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de couro",
+        "diametro": "31 × 25 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V002GL-1B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V002GL-9B": {
+      "sku": "LTP-V002GL-9B",
+      "nome": "Casio LTP-V002GL-9B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio com exibição de data e design clássico para uso diário.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V002GL-9B/assets/LTP-V002GL-9B.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de couro",
+        "diametro": "31 × 25 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V002GL-9B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V006D-1B": {
+      "sku": "LTP-V006D-1B",
+      "nome": "Casio LTP-V006D-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio com dia e data, pulseira de aço inoxidável e design clássico.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V006D-1B/assets/LTP-V006D-1B.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "30.4 × 25 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V006D-1B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V006D-7B": {
+      "sku": "LTP-V006D-7B",
+      "nome": "Casio LTP-V006D-7B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio com dia e data, pulseira de aço inoxidável e design clássico.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V006D-7B/assets/LTP-V006D-7B.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "30.4 × 25 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V006D-7B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V002D-1B": {
+      "sku": "LTP-V002D-1B",
+      "nome": "Casio LTP-V002D-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio com exibição de data e design clássico para uso diário.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V002D-1B/assets/LTP-V002D-1B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "31 × 25 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V002D-1B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V002D-7B": {
+      "sku": "LTP-V002D-7B",
+      "nome": "Casio LTP-V002D-7B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio com exibição de data e design clássico para uso diário.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V002D-7B/assets/LTP-V002D-7B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "31 × 25 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V002D-7B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V005D-1B": {
+      "sku": "LTP-V005D-1B",
+      "nome": "Casio LTP-V005D-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio de perfil fino, design clássico e mostrador de alta legibilidade.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V005D-1B/assets/LTP-V005D-1B_l.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "34 × 28.2 × 7.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V005D-1B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V005D-7B": {
+      "sku": "LTP-V005D-7B",
+      "nome": "Casio LTP-V005D-7B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio de perfil fino, design clássico e mostrador de alta legibilidade.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V005D-7B/assets/LTP-V005D-7B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "34 × 28.2 × 7.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V005D-7B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V001D-1B": {
+      "sku": "LTP-V001D-1B",
+      "nome": "Casio LTP-V001D-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio de perfil fino, pulseira de aço inoxidável e visual clássico.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V001D-1B/assets/LTP-V001D-1B.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "31 × 25 × 7.6 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V001D-1B/",
+      "origem": "Casio Brasil"
+    },
+    "LTP-V001D-7B": {
+      "sku": "LTP-V001D-7B",
+      "nome": "Casio LTP-V001D-7B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico feminino Casio de perfil fino, pulseira de aço inoxidável e visual clássico.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LT/LTP/LTP-V001D-7B/assets/LTP-V001D-7B.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "31 × 25 × 7.6 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LTP-V001D-7B/",
+      "origem": "Casio Brasil"
+    },
+    "W-217H-1AV": {
+      "sku": "W-217H-1AV",
+      "nome": "Casio W-217H-1AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio com mostrador amplo, luz LED, alarme, cronômetro e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/w-217h-1av/assets/W-217H-1AV_l.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "43.1 × 41.2 × 10.5 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.W-217H-1AV/",
+      "origem": "Casio Brasil"
+    },
+    "CA-53WF-1B": {
+      "sku": "CA-53WF-1B",
+      "nome": "Casio CA-53WF-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio calculadora Casio com teclado de oito dígitos, hora dupla, alarme e cronômetro.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/C/CA/CA5/CA-53WF-1B/assets/CA-53WF-1B_Seq1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "43.2 × 34.4 × 8.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.CA-53WF-1B/",
+      "origem": "Casio Brasil"
+    },
+    "CA-53WF-4B": {
+      "sku": "CA-53WF-4B",
+      "nome": "Casio CA-53WF-4B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio calculadora Casio com teclado de oito dígitos, hora dupla, alarme e cronômetro.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/C/CA/CA5/CA-53WF-4B/assets/CA-53WF-4B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "43.2 × 34.4 × 8.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.CA-53WF-4B/",
+      "origem": "Casio Brasil"
+    },
+    "CA-53WF-3B": {
+      "sku": "CA-53WF-3B",
+      "nome": "Casio CA-53WF-3B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio calculadora Casio com teclado de oito dígitos, hora dupla, alarme e cronômetro.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/C/CA/CA5/CA-53WF-3B/assets/CA-53WF-3B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "43.2 × 34.4 × 8.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.CA-53WF-3B/",
+      "origem": "Casio Brasil"
+    },
+    "CA-53WF-2B": {
+      "sku": "CA-53WF-2B",
+      "nome": "Casio CA-53WF-2B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio calculadora Casio com teclado de oito dígitos, hora dupla, alarme e cronômetro.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/C/CA/CA5/CA-53WF-2B/assets/CA-53WF-2B_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "43.2 × 34.4 × 8.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.CA-53WF-2B/",
+      "origem": "Casio Brasil"
+    },
+    "DBC-32-1A": {
+      "sku": "DBC-32-1A",
+      "nome": "Casio DBC-32-1A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio Casio Data Bank com calculadora, banco de dados, hora mundial, alarmes e iluminação LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DB/DBC/DBC-32-1A/assets/DBC-32-1A.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "50.4 × 37.4 × 12 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.DBC-32-1A/",
+      "origem": "Casio Brasil"
+    },
+    "MRW-210H-5AV": {
+      "sku": "MRW-210H-5AV",
+      "nome": "Casio MRW-210H-5AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico esportivo Casio com indicação de dia e data, moldura giratória e resistência de 100 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MR/mrw/mrw-210h-5av/assets/MRW-210H-5AV.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "53.1 × 49 × 13.7 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MRW-210H-5AV/",
+      "origem": "Casio Brasil"
+    },
+    "A171WEG-9A": {
+      "sku": "A171WEG-9A",
+      "nome": "Casio A171WEG-9A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital de caixa arredondada com pulseira de aço, alarme, cronômetro e iluminação LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A17/A171WEG-9A/assets/A171WEG-9A.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38.8 × 37.7 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.A171WEG-9A/",
+      "origem": "Casio Brasil"
+    },
+    "DB-360-1A": {
+      "sku": "DB-360-1A",
+      "nome": "Casio DB-360-1A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Data Bank digital com memória para dados, hora dupla, alarmes e pulseira de aço inoxidável.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DB/DB3/DB-360-1A/assets/DB-360-1A.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "43.1 × 37.7 × 10.4 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.DB-360-1A/",
+      "origem": "Casio Brasil"
+    },
+    "DB-36-1AV": {
+      "sku": "DB-36-1AV",
+      "nome": "Casio DB-36-1AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio Data Bank com memória, hora mundial, alarmes e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DB/DB3/DB-36-1AV/assets/DB-36-1AV.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "43.2 × 36.6 × 10.5 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.DB-36-1AV/",
+      "origem": "Casio Brasil"
+    },
+    "DB-36-9AV": {
+      "sku": "DB-36-9AV",
+      "nome": "Casio DB-36-9AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio Data Bank com memória, hora mundial, alarmes e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DB/DB3/DB-36-9AV/assets/DB-36-9AV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "43.2 × 36.6 × 10.5 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.DB-36-9AV/",
+      "origem": "Casio Brasil"
+    },
+    "A100WEG-9A": {
+      "sku": "A100WEG-9A",
+      "nome": "Casio A100WEG-9A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital inspirado no modelo F-100, com botões frontais, alarme, cronômetro e pulseira de aço.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/a10/a100weg/assets/A100WEG-9A.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "40.7 × 32.7 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.A100WEG-9A/",
+      "origem": "Casio Brasil"
+    },
+    "W-219H-1AV": {
+      "sku": "W-219H-1AV",
+      "nome": "Casio W-219H-1AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio esportivo com luz LED, alarme, cronômetro e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/W-219H-1AV/assets/W-219H-1AV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48.1 × 47 × 13.9 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.W-219H-1AV/",
+      "origem": "Casio Brasil"
+    },
+    "W-219H-8BV": {
+      "sku": "W-219H-8BV",
+      "nome": "Casio W-219H-8BV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio esportivo com luz LED, alarme, cronômetro e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/W-219H-8BV/assets/W-219H-8BV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48.1 × 47 × 13.9 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.W-219H-8BV/",
+      "origem": "Casio Brasil"
+    },
+    "W-219H-4AV": {
+      "sku": "W-219H-4AV",
+      "nome": "Casio W-219H-4AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio esportivo com luz LED, alarme, cronômetro e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/w-219h-4av/assets/W-219H-4AV.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48.1 × 47 × 13.9 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.W-219H-4AV/",
+      "origem": "Casio Brasil"
+    },
+    "W-219H-2A2V": {
+      "sku": "W-219H-2A2V",
+      "nome": "Casio W-219H-2A2V",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio esportivo com luz LED, alarme, cronômetro e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/w-219h-2a2v/assets/W-219H-2A2V.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48.1 × 47 × 13.9 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.W-219H-2A2V/",
+      "origem": "Casio Brasil"
+    },
+    "A159WGEA-1": {
+      "sku": "A159WGEA-1",
+      "nome": "Casio A159WGEA-1",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital de perfil fino com pulseira de aço, luz LED, alarme e cronômetro.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A15/A159WGEA-1/assets/A159WGEA-1_Seq1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "36.8 × 33.2 × 8.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.A159WGEA-1/",
+      "origem": "Casio Brasil"
+    },
+    "A159WA-N1": {
+      "sku": "A159WA-N1",
+      "nome": "Casio A159WA-N1",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital de perfil fino com pulseira de aço, luz LED, alarme e cronômetro.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A15/A159WA-N1/assets/A159WA-N1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "36.8 × 33.2 × 8.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.A159WA-N1/",
+      "origem": "Casio Brasil"
+    },
+    "AQ-230A-1DMQ": {
+      "sku": "AQ-230A-1DMQ",
+      "nome": "Casio AQ-230A-1DMQ",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage analógico-digital com hora dupla, cronômetro e visor digital de data e hora.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/AQ/AQ2/AQ-230A-1DMQ/assets/AQ-230A-1DMQ_01.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital + analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38.8 × 29.8 × 8.1 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.AQ-230A-1DMQ/",
+      "origem": "Casio Brasil"
+    },
+    "AQ-230GA-9DMQ": {
+      "sku": "AQ-230GA-9DMQ",
+      "nome": "Casio AQ-230GA-9DMQ",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage analógico-digital com hora dupla, cronômetro e visor digital de data e hora.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/AQ/AQ2/AQ-230GA-9DMQ/assets/AQ-230GA-9DMQ.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital + analógico",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38.8 × 29.8 × 8.1 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.AQ-230GA-9DMQ/",
+      "origem": "Casio Brasil"
+    },
+    "B640WB-1A": {
+      "sku": "B640WB-1A",
+      "nome": "Casio B640WB-1A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital com pulseira de aço, alarme multifuncional, cronômetro e resistência de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/B/B6/B64/B640WB-1A/assets/B640WB-1A.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38.9 × 35 × 9.4 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.B640WB-1A/",
+      "origem": "Casio Brasil"
+    },
+    "DBC-32D-1A": {
+      "sku": "DBC-32D-1A",
+      "nome": "Casio DBC-32D-1A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio Casio Data Bank com calculadora, banco de dados, hora mundial, alarmes e iluminação LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DB/DBC/DBC-32D-1A/assets/DBC-32D-1A.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "50.4 × 37.4 × 12 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.DBC-32D-1A/",
+      "origem": "Casio Brasil"
+    },
+    "F-91WM-1B": {
+      "sku": "F-91WM-1B",
+      "nome": "Casio F-91WM-1B",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Versão colorida do clássico Casio F-91W, com alarme diário, cronômetro, luz LED e bateria de longa duração.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/F/F9/F91/f-91wm-1b/assets/F-91WM-1B_l.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "38.2 × 35.2 × 8.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.F-91WM-1B/",
+      "origem": "Casio Brasil"
+    },
+    "F-91WM-3A": {
+      "sku": "F-91WM-3A",
+      "nome": "Casio F-91WM-3A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Versão colorida do clássico Casio F-91W, com alarme diário, cronômetro, luz LED e bateria de longa duração.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/F/F9/F91/f-91wm-3a/assets/F-91WM-3A_l.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "38.2 × 35.2 × 8.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.F-91WM-3A/",
+      "origem": "Casio Brasil"
+    },
+    "F-91WM-2A": {
+      "sku": "F-91WM-2A",
+      "nome": "Casio F-91WM-2A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Versão colorida do clássico Casio F-91W, com alarme diário, cronômetro, luz LED e bateria de longa duração.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/F/F9/F91/f-91wm-2a/assets/F-91WM-2A_l.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "38.2 × 35.2 × 8.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.F-91WM-2A/",
+      "origem": "Casio Brasil"
+    },
+    "F-94WA-8": {
+      "sku": "F-94WA-8",
+      "nome": "Casio F-94WA-8",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio compacto com alarme diário, cronômetro, luz LED e calendário automático.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/F/F9/F94/F-94WA-8/assets/F-94WA-8.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "38.2 × 33.2 × 8.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.F-94WA-8/",
+      "origem": "Casio Brasil"
+    },
+    "LA-20WH-1A": {
+      "sku": "LA-20WH-1A",
+      "nome": "Casio LA-20WH-1A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital feminino Casio compacto com hora dupla, alarme, cronômetro e luz LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA2/LA-20WH-1A/assets/LA-20WH-1A.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "34.5 × 30.4 × 8.6 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LA-20WH-1A/",
+      "origem": "Casio Brasil"
+    },
+    "LA-20WH-4A": {
+      "sku": "LA-20WH-4A",
+      "nome": "Casio LA-20WH-4A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital feminino Casio compacto com hora dupla, alarme, cronômetro e luz LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA2/la-20wh-4a/assets/LA-20WH-4A_l.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "34.5 × 30.4 × 8.6 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LA-20WH-4A/",
+      "origem": "Casio Brasil"
+    },
+    "LA-20WH-1C": {
+      "sku": "LA-20WH-1C",
+      "nome": "Casio LA-20WH-1C",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital feminino Casio compacto com hora dupla, alarme, cronômetro e luz LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA2/LA-20WH-1C/assets/LA-20WH-1C_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "34.5 × 30.4 × 8.6 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LA-20WH-1C/",
+      "origem": "Casio Brasil"
+    },
+    "LA670WA-1": {
+      "sku": "LA670WA-1",
+      "nome": "Casio LA670WA-1",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital feminino de perfil fino com pulseira de aço, alarme e cronômetro.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA6/LA670WA-1/assets/LA670WA-1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "30.3 × 24.6 × 7.3 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LA670WA-1/",
+      "origem": "Casio Brasil"
+    },
+    "LA670WGA-1": {
+      "sku": "LA670WGA-1",
+      "nome": "Casio LA670WGA-1",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital feminino de perfil fino com pulseira de aço, alarme e cronômetro.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA6/LA670WGA-1/assets/LA670WGA-1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "30.3 × 24.6 × 7.3 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LA670WGA-1/",
+      "origem": "Casio Brasil"
+    },
+    "LA670WGA-9": {
+      "sku": "LA670WGA-9",
+      "nome": "Casio LA670WGA-9",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital feminino de perfil fino com pulseira de aço, alarme e cronômetro.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA6/LA670WGA-9/assets/LA670WGA-9.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "30.3 × 24.6 × 7.3 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LA670WGA-9/",
+      "origem": "Casio Brasil"
+    },
+    "LA680WA-1": {
+      "sku": "LA680WA-1",
+      "nome": "Casio LA680WA-1",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital feminino com pulseira de aço, alarme diário, cronômetro e iluminação LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA6/LA680WA-1/assets/LA680WA-1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "33.5 × 28.6 × 8.6 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LA680WA-1/",
+      "origem": "Casio Brasil"
+    },
+    "LA680WGA-1": {
+      "sku": "LA680WGA-1",
+      "nome": "Casio LA680WGA-1",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital feminino com pulseira de aço, alarme diário, cronômetro e iluminação LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA6/LA680WGA-1/assets/LA680WGA-1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "33.5 × 28.6 × 8.6 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.LA680WGA-1/",
+      "origem": "Casio Brasil"
+    },
+    "MW-240-1B2V": {
+      "sku": "MW-240-1B2V",
+      "nome": "Casio MW-240-1B2V",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico Casio de mostrador amplo, design simples e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MW/MW2/MW-240-1B2V/assets/MW-240-1B2V_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48 × 43.6 × 10.3 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MW-240-1B2V/",
+      "origem": "Casio Brasil"
+    },
+    "MW-240-1E2V": {
+      "sku": "MW-240-1E2V",
+      "nome": "Casio MW-240-1E2V",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico Casio de mostrador amplo, design simples e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MW/MW2/MW-240-1E2V/assets/MW-240-1E2V_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48 × 43.6 × 10.3 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MW-240-1E2V/",
+      "origem": "Casio Brasil"
+    },
+    "MW-240-1EV": {
+      "sku": "MW-240-1EV",
+      "nome": "Casio MW-240-1EV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico Casio de mostrador amplo, design simples e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MW/MW2/MW-240-1EV/assets/MW-240-1EV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48 × 43.6 × 10.3 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MW-240-1EV/",
+      "origem": "Casio Brasil"
+    },
+    "MW-240-2BV": {
+      "sku": "MW-240-2BV",
+      "nome": "Casio MW-240-2BV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico Casio de mostrador amplo, design simples e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MW/MW2/MW-240-2BV/assets/MW-240-2BV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48 × 43.6 × 10.3 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MW-240-2BV/",
+      "origem": "Casio Brasil"
+    },
+    "MW-240-3BV": {
+      "sku": "MW-240-3BV",
+      "nome": "Casio MW-240-3BV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico Casio de mostrador amplo, design simples e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MW/MW2/MW-240-3BV/assets/MW-240-3BV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48 × 43.6 × 10.3 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MW-240-3BV/",
+      "origem": "Casio Brasil"
+    },
+    "MW-240-4BV": {
+      "sku": "MW-240-4BV",
+      "nome": "Casio MW-240-4BV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico Casio de mostrador amplo, design simples e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MW/MW2/MW-240-4BV/assets/MW-240-4BV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48 × 43.6 × 10.3 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MW-240-4BV/",
+      "origem": "Casio Brasil"
+    },
+    "MW-240-7BV": {
+      "sku": "MW-240-7BV",
+      "nome": "Casio MW-240-7BV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico Casio de mostrador amplo, design simples e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MW/MW2/MW-240-7BV/assets/MW-240-7BV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48 × 43.6 × 10.3 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MW-240-7BV/",
+      "origem": "Casio Brasil"
+    },
+    "MW-240-7EV": {
+      "sku": "MW-240-7EV",
+      "nome": "Casio MW-240-7EV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio analógico Casio de mostrador amplo, design simples e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/M/MW/MW2/MW-240-7EV/assets/MW-240-7EV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48 × 43.6 × 10.3 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.MW-240-7EV/",
+      "origem": "Casio Brasil"
+    },
+    "W-218H-4B2V": {
+      "sku": "W-218H-4B2V",
+      "nome": "Casio W-218H-4B2V",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio esportivo com luz LED, alarme, cronômetro e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/W-218H-4B2V/assets/W-218H-4B2V_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "44.4 × 43.2 × 10.8 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.W-218H-4B2V/",
+      "origem": "Casio Brasil"
+    },
+    "W-96H-1AV": {
+      "sku": "W-96H-1AV",
+      "nome": "Casio W-96H-1AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital Casio com bateria de 10 anos, hora dupla, luz LED e resistência à água de 50 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/w9/w96/w-96h-1av/assets/W-96H-1AV_l.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "43.9 × 35.7 × 12.5 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro resina / vidro esférico"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.W-96H-1AV/",
+      "origem": "Casio Brasil"
     }
   }
 }
