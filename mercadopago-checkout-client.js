@@ -288,12 +288,16 @@
 
     try {
       const deviceId = await loadSecurity();
+      const checkoutHeaders = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      };
+      const authToken = String(localStorage.getItem(TOKEN_KEY) || '').trim();
+      if (authToken) checkoutHeaders.Authorization = `Bearer ${authToken}`;
+
       const response = await fetch('/api/checkout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
+        headers: checkoutHeaders,
         body: JSON.stringify({
           items: items.map(item => ({ id: item.id, qtd: item.qtd })),
           payer: { nome: user.nome, email: user.email },
