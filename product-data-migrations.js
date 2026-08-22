@@ -257,11 +257,14 @@ function deactivateIncompleteLegacyProducts() {
   "ACC-FER-KIT",
   "ACC-PRO-003"
 ]);
+  const legacyTestNames = new Set(['testeeeee', 'produto teste 5']);
   let changed = 0;
 
   for (const product of products) {
     const sku = String(product?.sku || '').trim().toUpperCase();
-    if (incompleteSkus.has(sku) && product.ativo !== false) {
+    const name = String(product?.nome || '').trim().toLowerCase();
+    const isLegacyTest = legacyTestNames.has(name) && !sku;
+    if ((incompleteSkus.has(sku) || isLegacyTest) && product.ativo !== false) {
       product.ativo = false;
       changed += 1;
     }
