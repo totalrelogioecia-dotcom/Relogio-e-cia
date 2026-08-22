@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" role="img" aria-labelledby="title desc">
+  <title id="title">Relógio e Cia</title>
+  <desc id="desc">Logo Relógio e Cia para uso sobre fundos claros ou transparentes.</desc>
+  <style>
+    .rotor { transform-box:view-box; transform-origin:72px 80px; animation:rotor-settle 1.35s cubic-bezier(.2,.78,.25,1) both; }
+    @keyframes rotor-settle { 0%{transform:rotate(-150deg)} 72%{transform:rotate(12deg)} 100%{transform:rotate(0)} }
+    @media (prefers-reduced-motion:reduce){ .rotor{animation:none} }
+  </style>
+  <rect x="16" y="24" width="112" height="112" rx="2" fill="#e31e24"/>
+  <circle cx="72" cy="80" r="37" fill="none" stroke="#fff" stroke-width="3" opacity=".28"/>
+  <g class="rotor" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M72 80V46M72 80l28 16M72 80 44 96" stroke-width="6"/>
+    <path d="M38 99a39 39 0 0 0 68 0l-12-6.5a25 25 0 0 1-44 0z" fill="#fff" stroke="none"/>
+    <circle cx="72" cy="80" r="10" fill="#e31e24" stroke-width="5"/>
+    <circle cx="72" cy="80" r="3" fill="#fff" stroke="none"/>
+  </g>
+  <text x="158" y="80" fill="#111" font-family="Space Grotesk, Arial, Helvetica, sans-serif" font-size="54" font-weight="700" letter-spacing="-1.2">Relógio e Cia</text>
+  <text x="160" y="111" fill="#6b6d73" font-family="IBM Plex Mono, Consolas, monospace" font-size="17" font-weight="600" letter-spacing="6">RELOJOARIA DESDE 2003</text>
+</svg>
