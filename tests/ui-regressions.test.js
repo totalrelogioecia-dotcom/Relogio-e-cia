@@ -34,8 +34,10 @@ test('vitrine padroniza fotos sem cortar o relógio', () => {
 test('produto informa parcelamento e segurança sem prometer juros zero', () => {
   const script = read('produto.js');
 
-  assert.match(script, /installmentCount=12/);
-  assert.match(script, /12x de/);
+  assert.match(script, /minimumInstallment=50/);
+  assert.match(script, /Math\.min\(12,/);
+  assert.match(script, /\$\{installmentCount\}x de/);
+  assert.match(script, /valor mínimo de R\$ 50/);
   assert.match(script, /Pagamento seguro/);
   assert.match(script, /Processado pelo Mercado Pago/);
   assert.doesNotMatch(script, /12x[^\n<]*sem juros/i);
