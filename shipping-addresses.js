@@ -57,7 +57,7 @@
       <label for="shipping-address-select">Endereço de entrega</label>
       <select id="shipping-address-select"></select>
       <p id="shipping-address-current" class="shipping-address-current"></p>
-      <a href="conta.html" class="shipping-address-manage">Gerenciar endereços</a>`;
+      <a href="enderecos.html" class="shipping-address-manage">Gerenciar endereços</a>`;
     shippingBox.insertBefore(box, form);
     document.getElementById('shipping-address-select').addEventListener('change', event => selectAddress(event.target.value, true));
   }

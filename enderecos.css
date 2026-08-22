@@ -1,0 +1,42 @@
+.addresses-page{min-height:calc(100vh - 82px);padding:52px 24px 72px;background:var(--bg-soft)}
+.addresses-shell{width:min(900px,100%);margin:0 auto;background:var(--bg);border:1px solid var(--ink);padding:36px}
+.addresses-top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-bottom:28px;border-bottom:1px solid var(--line)}
+.addresses-top h1{font-family:var(--font-display);font-size:clamp(2rem,5vw,3rem);line-height:1.05;margin:0 0 10px}
+.addresses-top p:last-child{margin:0;color:var(--ink-soft)}
+.addresses-status{min-height:1.5em;margin:16px 0 0;font-family:var(--font-mono);font-size:.75rem;color:#087d3e}
+.addresses-status.error{color:var(--red)}
+.addresses-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+.address-card{position:relative;border:1px solid var(--line-strong);padding:20px;background:#fff}
+.address-card.is-primary{border-color:var(--ink);box-shadow:inset 4px 0 0 var(--red)}
+.address-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.address-card h2{font-family:var(--font-display);font-size:1.05rem;margin:0}
+.address-badge{font-family:var(--font-mono);font-size:.62rem;color:var(--red);text-transform:uppercase}
+.address-card p{margin:12px 0 0;color:var(--ink-soft);line-height:1.6}
+.address-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.address-card-actions button{border:1px solid var(--ink);background:var(--bg);padding:8px 10px;font-family:var(--font-mono);font-size:.66rem;text-transform:uppercase;cursor:pointer}
+.address-card-actions button:hover{background:var(--ink);color:var(--bg)}
+.address-empty{grid-column:1/-1;padding:36px;border:1px dashed var(--line-strong);text-align:center;color:var(--ink-soft)}
+.address-form-section{margin-top:28px;border:1px solid var(--ink);padding:28px;background:#faf9f6}
+.address-form-section[hidden]{display:none}
+.address-form-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:24px}
+.address-form-head h2{font-family:var(--font-display);font-size:1.55rem;margin:0}
+.address-form-close{border:0;background:transparent;font-size:2rem;line-height:1;cursor:pointer}
+.address-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}
+.address-grid .wide{grid-column:1/-1}
+.address-primary{display:flex;align-items:center;gap:9px;margin:8px 0;font-size:.9rem}
+.address-primary input{width:18px;height:18px}
+.address-form-actions,.addresses-footer-actions{display:flex;gap:10px;margin-top:22px}
+.address-form-actions .btn,.addresses-footer-actions .btn{justify-content:center}
+.addresses-footer-actions{padding-top:28px;border-top:1px solid var(--line);margin-top:32px}
+.addresses-footer-actions .btn{flex:1}
+@media(max-width:640px){
+  .addresses-page{padding:22px 14px 44px}
+  .addresses-shell{padding:22px 18px}
+  .addresses-top{display:block}
+  .addresses-top .btn{width:100%;justify-content:center;margin-top:20px}
+  .addresses-list{grid-template-columns:1fr}
+  .address-form-section{padding:20px 16px}
+  .address-grid{grid-template-columns:1fr}
+  .address-grid .wide{grid-column:auto}
+  .address-form-actions,.addresses-footer-actions{flex-direction:column}
+}
