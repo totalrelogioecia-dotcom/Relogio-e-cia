@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-22T17:33:43.765Z",
+  "updated_at": "2026-08-22T17:42:20.982Z",
   "source": "Catálogos oficiais das marcas",
   "products": {
     "F-91W-1": {
@@ -2514,6 +2514,222 @@
       },
       "fonte": "https://www.technos.com.br/",
       "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "YN6SS004-P1SX": {
+      "sku": "YN6SS004-P1SX",
+      "nome": "Orient Heritage Automático Preto YN6SS004 P1SX",
+      "marca": "Orient",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Orient Heritage automático com mostrador preto, calendário duplo, corda manual, parada de segundos, caixa e pulseira em aço e cristal de safira.",
+      "fotos": [
+        "https://cdn.newlooktime.com.br/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/y/n/yn6ss004_p1sx.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Automático Orient YN6, com corda manual e hacking",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38,5 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Cristal de safira",
+        "genero": "Masculino"
+      },
+      "fonte": "https://www.orientrelogios.com.br/relogio-heritage-masculino-automatico-yn6ss004-prata",
+      "origem": "Orient oficial — variação P1SX confirmada na etiqueta do produto"
+    },
+    "F49SS022-D1SX": {
+      "sku": "F49SS022-D1SX",
+      "nome": "Orient Automático Clássico Azul F49SS022 D1SX",
+      "marca": "Orient",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Orient automático clássico com mostrador azul, calendário duplo, caixa e pulseira em aço e resistência à água de 50 metros.",
+      "fotos": [
+        "https://cdn.newlooktime.com.br/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/f/4/f49ss022_d1sx.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Automático",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "45 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Cristal mineral",
+        "genero": "Masculino"
+      },
+      "fonte": "https://www.orientrelogios.com.br/relogio-orient-automatico-masculino-classico-f49ss022-prata",
+      "origem": "Orient oficial — variação azul D1SX confirmada pela foto e etiqueta"
+    },
+    "469SS076NH-S1SX": {
+      "sku": "469SS076NH-S1SX",
+      "nome": "Orient 3 Estrelas Automático Prata 469SS076NH S1SX",
+      "marca": "Orient",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Orient 3 Estrelas automático com mostrador prata texturizado, calendário duplo, caixa e pulseira em aço e resistência à água de 100 metros.",
+      "fotos": [
+        "https://images.tcdn.com.br/img/img_prod/1115574/relogio_orient_3_stars_automatico_469ss076nh_s1sx_2719_1_2a14bfb68c59f62a030940a26cfacdb9.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Automático calibre NH36, com corda manual e hacking",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "44 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Cristal mineral",
+        "genero": "Masculino",
+        "ean": "7891529264027"
+      },
+      "fonte": "https://www.orientrelogios.com.br/",
+      "origem": "Orient — referência, variante e EAN confirmados na etiqueta do produto"
+    },
+    "469WA3NH-P1SX": {
+      "sku": "469WA3NH-P1SX",
+      "nome": "Orient 3 Estrelas Automático Preto 469WA3NH P1SX",
+      "marca": "Orient",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Orient 3 Estrelas automático com mostrador preto e detalhes dourados, calendário duplo, caixa e pulseira em aço.",
+      "fotos": [
+        "https://cdn.newlooktime.com.br/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/4/6/469wa3nh_p1sx_4_.png"
+      ],
+      "detalhes": {
+        "movimento": "Automático",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Cristal mineral",
+        "genero": "Masculino",
+        "ean": "7891529271162"
+      },
+      "fonte": "https://www.orientrelogios.com.br/",
+      "origem": "Orient — referência, variante e EAN confirmados na etiqueta do produto"
+    },
+    "469WA3NH-B1SX": {
+      "sku": "469WA3NH-B1SX",
+      "nome": "Orient 3 Estrelas Automático Prata 469WA3NH B1SX",
+      "marca": "Orient",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Orient 3 Estrelas automático com mostrador prata, calendário duplo, caixa e pulseira em aço.",
+      "fotos": [
+        "https://cdn.newlooktime.com.br/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/4/6/469wa3nh_b1sx.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Automático",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Cristal mineral",
+        "genero": "Masculino",
+        "ean": "7891529271131"
+      },
+      "fonte": "https://www.orientrelogios.com.br/",
+      "origem": "Orient — referência, variante e EAN confirmados na etiqueta do produto"
+    },
+    "469WB1NH-B2SX": {
+      "sku": "469WB1NH-B2SX",
+      "nome": "Orient 3 Estrelas Automático Branco 469WB1NH B2SX",
+      "marca": "Orient",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Orient 3 Estrelas automático com mostrador branco e numerais arábicos, calendário duplo, caixa e pulseira em aço.",
+      "fotos": [
+        "https://m.media-amazon.com/images/I/71FKGvNTqML._AC_SL1500_.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Automático",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38 mm",
+        "resistencia_agua": "Resistência à água até 30 metros",
+        "vidro": "Cristal mineral",
+        "genero": "Masculino",
+        "ean": "7891529556545"
+      },
+      "fonte": "https://www.orientrelogios.com.br/",
+      "origem": "Orient — referência, variante e EAN confirmados na etiqueta do produto"
+    },
+    "F49SS022-N1SX": {
+      "sku": "F49SS022-N1SX",
+      "nome": "Orient Automático Clássico Marrom F49SS022 N1SX",
+      "marca": "Orient",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Orient automático clássico com mostrador marrom, calendário duplo, caixa e pulseira em aço e resistência à água de 50 metros.",
+      "fotos": [
+        "https://cdn.newlooktime.com.br/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/f/4/f49ss022_n1sx.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Automático",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "45 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Cristal mineral",
+        "genero": "Masculino",
+        "ean": "7891529971246"
+      },
+      "fonte": "https://www.orientrelogios.com.br/relogio-orient-automatico-masculino-classico-f49ss022-prata",
+      "origem": "Orient oficial — variação N1SX confirmada na etiqueta do produto"
+    },
+    "JP2007-17W": {
+      "sku": "JP2007-17W",
+      "nome": "Citizen Promaster Aqualand JP2007-17W",
+      "marca": "Citizen",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Citizen Promaster Aqualand analógico-digital para mergulho, com profundímetro, mostrador luminoso, bezel unidirecional e resistência à água de 200 metros.",
+      "fotos": [
+        "https://watch-direct-australia.myshopify.com/cdn/shop/files/JP2007-17W_F_shot_1200x_790b941c-6288-4cf6-a049-6bb49110faf8.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Quartz analógico + digital calibre C520",
+        "caixa_material": "Aço inoxidável com acabamento escuro",
+        "pulseira_material": "Pulseira de poliuretano",
+        "diametro": "50,7 mm",
+        "resistencia_agua": "Diver's 200 metros",
+        "vidro": "Cristal mineral",
+        "genero": "Masculino",
+        "ean": "4974374330048"
+      },
+      "fonte": "https://citizen.com.br/",
+      "origem": "Citizen — referência e calibre confirmados na etiqueta; especificações do modelo Promaster"
+    },
+    "TZ30606B": {
+      "sku": "TZ30606B",
+      "nome": "Citizen Cronógrafo Branco TZ30606B",
+      "marca": "Citizen",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Citizen cronógrafo com acabamento branco, pulseira de couro branca, calendário e resistência à água de 100 metros.",
+      "fotos": [
+        "https://m.media-amazon.com/images/I/71gHdO2P8hL._AC_SL1500_.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Cronógrafo quartz",
+        "caixa_material": "Aço inoxidável com acabamento branco",
+        "pulseira_material": "Pulseira de couro branca",
+        "diametro": "48 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Cristal mineral",
+        "genero": "Masculino"
+      },
+      "fonte": "https://citizen.com.br/",
+      "origem": "Citizen — referência confirmada na etiqueta do produto"
+    },
+    "TZ31114U": {
+      "sku": "TZ31114U",
+      "nome": "Citizen Quartz Dourado TZ31114U",
+      "marca": "Citizen",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Citizen quartz dourado com mostrador preto, calendário, caixa e pulseira em aço e resistência à água de 100 metros.",
+      "fotos": [
+        "https://images.tcdn.com.br/img/img_prod/1115574/relogio_citizen_masculino_tz31114u_116433_1_1e990d94da359487050f422c0f611f71.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Quartz analógico",
+        "caixa_material": "Aço inoxidável com acabamento dourado",
+        "pulseira_material": "Pulseira de aço inoxidável dourado",
+        "diametro": "48 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Cristal mineral",
+        "genero": "Masculino"
+      },
+      "fonte": "https://citizen.com.br/",
+      "origem": "Citizen — referência confirmada na etiqueta do produto"
     }
   }
 }
