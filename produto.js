@@ -33,6 +33,8 @@
     const principal=fotos[0]||'';
     const stock=Number(p.estoque||0);
     const pix=p.preco*0.95;
+    const installmentCount=12;
+    const installmentValue=Number(p.preco||0)/installmentCount;
     const related=all.filter(x=>x.id!==p.id&&x.ativo!==false&&(x.marca===p.marca||x.categoria===p.categoria)).slice(0,4);
     root.innerHTML=`
       <nav class="product-breadcrumb" aria-label="Navegação estrutural"><a href="index.html">Início</a><span>—</span><a href="produtos.html">Produtos</a><span>—</span><span>${esc(p.marca)}</span></nav>
@@ -47,7 +49,8 @@
           <div class="product-ref">Ref. ${esc(p.sku)} · ${esc(p.categoria)}</div>
           <div class="product-price">${money(p.preco)}</div>
           <div class="product-pix">${money(pix)} no PIX com 5% de desconto</div>
-          <div class="product-payment-note">ou ${money(p.preco)} no cartão, conforme as condições disponíveis no checkout</div>
+          <div class="product-installments">ou em até <strong>12x de ${money(installmentValue)}</strong> no cartão</div>
+          <div class="product-payment-note">Valor de referência pela divisão do preço em 12 parcelas. Condições e eventuais juros são informados pelo Mercado Pago no checkout.</div>
           <div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Produto indisponível no momento'}</div>
           <div class="product-actions-main">
             <button class="btn btn-primary" type="button" id="product-add" ${stock<=0?'disabled':''}>Adicionar ao carrinho</button>
@@ -60,7 +63,8 @@
           </div>
           <div class="product-trust">
             <div><strong>Produto original</strong><span>Procedência e autenticidade.</span></div>
-            <div><strong>Nota fiscal</strong><span>Emitida pela empresa vendedora.</span></div>
+            <div><strong>Pagamento seguro</strong><span>Processado pelo Mercado Pago.</span></div>
+            <div><strong>Trocas e devoluções</strong><span>Solicitação pelo próprio site.</span></div>
             <div><strong>Garantia</strong><span>${esc(p.detalhes?.garantia||'Conforme fabricante')}</span></div>
           </div>
         </div>
