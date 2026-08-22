@@ -6,11 +6,6 @@
 
   const $ = s => document.querySelector(s);
 
-  function sessionEmail() {
-    try { return JSON.parse(localStorage.getItem('reloja_sessao') || 'null')?.email || ''; }
-    catch { return ''; }
-  }
-
   function statusLabel(value) {
     return ({
       recebida: 'Recebida',
@@ -114,7 +109,7 @@
       $('#return-protocol').value = request.protocol;
       $('#return-status-email').value = body.email;
       $('#return-request-form').reset();
-      $('#return-email').value = sessionEmail();
+      $('#return-email').value = '';
       attachments = [];
       renderFiles();
     } catch (error) {
@@ -148,11 +143,6 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const email = sessionEmail();
-    if (email) {
-      $('#return-email').value = email;
-      $('#return-status-email').value = email;
-    }
     $('#return-request-form')?.addEventListener('submit', submitRequest);
     $('#return-status-form')?.addEventListener('submit', checkStatus);
     $('#return-files')?.addEventListener('change', event => {
