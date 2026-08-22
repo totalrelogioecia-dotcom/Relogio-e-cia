@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-22T16:41:17.564Z",
+  "updated_at": "2026-08-22T16:49:56.544Z",
   "source": "Catálogos oficiais das marcas",
   "products": {
     "F-91W-1": {
@@ -2180,6 +2180,160 @@
         "vidro": "Vidro mineral",
         "genero": "Feminino",
         "ean": "7891530326122"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "2035LWF-1A": {
+      "sku": "2035LWF-1A",
+      "nome": "Technos Cerâmica Safira Azul 2035LWF/1A",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio feminino Technos Ceramic com aço dourado, cerâmica azul, mostrador preto, vidro de safira e resistência à água de 50 metros.",
+      "fotos": [
+        "https://timecenter.vteximg.com.br/arquivos/ids/218046/2035LWF1A_1.jpg?v=638325652423330000"
+      ],
+      "detalhes": {
+        "movimento": "Analógico quartz Miyota",
+        "caixa_material": "Aço e cerâmica",
+        "pulseira_material": "Aço e cerâmica azul",
+        "diametro": "23 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de safira",
+        "genero": "Feminino",
+        "ean": "7891530812347"
+      },
+      "fonte": "https://www.technos.com.br/relogio-technos-feminino-ceramica-saphire-dourado---2035lwf-1a/p",
+      "origem": "Technos oficial"
+    },
+    "5Y20LP-1K": {
+      "sku": "5Y20LP-1K",
+      "nome": "Technos Mini Joia Dourado 5Y20LP/1K",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio feminino Technos Mini de caixa pequena, acabamento dourado, pulseira de aço com desenho de joia e resistência à água de 50 metros.",
+      "fotos": [
+        "https://cdn.eclock.com.br/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/r/e/relogio-technos-feminino-mini-5y20lp-1k.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico quartz",
+        "caixa_material": "Aço",
+        "pulseira_material": "Pulseira de aço dourado",
+        "diametro": "20,5 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Feminino",
+        "ean": "7891530812811"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "2015CE-4P": {
+      "sku": "2015CE-4P",
+      "nome": "Technos Ceramic Safira Preto 2015CE/4P",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio feminino Technos Ceramic preto e dourado, com caixa e pulseira em aço e cerâmica, calendário, vidro de safira e resistência de 50 metros.",
+      "fotos": [
+        "https://marketup-cdn.s3-us-west-2.amazonaws.com/files/1266634/products/775181fb-8855-41a7-994d-29a2aeb372f4.Png"
+      ],
+      "detalhes": {
+        "movimento": "Analógico quartz",
+        "caixa_material": "Aço e cerâmica",
+        "pulseira_material": "Aço e cerâmica preta",
+        "diametro": "34 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de safira",
+        "genero": "Feminino",
+        "ean": "7891530144219"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "2035LWF-1B": {
+      "sku": "2035LWF-1B",
+      "nome": "Technos Cerâmica Safira Branco Pequeno 2035LWF/1B",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio feminino Technos Ceramic pequeno, branco e dourado, com aço e cerâmica, vidro de safira, caixa de 23 mm e resistência à água de 50 metros.",
+      "fotos": [
+        "https://timecenter.vteximg.com.br/arquivos/ids/233928/2035LWF1B_1.jpg?v=639179236370800000"
+      ],
+      "detalhes": {
+        "movimento": "Analógico quartz Miyota",
+        "caixa_material": "Aço e cerâmica",
+        "pulseira_material": "Aço e cerâmica branca",
+        "diametro": "23 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de safira",
+        "genero": "Feminino",
+        "ean": "7891530812354"
+      },
+      "fonte": "https://www.technos.com.br/relogio-technos-feminino-ceramica-saphire-dourado---2035lwf-1b/p",
+      "origem": "Technos oficial"
+    },
+    "2015BV-4B": {
+      "sku": "2015BV-4B",
+      "nome": "Technos Cerâmica Safira Branco Grande 2015BV/4B",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio feminino Technos Ceramic grande, branco e dourado, com caixa e pulseira em aço e cerâmica, calendário, vidro de safira e caixa de 40 mm.",
+      "fotos": [
+        "https://images.tcdn.com.br/img/img_prod/1168760/relgio_technos_cermica_1_20260722141810_18f22a16b46f.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico quartz",
+        "caixa_material": "Aço e cerâmica",
+        "pulseira_material": "Aço e cerâmica branca",
+        "diametro": "40 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de safira",
+        "genero": "Feminino",
+        "ean": "7891530141812"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "2035LWF-4P": {
+      "sku": "2035LWF-4P",
+      "nome": "Technos Cerâmica Safira Preto 2035LWF/4P",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio feminino Technos Ceramic preto e dourado de caixa pequena, com aço e cerâmica, vidro de safira e resistência à água de 50 metros.",
+      "fotos": [
+        "https://timecenter.vteximg.com.br/arquivos/ids/173278/2035LWF4P.jpg?v=636041092904700000"
+      ],
+      "detalhes": {
+        "movimento": "Analógico quartz",
+        "caixa_material": "Aço e cerâmica",
+        "pulseira_material": "Aço e cerâmica preta",
+        "diametro": "23 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de safira",
+        "genero": "Feminino",
+        "ean": "7891530266416"
+      },
+      "fonte": "https://www.technos.com.br/relogio-technos-feminino-ceramica-dourado-2035lwf-4p/p",
+      "origem": "Technos oficial"
+    },
+    "2115UL-4B": {
+      "sku": "2115UL-4B",
+      "nome": "Technos Unique Dourado 2115UL/4B",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio feminino Technos Unique dourado, com pulseira de elos entrelaçados em aço, mostrador branco, calendário e resistência à água de 50 metros.",
+      "fotos": [
+        "https://a-static.mlcdn.com.br/800x560/relogio-technos-analogico-feminino-2115ul-4b/oticabrasilexpress/15916299204/3a6c9b6a14dffaad80d1105252ec53ad.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico quartz",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço dourado",
+        "diametro": "39,5 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Feminino",
+        "ean": "7891530154478"
       },
       "fonte": "https://www.technos.com.br/",
       "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
