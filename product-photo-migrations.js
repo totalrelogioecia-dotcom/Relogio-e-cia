@@ -79,6 +79,29 @@ const OFFICIAL_PHOTOS = {
   'AQ-230GA-9DMQ': ['https://www.casio.com/content/dam/casio/product-info/locales/us/en/timepiece/product/watch/A/AQ/AQ2/AQ-230GA-9DMQ/assets/AQ-230GA-9DMQ.png']
 };
 
+
+Object.assign(OFFICIAL_PHOTOS, {
+  'GPR-H1000-9': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GP/GPR/gpr-h1000-9/assets/GPR-H1000-9.png.transform/main-visual-sp/image.png'],
+  'DW-5600UBB-1': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DW/DW5/dw-5600ubb-1/assets/DW-5600UBB-1.png.transform/main-visual-sp/image.png'],
+  'DW-5600UHR-1': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DW/DW5/dw-5600uhr-1/assets/DW-5600UHR-1.png.transform/main-visual-sp/image.png'],
+  'DW-5600RL-1': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DW/DW5/dw-5600rl-1/assets/DW-5600RL-1.png.transform/main-visual-sp/image.png'],
+  'GA-100-1A4': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GA/GA1/GA-100-1A4/assets/GA-100-1A4_Seq1.png.transform/main-visual-sp/image.png'],
+  'GA-100-1A2': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GA/GA1/GA-100-1A2/assets/GA-100-1A2_Seq1.png.transform/main-visual-sp/image.png'],
+  'GA-100-1A1': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GA/GA1/GA-100-1A1/assets/GA-100-1A1_Seq1.png.transform/main-visual-sp/image.png'],
+  'G-7900-2': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/G7/G79/G-7900-2/assets/G-7900-2_Seq1.png.transform/main-visual-sp/image.png'],
+  'G-7900A-4': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/G7/G79/G-7900A-4/assets/G-7900A-4_Seq1.png.transform/main-visual-sp/image.png'],
+  'DW-5600UE-1': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DW/DW5/dw-5600ue-1/assets/DW-5600UE-1.png.transform/main-visual-sp/image.png'],
+  'DW-5750UE-1': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DW/DW5/dw-5750ue-1/assets/DW-5750UE-1.png.transform/main-visual-sp/image.png'],
+  'AQ-230A-7DMQ': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/AQ/AQ2/AQ-230A-7DMQ/assets/AQ-230A-7DMQ_Seq1.png.transform/main-visual-sp/image.png'],
+  'LA680WA-1B': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA6/LA680WA-1B/assets/LA680WA-1B.png.transform/main-visual-sp/image.png'],
+  'LA680WA-7': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/L/LA/LA6/LA680WA-7/assets/LA680WA-7.png.transform/main-visual-sp/image.png'],
+  'A171WEG-9A': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A17/A171WEG-9A/assets/A171WEG-9A.png.transform/main-visual-sp/image.png'],
+  'B640WB-1A': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/B/B6/B64/B640WB-1A/assets/B640WB-1A.png.transform/main-visual-sp/image.png'],
+  'B640WC-5A': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/B/B6/B64/B640WC-5A/assets/B640WC-5A.png.transform/main-visual-sp/image.png'],
+  'A159WGEA-1': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A15/A159WGEA-1/assets/A159WGEA-1_Seq1.png.transform/main-visual-sp/image.png'],
+  'AQ-230GA-9DMQ': ['https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/AQ/AQ2/AQ-230GA-9DMQ/assets/AQ-230GA-9DMQ.png.transform/main-visual-sp/image.png']
+});
+
 function normalizeSku(value) {
   return String(value || '').trim().toUpperCase();
 }
