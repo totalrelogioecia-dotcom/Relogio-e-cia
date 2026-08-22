@@ -43,6 +43,9 @@ jobs:
           node --check casio-enrichment-v2.js
           node --check admin-product-enrichment.js
 
+      - name: Run payment integration tests
+        run: npm test
+
       - name: Check Mercado Pago SDK exports
         run: |
           node - <<'NODE'
