@@ -110,7 +110,6 @@ if (!originalExpress.__relogioAuthPatched) {
     Preference.prototype.create = async function (args = {}) {
       if (args?.body) {
         const body = { ...args.body };
-        if (body.notification_url) delete body.notification_url;
         const contextualPayer = preferencePayer(checkoutContext.getStore()?.payer);
         if (contextualPayer) body.payer = { ...(body.payer || {}), ...contextualPayer };
         args = { ...args, body };
