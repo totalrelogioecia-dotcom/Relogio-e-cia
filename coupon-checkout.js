@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
+const { maxInstallmentsForAmount } = require('./installment-policy');
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const { resolveSelectedShipping, isConfigured } = require('./shipping-service');
 const { validateCoupon, consumeCoupon } = require('./coupon-service');
@@ -242,7 +243,7 @@ function registerCouponCheckout(app) {
         body: {
           items: items.map(item => ({ id: String(item.sku || item.id), title: item.nome.slice(0, 256), quantity: item.quantidade, currency_id: 'BRL', unit_price: item.unit_price })),
           payer: preferencePayer(payer),
-          payment_methods: { excluded_payment_types: [{ id: 'ticket' }, { id: 'bank_transfer' }], installments: 12 },
+          payment_methods: { excluded_payment_types: [{ id: 'ticket' }, { id: 'bank_transfer' }], installments: maxInstallmentsForAmount(total) },
           shipments: { cost: 0, mode: 'not_specified', ...(receiverAddress(payer) ? { receiver_address: receiverAddress(payer) } : {}) },
           statement_descriptor: statementDescriptor(),
           external_reference: orderId,
