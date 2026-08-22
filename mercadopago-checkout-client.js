@@ -8,8 +8,10 @@
   const SESSION_KEY = 'reloja_sessao';
   const TOKEN_KEY = 'reloja_auth_token';
   const SDK_URL = 'https://sdk.mercadopago.com/js/v2';
+  const SECURITY_URL = 'https://www.mercadopago.com/v2/security.js';
 
   let sdkPromise = null;
+  let securityPromise = null;
   let configPromise = null;
   let walletController = null;
   let currentPreferenceId = null;
@@ -160,6 +162,37 @@
     });
   }
 
+  function validDeviceId(value) {
+    const id = String(value || '').trim();
+    return /^[A-Za-z0-9_-]{8,256}$/.test(id) ? id : null;
+  }
+
+  function loadSecurity() {
+    const existingId = validDeviceId(window.MP_DEVICE_SESSION_ID);
+    if (existingId) return Promise.resolve(existingId);
+    if (securityPromise) return securityPromise;
+
+    securityPromise = new Promise(resolve => {
+      let script = document.querySelector(`script[src="${SECURITY_URL}"]`);
+      const finish = () => resolve(validDeviceId(window.MP_DEVICE_SESSION_ID));
+
+      if (!script) {
+        script = document.createElement('script');
+        script.src = SECURITY_URL;
+        script.async = true;
+        script.setAttribute('view', 'checkout');
+        script.setAttribute('output', 'MP_DEVICE_SESSION_ID');
+        document.head.appendChild(script);
+      }
+
+      script.addEventListener('load', finish, { once: true });
+      script.addEventListener('error', () => resolve(null), { once: true });
+      setTimeout(finish, 2500);
+    });
+
+    return securityPromise;
+  }
+
   function loadSdk() {
     if (window.MercadoPago) return Promise.resolve(window.MercadoPago);
     if (sdkPromise) return sdkPromise;
@@ -254,6 +287,7 @@
     message('Preparando seu pedido com segurança…');
 
     try {
+      const deviceId = await loadSecurity();
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
@@ -263,7 +297,8 @@
         body: JSON.stringify({
           items: items.map(item => ({ id: item.id, qtd: item.qtd })),
           payer: { nome: user.nome, email: user.email },
-          metodo: method
+          metodo: method,
+          ...(deviceId ? { device_id: deviceId } : {})
         })
       });
 
@@ -314,6 +349,7 @@
     if (!finalizeButton) return;
 
     ensureWalletHost();
+    loadSecurity().catch(() => null);
 
     // Captura o clique antes do listener legado de script.js. Assim somente
     // esta implementação controla /api/checkout nesta versão da integração.
