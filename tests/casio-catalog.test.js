@@ -34,3 +34,15 @@ test('estoque não contém os seis cadastros genéricos incompletos', () => {
 
   assert.equal(products.some(product => removedSkus.has(product.sku)), false);
 });
+
+
+test('vitrine pública mantém ativos somente produtos completos com foto', () => {
+  const products = readJson('data/products.json');
+  const active = products.filter(product => product.ativo !== false);
+
+  assert.ok(active.length > 0);
+  for (const product of active) {
+    assert.ok(['Casio', 'G-Shock', 'Citizen', 'Orient', 'Technos'].includes(product.marca));
+    assert.ok(Array.isArray(product.fotos) && product.fotos.some(url => /^https:\/\//.test(url)));
+  }
+});
