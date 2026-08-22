@@ -33,7 +33,8 @@
     const principal=fotos[0]||'';
     const stock=Number(p.estoque||0);
     const pix=p.preco*0.95;
-    const installmentCount=12;
+    const minimumInstallment=50;
+    const installmentCount=Math.max(1,Math.min(12,Math.floor(Math.round(Number(p.preco||0)*100)/(minimumInstallment*100))));
     const installmentValue=Number(p.preco||0)/installmentCount;
     const related=all.filter(x=>x.id!==p.id&&x.ativo!==false&&(x.marca===p.marca||x.categoria===p.categoria)).slice(0,4);
     root.innerHTML=`
@@ -49,8 +50,8 @@
           <div class="product-ref">Ref. ${esc(p.sku)} · ${esc(p.categoria)}</div>
           <div class="product-price">${money(p.preco)}</div>
           <div class="product-pix">${money(pix)} no PIX com 5% de desconto</div>
-          <div class="product-installments">ou em até <strong>12x de ${money(installmentValue)}</strong> no cartão</div>
-          <div class="product-payment-note">Valor de referência pela divisão do preço em 12 parcelas. Condições e eventuais juros são informados pelo Mercado Pago no checkout.</div>
+          <div class="product-installments">ou em até <strong>${installmentCount}x de ${money(installmentValue)}</strong> no cartão</div>
+          <div class="product-payment-note">Parcelas calculadas com valor mínimo de R$ 50. Condições e eventuais juros são informados pelo Mercado Pago no checkout.</div>
           <div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Produto indisponível no momento'}</div>
           <div class="product-actions-main">
             <button class="btn btn-primary" type="button" id="product-add" ${stock<=0?'disabled':''}>Adicionar ao carrinho</button>
