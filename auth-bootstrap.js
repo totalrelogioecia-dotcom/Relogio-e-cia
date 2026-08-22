@@ -191,6 +191,13 @@ if (!originalExpress.__relogioAuthPatched) {
     app.use('/api/checkout', express.json({ limit: '1mb' }), (req, res, next) => {
       try {
         const user = userFromRequest(req);
+        if (!user) {
+          return res.status(401).json({
+            error: 'Sua sessão expirou. Entre novamente na conta para finalizar a compra.',
+            code: 'authentication_required'
+          });
+        }
+
         if (user) {
           req.body = req.body || {};
           const requestedAddressId = String(req.body?.shipping?.address_id || req.body?.delivery_address_id || '').trim();
@@ -229,7 +236,11 @@ if (!originalExpress.__relogioAuthPatched) {
           }
         }
       } catch (error) {
-        console.warn('Não foi possível enriquecer o checkout com a conta:', error.message);
+        console.error('Não foi possível validar a conta no checkout:', error.message);
+        return res.status(500).json({
+          error: 'Não foi possível validar sua conta para o pagamento. Tente novamente.',
+          code: 'checkout_account_validation_failed'
+        });
       }
 
       const originalJson = res.json.bind(res);
