@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-22T16:49:56.544Z",
+  "updated_at": "2026-08-22T17:33:43.765Z",
   "source": "Catálogos oficiais das marcas",
   "products": {
     "F-91W-1": {
@@ -2155,9 +2155,10 @@
         "movimento": "Digital + analógico",
         "caixa_material": "Aço",
         "pulseira_material": "Pulseira de aço",
-        "diametro": "50 mm",
+        "diametro": "48 mm",
         "resistencia_agua": "Resistência à água até 100 metros",
-        "vidro": "Vidro mineral"
+        "vidro": "Vidro mineral",
+        "ean": "7891530685422"
       },
       "fonte": "https://www.technos.com.br/relogio-technos-masculino-ts-digitech-dourado---w23305ab-1p/p",
       "origem": "Technos oficial"
@@ -2334,6 +2335,182 @@
         "vidro": "Vidro mineral",
         "genero": "Feminino",
         "ean": "7891530154478"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "WT2050AO-1H": {
+      "sku": "WT2050AO-1H",
+      "nome": "Technos Skydiver Titanium WT2050AO/1H",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Technos Skydiver anadigi em titânio, com bezel giratório, alarme, cronógrafo, calendário e resistência à água de 150 metros.",
+      "fotos": [
+        "https://cdn.awsli.com.br/2500x2500/692/692123/produto/263211473/wt2050ao-1h_5-29ypzese9m.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico + digital quartz",
+        "caixa_material": "Titânio",
+        "pulseira_material": "Pulseira de titânio",
+        "diametro": "48 mm",
+        "resistencia_agua": "Resistência à água até 150 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Masculino",
+        "ean": "7891530826979"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "JS25BBY-1P": {
+      "sku": "JS25BBY-1P",
+      "nome": "Technos Legacy Dourado JS25BBY/1P",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Technos Legacy dourado de caixa robusta, mostrador preto em camadas, cronógrafo, calendário e resistência à água de 100 metros.",
+      "fotos": [
+        "https://marketup-cdn.s3-us-west-2.amazonaws.com/files/1266634/products/9676d9e7-3cf4-4c7b-87e6-e6b4d22fa524.Png"
+      ],
+      "detalhes": {
+        "movimento": "Cronógrafo quartz Miyota",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço dourado",
+        "diametro": "51 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Masculino",
+        "ean": "7891530847530"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "6P29ALC-1P": {
+      "sku": "6P29ALC-1P",
+      "nome": "Technos Racer Dourado 6P29ALC/1P",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Technos Racer dourado com mostrador preto texturizado, máquina quartz multifunção, calendário duplo e resistência à água de 50 metros.",
+      "fotos": [
+        "https://down-br.img.susercontent.com/file/c827c92d8f7c3da8f75acd6ca5f98f6d"
+      ],
+      "detalhes": {
+        "movimento": "Analógico quartz multifunção",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço dourado",
+        "diametro": "46 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Masculino",
+        "ean": "7891530764738"
+      },
+      "fonte": "https://www.technos.com.br/relogio-technos-masculino-racer-dourado---6p29alc-1p/p",
+      "origem": "Technos oficial"
+    },
+    "WT2050AE-1B": {
+      "sku": "WT2050AE-1B",
+      "nome": "Technos Skydiver Prata WT2050AE/1B",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Technos Skydiver prata com mostrador branco, mecanismo anadigi, bezel giratório e resistência profissional à água de 150 metros.",
+      "fotos": [
+        "https://m.media-amazon.com/images/I/41ymKkLhUoL.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Analógico + digital quartz",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço",
+        "diametro": "40 mm",
+        "resistencia_agua": "Resistência à água até 150 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Masculino",
+        "ean": "7891530808371"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "JS15ENA-1K": {
+      "sku": "JS15ENA-1K",
+      "nome": "Technos Grandtech Dourado JS15ENA/1K",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Technos Grandtech dourado com mostrador claro, cronógrafo, calendário, máquina quartz japonesa e resistência à água de 100 metros.",
+      "fotos": [
+        "https://touchmaceio.shopping.marketup.com/Content/Images/sem-foto.gif"
+      ],
+      "detalhes": {
+        "movimento": "Cronógrafo quartz",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço dourado",
+        "diametro": "44 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Masculino",
+        "ean": "7891530806612"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto; foto oficial indisponível"
+    },
+    "OS20IK-4X": {
+      "sku": "OS20IK-4X",
+      "nome": "Technos Legacy Dourado OS20IK/4X",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Technos Legacy Big Case dourado, com caixa robusta, mostrador champanhe, cronógrafo, calendário e resistência à água de 100 metros.",
+      "fotos": [
+        "https://sigmasemijoias.com.br/cdn/shop/files/926518fce7fc3fb062a739d0e33c90d2.jpg?v=1781044525&width=1000"
+      ],
+      "detalhes": {
+        "movimento": "Cronógrafo quartz",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço dourado",
+        "diametro": "50 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Masculino",
+        "ean": "7891530260827"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — modelo antigo confirmado pela etiqueta e EAN"
+    },
+    "OS20IQS-1A": {
+      "sku": "OS20IQS-1A",
+      "nome": "Technos Legacy Dourado Azul OS20IQS/1A",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Technos Legacy dourado com mostrador e aro azuis, caixa robusta, cronógrafo quartz e resistência à água de 100 metros.",
+      "fotos": [
+        "https://marketup-cdn.s3-us-west-2.amazonaws.com/files/1266634/products/b64186a0-18b0-4562-b4bb-2fc96fe18a86.Png"
+      ],
+      "detalhes": {
+        "movimento": "Cronógrafo quartz",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço dourado",
+        "diametro": "52 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Masculino",
+        "ean": "7891530758881"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
+    },
+    "JS25BBZ-1A": {
+      "sku": "JS25BBZ-1A",
+      "nome": "Technos Legacy Prata JS25BBZ/1A",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio masculino Technos Legacy prata com mostrador azul em camadas, caixa robusta, cronógrafo, calendário e resistência à água de 100 metros.",
+      "fotos": [
+        "https://cdn.awsli.com.br/600x700/1878/1878226/produto/383606228/8a98e73af0905e8eb7e970f3c5b2a013-qpjp1buvnu.jpeg"
+      ],
+      "detalhes": {
+        "movimento": "Cronógrafo quartz",
+        "caixa_material": "Aço inoxidável e detalhes em silicone",
+        "pulseira_material": "Pulseira de aço",
+        "diametro": "51 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Masculino",
+        "ean": "7891530847547"
       },
       "fonte": "https://www.technos.com.br/",
       "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
