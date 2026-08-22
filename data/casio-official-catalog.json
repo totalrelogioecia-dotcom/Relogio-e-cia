@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-22T16:14:36.353Z",
+  "updated_at": "2026-08-22T16:41:17.564Z",
   "source": "Catálogos oficiais das marcas",
   "products": {
     "F-91W-1": {
@@ -2161,6 +2161,28 @@
       },
       "fonte": "https://www.technos.com.br/relogio-technos-masculino-ts-digitech-dourado---w23305ab-1p/p",
       "origem": "Technos oficial"
+    },
+    "2115TWT-1K": {
+      "sku": "2115TWT-1K",
+      "nome": "Technos Unique Bicolor 2115TWT/1K",
+      "marca": "Technos",
+      "categoria": "Relógios",
+      "desc": "Relógio feminino Technos Unique bicolor, com pulseira de elos entrelaçados em aço, mostrador prata, calendário e resistência à água de 50 metros.",
+      "fotos": [
+        "https://kleincode.blob.core.windows.net/cdn/k4sale/marianajoias/f0b0a020-820b-4e8f-b99f-01663004e327.JPG"
+      ],
+      "detalhes": {
+        "movimento": "Analógico quartz Miyota",
+        "caixa_material": "Aço inoxidável",
+        "pulseira_material": "Pulseira de aço bicolor",
+        "diametro": "39 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro mineral",
+        "genero": "Feminino",
+        "ean": "7891530326122"
+      },
+      "fonte": "https://www.technos.com.br/",
+      "origem": "Technos — referência e EAN confirmados na etiqueta do produto"
     }
   }
 }
