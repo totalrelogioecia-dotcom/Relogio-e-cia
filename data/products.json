@@ -9,7 +9,7 @@
     "desc": "Caixa em aço escovado 40mm, movimento automático visível pelo fundo em vidro mineral.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 2,
@@ -21,7 +21,7 @@
     "desc": "Carga solar, resistência a 100m e cronógrafo — ideal para o dia a dia ativo.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 3,
@@ -33,7 +33,7 @@
     "desc": "Pulseira em malha milanesa, mostrador madrepérola e caixa 32mm.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 10,
@@ -45,7 +45,7 @@
     "desc": "Movimento alimentado por luz, nunca precisa trocar pilha. Vidro de safira.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 11,
@@ -57,7 +57,7 @@
     "desc": "Mergulho profissional, resistente a 200m, coroa protegida e luneta unidirecional.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 12,
@@ -69,7 +69,7 @@
     "desc": "Design refinado com cristais aplicados e pulseira em aço banhado a ouro rosé.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 13,
@@ -81,7 +81,7 @@
     "desc": "Corda automática tradicional, visor do movimento e reserva de marcha de 40h.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 14,
@@ -93,7 +93,7 @@
     "desc": "Ícone da mergulhia japonesa, caixa robusta e resistência a 200m.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 15,
@@ -105,7 +105,7 @@
     "desc": "Cronógrafo esportivo com mostrador em camadas e pulseira em couro legítimo.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 16,
@@ -117,7 +117,7 @@
     "desc": "Couro curtido artesanalmente, disponível em preto, marrom e caramelo.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 17,
@@ -129,7 +129,7 @@
     "desc": "Malha milanesa ajustável com fecho magnético, acabamento prata ou dourado.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 18,
@@ -141,7 +141,7 @@
     "desc": "Compatível com linha G-Shock, resistente a suor e água.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 19,
@@ -153,7 +153,7 @@
     "desc": "Tecido balístico de alta resistência, estilo militar, várias cores.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 20,
@@ -165,7 +165,7 @@
     "desc": "Pilha de óxido de prata para relógios de quartzo, alta durabilidade.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 21,
@@ -177,7 +177,7 @@
     "desc": "Compatível com a maioria dos relógios digitais e analógicos.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 22,
@@ -189,7 +189,7 @@
     "desc": "Kit com as pilhas mais usadas em relojoaria para reposição doméstica.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 23,
@@ -201,7 +201,7 @@
     "desc": "Estrutura em madeira laqueada com veludo interno, ideal para coleções.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 24,
@@ -213,7 +213,7 @@
     "desc": "Chaves, alicates e abridores para troca de pilha e ajustes de pulseira.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 25,
@@ -225,7 +225,7 @@
     "desc": "Película curva de alta transparência para vidros de relógio esportivo.",
     "fotos": [],
     "estoque": 10,
-    "ativo": true
+    "ativo": false
   },
   {
     "id": 26,
