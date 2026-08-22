@@ -135,9 +135,107 @@ function migrateOfficialWatchSpecs() {
   return true;
 }
 
+
+function migrateKnownProductsWithoutPhotos() {
+  const products = readJson(PRODUCTS, []);
+  if (!Array.isArray(products)) return false;
+  const rawDetails = readJson(DETAILS, {});
+  const details = rawDetails && typeof rawDetails === 'object' && !Array.isArray(rawDetails) ? rawDetails : {};
+
+  const known = {
+    'CAS-A168-01': {
+      canonical_sku: 'A168WA-1',
+      nome: 'Casio Vintage A168WA-1',
+      marca: 'Casio',
+      categoria: 'Relógios',
+      desc: 'Casio Vintage digital com pulseira de aço inoxidável, fundo luminoso eletroluminescente, cronômetro de 1/100 de segundo, alarme diário, sinal horário, calendário automático e bateria com duração aproximada de 7 anos.',
+      fotos: [
+        'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A16/A168WA-1/assets/A168WA-1_Seq1.png.transform/main-visual-sp/image.png'
+      ],
+      detalhes: {
+        movimento: 'Digital — bateria CR2016, autonomia aproximada de 7 anos',
+        caixa_material: 'Resina cromada',
+        pulseira_material: 'Aço inoxidável com fecho ajustável',
+        cor: 'Prata',
+        diametro: '38,6 × 36,3 × 9,6 mm (C × L × A) · 50 g',
+        resistencia_agua: 'Resistente à água',
+        vidro: 'Vidro de resina'
+      }
+    },
+    'EFV-620D-1A2V': {
+      canonical_sku: 'EFV-620D-1A2V',
+      nome: 'Casio Edifice Cronógrafo EFV-620D-1A2V',
+      marca: 'Casio',
+      categoria: 'Relógios',
+      desc: 'Cronógrafo EDIFICE clássico inspirado nos esportes motorizados, com mostrador preto e detalhes azuis, caixa e pulseira de aço inoxidável, visor de data e resistência à água de 100 metros.',
+      fotos: [
+        'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/E/EF/EFV/efv-620d-1a2v/assets/EFV-620D-1A2VU.png.transform/main-visual-sp/image.png'
+      ],
+      detalhes: {
+        movimento: 'Cronógrafo analógico de quartzo — bateria SR920SW, autonomia aproximada de 3 anos',
+        caixa_material: 'Aço inoxidável',
+        pulseira_material: 'Aço inoxidável com fecho de 3 dobras de um toque',
+        cor: 'Prata / preto / azul',
+        diametro: '55 × 50,5 × 11,8 mm (C × L × A) · 154 g',
+        resistencia_agua: '100 metros (10 bar)',
+        vidro: 'Vidro mineral'
+      }
+    }
+  };
+
+  let changed = 0;
+  for (const product of products) {
+    const originalSku = String(product?.sku || '').trim().toUpperCase();
+    const item = known[originalSku];
+    if (!item) continue;
+
+    let touched = false;
+    if (String(product.sku || '').trim() !== item.canonical_sku) {
+      product.sku = item.canonical_sku;
+      touched = true;
+    }
+    for (const field of ['nome', 'marca', 'categoria', 'desc']) {
+      if (product[field] !== item[field]) {
+        product[field] = item[field];
+        touched = true;
+      }
+    }
+    if (!Array.isArray(product.fotos) || product.fotos.filter(Boolean).length === 0) {
+      product.fotos = [...item.fotos];
+      touched = true;
+    }
+
+    const key = String(product.id);
+    const current = details[key] && typeof details[key] === 'object' ? details[key] : {};
+    const next = { ...current };
+    let detailsTouched = false;
+    for (const [field, value] of Object.entries(item.detalhes)) {
+      if (!String(next[field] || '').trim()) {
+        next[field] = value;
+        detailsTouched = true;
+      }
+    }
+    if (detailsTouched) {
+      next.garantia = next.garantia || '';
+      next.conteudo_embalagem = next.conteudo_embalagem || '';
+      next.updated_at = new Date().toISOString();
+      details[key] = next;
+      touched = true;
+    }
+    if (touched) changed += 1;
+  }
+
+  if (!changed) return false;
+  writeJson(PRODUCTS, products);
+  writeJson(DETAILS, details);
+  console.log(`Migração aplicada: fotos e fichas técnicas preenchidas em ${changed} produto(s) conhecidos sem imagem.`);
+  return true;
+}
+
 function runProductDataMigrations() {
   migrateF91W();
   migrateOfficialWatchSpecs();
+  migrateKnownProductsWithoutPhotos();
 }
 
 module.exports = { runProductDataMigrations };
