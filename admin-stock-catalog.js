@@ -68,7 +68,9 @@
       </div>
       <div id="stock-catalog-status" class="stock-catalog-status">Digite pelo menos 2 caracteres para pesquisar.</div>
       <div id="stock-catalog-results" class="stock-catalog-results"><div class="stock-catalog-placeholder">O catálogo base não é carregado inteiro no navegador. Só os resultados da sua busca aparecem aqui.</div></div>`;
-    toolbar.insertAdjacentElement('afterend', box);
+    const editor = $('#product-editor');
+    if (editor) editor.insertAdjacentElement('afterend', box);
+    else toolbar.insertAdjacentElement('afterend', box);
 
     $('#stock-catalog-query').addEventListener('input', scheduleSearch);
     $('#stock-catalog-filter').addEventListener('change', () => runSearch(true));
@@ -233,7 +235,9 @@
         adminMsg.textContent = 'Modelo carregado do catálogo base. Informe preço, quantidade e dados de frete; ative a visibilidade somente quando estiver pronto para vender.';
         adminMsg.style.display = 'block';
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (editor) editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.setTimeout(() => $('#p-preco')?.focus({ preventScroll: true }), 450);
     } catch (error) {
       const status = $('#stock-catalog-status');
       if (status) status.textContent = error.message || 'Não foi possível abrir esse modelo.';
