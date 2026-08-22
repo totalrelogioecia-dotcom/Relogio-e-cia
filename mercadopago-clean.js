@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
+const { maxInstallmentsForAmount } = require('./installment-policy');
 const {
   MercadoPagoConfig,
   Preference,
@@ -472,6 +473,8 @@ function registerMercadoPagoClean(app) {
         });
       }
 
+      const cardTotal = Number((productsSubtotal + shippingCost).toFixed(2));
+      const maxInstallments = maxInstallmentsForAmount(cardTotal);
       const preferenceBody = {
         items: preferenceItems(items),
         payment_methods: {
@@ -479,7 +482,7 @@ function registerMercadoPagoClean(app) {
             { id: 'ticket' },
             { id: 'bank_transfer' }
           ],
-          installments: 12
+          installments: maxInstallments
         },
         statement_descriptor: statementDescriptor(),
         external_reference: orderId,
@@ -512,7 +515,7 @@ function registerMercadoPagoClean(app) {
       order.status = 'pending';
       order.payment_status = 'pending';
       order.preference_id = String(data.id);
-      order.total = Number((productsSubtotal + shippingCost).toFixed(2));
+      order.total = cardTotal;
       order.updated_at = new Date().toISOString();
       await saveOrder(order);
 
@@ -521,6 +524,7 @@ function registerMercadoPagoClean(app) {
         preference_id: order.preference_id,
         shipping_cost: shippingCost,
         total: order.total,
+        max_installments: maxInstallments,
         frontend: 'mercadopago.js-wallet'
       });
 
