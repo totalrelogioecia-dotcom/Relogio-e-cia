@@ -232,10 +232,52 @@ function migrateKnownProductsWithoutPhotos() {
   return true;
 }
 
+function deactivateIncompleteLegacyProducts() {
+  const products = readJson(PRODUCTS, []);
+  if (!Array.isArray(products)) return false;
+
+  const incompleteSkus = new Set([
+  "TEC-LG-2201",
+  "TEC-SK-1187",
+  "TEC-EL-0942",
+  "CIT-ECO-778",
+  "CIT-PRO-200",
+  "CIT-ELG-514",
+  "ORI-AUT-621",
+  "ORI-KD-303",
+  "ORI-SPT-118",
+  "ACC-PUL-020",
+  "ACC-PUL-018",
+  "GSH-PUL-SIL",
+  "ACC-PUL-NAT",
+  "ACC-PIL-626",
+  "ACC-PIL-2032",
+  "ACC-PIL-KIT",
+  "ACC-EST-006",
+  "ACC-FER-KIT",
+  "ACC-PRO-003"
+]);
+  let changed = 0;
+
+  for (const product of products) {
+    const sku = String(product?.sku || '').trim().toUpperCase();
+    if (incompleteSkus.has(sku) && product.ativo !== false) {
+      product.ativo = false;
+      changed += 1;
+    }
+  }
+
+  if (!changed) return false;
+  writeJson(PRODUCTS, products);
+  console.log(`Migração aplicada: ${changed} cadastro(s) legado(s) sem foto ocultado(s) da loja pública.`);
+  return true;
+}
+
 function runProductDataMigrations() {
   migrateF91W();
   migrateOfficialWatchSpecs();
   migrateKnownProductsWithoutPhotos();
+  deactivateIncompleteLegacyProducts();
 }
 
 module.exports = { runProductDataMigrations };
