@@ -28,6 +28,11 @@ function digits(value) {
   return String(value || '').replace(/\D/g, '');
 }
 
+function mercadoPagoDeviceId(value) {
+  const id = String(value || '').trim();
+  return /^[A-Za-z0-9_-]{8,256}$/.test(id) ? id : null;
+}
+
 function preferencePayer(payer) {
   if (!payer || typeof payer !== 'object') return null;
 
@@ -114,8 +119,19 @@ if (!originalExpress.__relogioAuthPatched) {
         if (contextualPayer) body.payer = { ...(body.payer || {}), ...contextualPayer };
         args = { ...args, body };
       }
-      const response = await originalPreferenceCreate.call(this, args);
       const context = checkoutContext.getStore();
+      const deviceId = mercadoPagoDeviceId(context?.deviceId);
+      if (deviceId) {
+        args = {
+          ...args,
+          requestOptions: {
+            ...(args.requestOptions || {}),
+            meliSessionId: deviceId
+          }
+        };
+      }
+
+      const response = await originalPreferenceCreate.call(this, args);
       if (context && response?.init_point) context.initPoint = String(response.init_point);
       return response;
     };
@@ -217,7 +233,11 @@ if (!originalExpress.__relogioAuthPatched) {
       }
 
       const originalJson = res.json.bind(res);
-      const context = { payer: req.body?.payer || null, initPoint: null };
+      const context = {
+        payer: req.body?.payer || null,
+        deviceId: mercadoPagoDeviceId(req.body?.device_id),
+        initPoint: null
+      };
       res.json = payload => {
         if (payload && typeof payload === 'object' && payload.preference_id && !payload.init_point && context.initPoint) {
           payload = { ...payload, init_point: context.initPoint };
