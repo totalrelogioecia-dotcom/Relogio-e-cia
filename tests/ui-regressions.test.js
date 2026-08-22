@@ -22,3 +22,21 @@ test('página de trocas não preenche e-mail a partir da sessão', () => {
   assert.match(html, /id="return-email"[^>]*autocomplete="off"/);
   assert.match(html, /id="return-status-email"[^>]*autocomplete="off"/);
 });
+
+
+test('vitrine padroniza fotos sem cortar o relógio', () => {
+  const css = read('style.css');
+
+  assert.match(css, /\.product-card \.card-photo img\{[^}]*object-fit:contain/);
+  assert.match(css, /\.product-card \.card-photo img\{[^}]*padding:24px/);
+});
+
+test('produto informa parcelamento e segurança sem prometer juros zero', () => {
+  const script = read('produto.js');
+
+  assert.match(script, /installmentCount=12/);
+  assert.match(script, /12x de/);
+  assert.match(script, /Pagamento seguro/);
+  assert.match(script, /Processado pelo Mercado Pago/);
+  assert.doesNotMatch(script, /12x[^\n<]*sem juros/i);
+});
