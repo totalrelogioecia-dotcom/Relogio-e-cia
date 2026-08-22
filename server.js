@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(ROOT, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
+const PRODUCT_DETAILS = path.join(DATA, 'product-details.json');
 const ORDERS = path.join(DATA, 'orders.json');
 
 fs.mkdirSync(DATA, { recursive: true });
@@ -224,6 +225,25 @@ app.delete('/api/admin/products/:id', admin, (req, res) => {
   const id = Number(req.params.id), products = getProducts(), index = products.findIndex(p => Number(p.id) === id);
   if (index < 0) return res.status(404).json({ error: 'Produto não encontrado.' });
   products[index].ativo = false; write(PRODUCTS, products); res.json({ ok: true });
+});
+app.delete('/api/admin/products/:id/permanent', admin, (req, res) => {
+  const id = Number(req.params.id);
+  const products = getProducts();
+  const index = products.findIndex(p => Number(p.id) === id);
+  if (index < 0) return res.status(404).json({ error: 'Produto não encontrado.' });
+
+  const [removed] = products.splice(index, 1);
+  write(PRODUCTS, products);
+
+  const rawDetails = read(PRODUCT_DETAILS, {});
+  const details = rawDetails && typeof rawDetails === 'object' && !Array.isArray(rawDetails) ? rawDetails : {};
+  if (Object.prototype.hasOwnProperty.call(details, String(id))) {
+    delete details[String(id)];
+    write(PRODUCT_DETAILS, details);
+  }
+
+  console.log('Produto excluído permanentemente pelo administrador:', { id, sku: removed.sku || null, nome: removed.nome });
+  res.json({ ok: true, deleted_id: id });
 });
 
 app.get('/api/admin/orders', admin, (req, res) => res.json(getOrders().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))));
