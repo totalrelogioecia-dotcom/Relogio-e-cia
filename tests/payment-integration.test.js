@@ -38,3 +38,13 @@ test('ordem dos módulos mantém cupom, PIX e Checkout Pro', () => {
 
   assert.ok(coupon >= 0 && pix > coupon && card > pix);
 });
+
+test('Device ID é capturado e enviado pelo SDK oficial', () => {
+  const client = read('mercadopago-checkout-client.js');
+  const bootstrap = read('auth-bootstrap.js');
+
+  assert.match(client, /mercadopago\.com\/v2\/security\.js/);
+  assert.match(client, /device_id:\s*deviceId/);
+  assert.match(bootstrap, /meliSessionId:\s*deviceId/);
+  assert.match(bootstrap, /mercadoPagoDeviceId\(req\.body\?\.device_id\)/);
+});
