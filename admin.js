@@ -85,7 +85,51 @@ async function saveProduct(){
   try{await api(id?`/api/admin/products/${id}`:'/api/admin/products',{method:id?'PUT':'POST',body:JSON.stringify(body)});$('#product-editor').style.display='none';msg('Produto salvo com sucesso.',true);loadProducts();}catch(e){msg(e.message);}
 }
 async function delProduct(id){if(!confirm('Ocultar este produto da loja?'))return;try{await api('/api/admin/products/'+id,{method:'DELETE'});msg('Produto ocultado.',true);loadProducts();}catch(e){msg(e.message);}}
-async function deleteProductPermanently(id,nome){const label=String(nome||'este produto');if(!confirm(`Excluir permanentemente "${label}"? Esta ação não pode ser desfeita.`))return;try{await api('/api/admin/products/'+id+'/permanent',{method:'DELETE'});if(String($('#p-id')?.value||'')===String(id))$('#product-editor').style.display='none';msg('Produto excluído permanentemente.',true);loadProducts();}catch(e){msg(e.message);}}
+let productDeleteResolver=null;
+function ensureProductDeleteModal(){
+  if($('#product-delete-modal'))return;
+  const wrap=document.createElement('div');
+  wrap.id='product-delete-modal';
+  wrap.className='admin-modal-backdrop';
+  wrap.setAttribute('aria-hidden','true');
+  wrap.innerHTML=`<div class="admin-modal product-delete-modal" role="dialog" aria-modal="true" aria-labelledby="product-delete-title">
+    <button type="button" class="admin-modal-close" id="product-delete-close" aria-label="Fechar">×</button>
+    <p class="eyebrow">Exclusão permanente</p>
+    <h2 id="product-delete-title">Excluir produto?</h2>
+    <p class="admin-muted">Você está prestes a excluir <strong id="product-delete-name"></strong> do estoque.</p>
+    <p style="border-left:3px solid #e51c2a;padding:12px 14px;background:#faf9f6;line-height:1.5">Esta ação não pode ser desfeita. Os pedidos antigos não serão alterados.</p>
+    <div class="editor-actions">
+      <button type="button" id="product-delete-confirm" class="btn btn-primary">Excluir permanentemente</button>
+      <button type="button" id="product-delete-cancel" class="btn btn-outline">Cancelar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const finish=value=>{
+    wrap.classList.remove('open');
+    wrap.setAttribute('aria-hidden','true');
+    document.body.classList.remove('admin-modal-open');
+    const resolve=productDeleteResolver;
+    productDeleteResolver=null;
+    if(resolve)resolve(value);
+  };
+  $('#product-delete-confirm').onclick=()=>finish(true);
+  $('#product-delete-cancel').onclick=()=>finish(false);
+  $('#product-delete-close').onclick=()=>finish(false);
+  wrap.addEventListener('click',event=>{if(event.target===wrap)finish(false);});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&wrap.classList.contains('open'))finish(false);});
+}
+function confirmProductDeletion(nome){
+  ensureProductDeleteModal();
+  if(productDeleteResolver)productDeleteResolver(false);
+  $('#product-delete-name').textContent=String(nome||'este produto');
+  const wrap=$('#product-delete-modal');
+  wrap.classList.add('open');
+  wrap.setAttribute('aria-hidden','false');
+  document.body.classList.add('admin-modal-open');
+  window.setTimeout(()=>$('#product-delete-cancel')?.focus(),50);
+  return new Promise(resolve=>{productDeleteResolver=resolve;});
+}
+async function deleteProductPermanently(id,nome){const label=String(nome||'este produto');if(!await confirmProductDeletion(label))return;try{await api('/api/admin/products/'+id+'/permanent',{method:'DELETE'});if(String($('#p-id')?.value||'')===String(id))$('#product-editor').style.display='none';msg('Produto excluído permanentemente.',true);loadProducts();}catch(e){msg(e.message);}}
 
 function paidOrder(o){return String(o?.status||'').toLowerCase()==='paid'||String(o?.payment_status||'').toLowerCase()==='approved';}
 function invoiceStatus(o){return String(o?.invoice?.status||'pending').toLowerCase();}
@@ -174,4 +218,5 @@ $('#login-btn').onclick=login;$('#admin-senha').onkeydown=e=>{if(e.key==='Enter'
 document.querySelectorAll('.admin-tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.admin-tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');const p=b.dataset.tab==='produtos';$('#tab-produtos').style.display=p?'block':'none';$('#tab-pedidos').style.display=p?'none':'block';if(!p)loadOrders();});
 setupPhotoDropzone();
 ensureInvoiceModal();
+ensureProductDeleteModal();
 if(token())showDash();
