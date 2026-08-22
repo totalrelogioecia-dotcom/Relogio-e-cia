@@ -99,3 +99,4 @@
   function fail(){root.innerHTML='<div class="product-error"><strong>Produto não encontrado.</strong><br><a href="produtos.html">Voltar ao catálogo</a></div>'}
   quandoCatalogoPronto(async()=>{const p=PRODUTOS.find(x=>Number(x.id)===id&&x.ativo!==false);if(!p)return fail();const details=await loadDetails();p.detalhes=details[String(p.id)]||{};render(p,PRODUTOS)});
 })();
+

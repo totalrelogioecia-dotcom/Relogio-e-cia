@@ -568,3 +568,4 @@ function registerMercadoPagoV2(app) {
 }
 
 module.exports = { registerMercadoPagoV2 };
+

@@ -62,3 +62,4 @@ function configureCheckoutProPayerFilter() {
 }
 
 module.exports = { configureCheckoutProPayerFilter };
+

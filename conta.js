@@ -105,6 +105,7 @@
           <p style="margin-top:6px;line-height:1.6;">${endereco}</p>
         </div>
       </div>
+      <a class="btn btn-outline" href="enderecos.html" style="width:100%;justify-content:center;margin-top:10px;">Gerenciar endereços</a>
       <button class="btn btn-outline" id="btn-sair" style="width:100%;justify-content:center;margin-top:10px;">Sair da conta</button>
       <a class="btn btn-primary" href="carrinho.html" style="width:100%;justify-content:center;margin-top:10px;">Ir para o carrinho</a>
     `;
@@ -323,3 +324,4 @@
 
   document.addEventListener('DOMContentLoaded', iniciar);
 })();
+

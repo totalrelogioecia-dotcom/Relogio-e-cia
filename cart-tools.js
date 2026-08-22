@@ -370,3 +370,4 @@
   window.relojaConfirmarRemocao = confirmarRemocao;
   window.relojaMostrarAvisoCarrinho = mostrarToast;
 })();
+

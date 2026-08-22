@@ -65,3 +65,4 @@ Documentação oficial:
 O painel possui autenticação no servidor. Não use os valores padrão do `.env.example`.
 
 Para uma operação maior, recomendo trocar os arquivos JSON por PostgreSQL/MySQL, usar armazenamento de imagens (S3/Cloudinary etc.), implementar autenticação de clientes no servidor e adicionar proteção CSRF/rate limiting.
+

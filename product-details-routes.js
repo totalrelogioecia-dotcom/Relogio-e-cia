@@ -18,3 +18,4 @@ function registerProductDetailsRoutes(app){
  app.put('/api/admin/product-details/:id',admin,(req,res)=>{const id=String(req.params.id||'').trim();if(!id)return res.status(400).json({error:'Produto inválido.'});const map=read();map[id]=normalize(req.body||{});write(map);res.json(map[id])});
 }
 module.exports={registerProductDetailsRoutes,PRODUCT_DETAILS_FILE:FILE};
+

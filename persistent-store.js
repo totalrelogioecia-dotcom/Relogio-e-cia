@@ -13,7 +13,9 @@ const FILES = new Map([
   [path.resolve(path.join(DATA, 'password-reset-tokens.json')), 'password_reset_tokens'],
   [path.resolve(path.join(DATA, 'shipping-products.json')), 'shipping_products'],
   [path.resolve(path.join(DATA, 'product-details.json')), 'product_details'],
-  [path.resolve(path.join(DATA, 'melhorenvio-auth.json')), 'melhorenvio_auth']
+  [path.resolve(path.join(DATA, 'melhorenvio-auth.json')), 'melhorenvio_auth'],
+  [path.resolve(path.join(DATA, 'account-reset.json')), 'account_reset'],
+  [path.resolve(path.join(DATA, 'return-requests.json')), 'return_requests']
 ]);
 
 let pool = null;
@@ -146,7 +148,7 @@ async function initPersistentStore() {
       continue;
     }
 
-    const seedFallback = ['shipping_products', 'product_details', 'melhorenvio_auth'].includes(key) ? {} : [];
+    const seedFallback = ['shipping_products', 'product_details', 'melhorenvio_auth', 'account_reset'].includes(key) ? {} : [];
     const seed = readLocalJson(file, seedFallback);
     await upsertState(key, seed);
     writeLocalJson(file, seed);
@@ -155,7 +157,7 @@ async function initPersistentStore() {
 
   patchFileWrites();
   ready = true;
-  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas e OAuth do Melhor Envio.');
+  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio, solicitações de pós-venda e migrações administrativas.');
   return { persistent: true, provider: 'postgresql' };
 }
 
@@ -187,3 +189,4 @@ module.exports = {
   closePersistentStore,
   storageStatus
 };
+

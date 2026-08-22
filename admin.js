@@ -174,3 +174,4 @@ document.querySelectorAll('.admin-tabs button').forEach(b=>b.onclick=()=>{docume
 setupPhotoDropzone();
 ensureInvoiceModal();
 if(token())showDash();
+

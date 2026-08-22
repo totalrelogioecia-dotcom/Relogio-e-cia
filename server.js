@@ -253,3 +253,4 @@ app.listen(PORT, () => {
   console.log(`Relógio e Cia: http://localhost:${PORT}`);
   console.log('Servidor principal iniciado sem rotas legadas do Mercado Pago.');
 });
+

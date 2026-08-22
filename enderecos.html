@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meus endereços — Relógio e Cia Relojoaria</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="description" content="Gerencie seus endereços de entrega na Relógio e Cia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="enderecos.css">
+</head>
+<body>
+<header class="site-header">
+  <nav class="nav">
+    <a href="index.html" class="brand-mark"><img class="brand-symbol" src="assets/logo-relogio-cia-mark.svg" alt=""><span class="word">Relógio e Cia<small>Relojoaria desde 2003</small></span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Início</a></li>
+      <li><a href="produtos.html">Produtos</a></li>
+      <li><a href="sobre.html">Sobre nós</a></li>
+      <li><a href="sobre.html#loja">Nossa loja</a></li>
+    </ul>
+    <div class="nav-utility">
+      <a href="conta.html" class="nav-icon-link" id="nav-conta-link">Conta</a>
+      <a href="carrinho.html" class="nav-icon-link">Carrinho <span class="cart-badge" id="cart-badge" data-zero="1">0</span></a>
+    </div>
+    <a href="produtos.html" class="nav-cta">Ver catálogo</a>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
+  </nav>
+</header>
+
+<main class="addresses-page">
+  <div class="addresses-shell">
+    <div class="addresses-top">
+      <div>
+        <p class="eyebrow">Sua conta</p>
+        <h1>Meus endereços</h1>
+        <p>Cadastre os locais onde você deseja receber seus pedidos.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="address-new">+ Adicionar endereço</button>
+    </div>
+
+    <p id="addresses-status" class="addresses-status" role="status"></p>
+    <section id="address-list" class="addresses-list" aria-label="Endereços cadastrados"></section>
+
+    <section id="address-form-section" class="address-form-section" hidden>
+      <div class="address-form-head">
+        <div>
+          <p class="eyebrow">Cadastro</p>
+          <h2 id="address-form-title">Novo endereço</h2>
+        </div>
+        <button type="button" class="address-form-close" id="address-cancel-top" aria-label="Fechar formulário">×</button>
+      </div>
+      <form id="address-form" novalidate>
+        <div class="address-grid">
+          <div class="form-field wide"><label for="addr-label">Nome do endereço</label><input id="addr-label" maxlength="40" placeholder="Ex.: Casa ou Trabalho" required></div>
+          <div class="form-field"><label for="addr-cep">CEP</label><input id="addr-cep" inputmode="numeric" maxlength="9" autocomplete="postal-code" required></div>
+          <div class="form-field"><label for="addr-uf">Estado (UF)</label><input id="addr-uf" maxlength="2" required></div>
+          <div class="form-field wide"><label for="addr-rua">Rua</label><input id="addr-rua" autocomplete="street-address" required></div>
+          <div class="form-field"><label for="addr-numero">Número</label><input id="addr-numero" required></div>
+          <div class="form-field"><label for="addr-complemento">Complemento</label><input id="addr-complemento"></div>
+          <div class="form-field"><label for="addr-bairro">Bairro</label><input id="addr-bairro" required></div>
+          <div class="form-field"><label for="addr-cidade">Cidade</label><input id="addr-cidade" required></div>
+          <label class="address-primary wide"><input id="addr-principal" type="checkbox"> Usar como endereço principal</label>
+        </div>
+        <p id="address-form-error" class="addresses-status error" role="alert"></p>
+        <div class="address-form-actions">
+          <button type="submit" class="btn btn-primary" id="address-save">Salvar endereço</button>
+          <button type="button" class="btn btn-outline" id="address-cancel">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="addresses-footer-actions">
+      <a href="conta.html" class="btn btn-outline">Voltar para minha conta</a>
+      <a href="carrinho.html" class="btn btn-primary">Ir para o carrinho</a>
+    </div>
+  </div>
+</main>
+
+<script src="script.js"></script>
+<script src="enderecos.js"></script>
+</body>
+</html>

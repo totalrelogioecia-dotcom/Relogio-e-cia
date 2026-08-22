@@ -122,3 +122,4 @@ function runProductPhotoMigrations() {
 }
 
 module.exports = { runProductPhotoMigrations };
+

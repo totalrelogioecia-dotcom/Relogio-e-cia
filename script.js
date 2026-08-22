@@ -49,7 +49,7 @@ function totalCarrinho() {
   return obterCarrinho().reduce((s, i) => s + i.qtd * i.preco, 0);
 }
 function atualizarBadgeCarrinho() {
-  document.querySelectorAll('#cart-badge').forEach(b => {
+  document.querySelectorAll('.cart-badge').forEach(b => {
     const n = totalItensCarrinho();
     b.textContent = n;
     b.dataset.zero = n === 0 ? '1' : '0';
@@ -107,12 +107,37 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
-  if (toggle && links) {
-    toggle.addEventListener('click', () => {
-      const open = links.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
+  const utility = document.querySelector('.nav-utility');
+  const catalog = document.querySelector('.nav-cta');
+  if (!toggle || !links) return;
+
+  if (!links.querySelector('.nav-mobile-account')) {
+    const accountHref = utility?.querySelector('#nav-conta-link')?.getAttribute('href') || 'conta.html';
+    const cartHref = utility?.querySelector('a[href*="carrinho"]')?.getAttribute('href') || 'carrinho.html';
+
+    links.insertAdjacentHTML('beforeend', `
+      <li class="nav-mobile-only nav-mobile-account"><a href="${accountHref}">Minha conta</a></li>
+      <li class="nav-mobile-only"><a href="${cartHref}">Carrinho <span class="cart-badge" data-zero="1">0</span></a></li>
+      <li class="nav-mobile-only"><a href="${catalog?.getAttribute('href') || 'produtos.html'}">Ver catálogo</a></li>
+    `);
+    atualizarBadgeCarrinho();
   }
+
+  toggle.textContent = 'Mais';
+  toggle.setAttribute('aria-label', 'Abrir mais opções');
+  toggle.addEventListener('click', () => {
+    const open = links.classList.toggle('open');
+    toggle.textContent = open ? 'Fechar' : 'Mais';
+    toggle.setAttribute('aria-label', open ? 'Fechar mais opções' : 'Abrir mais opções');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  links.addEventListener('click', event => {
+    if (!event.target.closest('a')) return;
+    links.classList.remove('open');
+    toggle.textContent = 'Mais';
+    toggle.setAttribute('aria-expanded', 'false');
+  });
 });
 
 /* ---------- Relógio analógico com horário de Brasília (elemento-assinatura) ---------- */
@@ -754,3 +779,4 @@ function iniciarPaginaConta() {
   if (sessao) renderLogado(sessao); else renderDeslogado();
 }
 document.addEventListener('DOMContentLoaded', iniciarPaginaConta);
+

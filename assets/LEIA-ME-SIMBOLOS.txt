@@ -1,0 +1,11 @@
+SÍMBOLO RELÓGIO E CIA
+
+Arquivos disponíveis em SVG e PNG:
+- Transparente: rotor vermelho sem fundo.
+- Fundo preto: quadrado preto com rotor branco e detalhe vermelho.
+- Fundo branco: quadrado branco com rotor vermelho.
+
+Para impressão ou alteração de tamanho, prefira SVG.
+Para redes sociais, documentos e sistemas que não aceitam SVG, use PNG.
+
+O favicon utilizado no site é o quadrado vermelho com rotor branco.

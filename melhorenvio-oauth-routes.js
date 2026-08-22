@@ -145,3 +145,4 @@ function registerMelhorEnvioOAuthRoutes(app) {
 }
 
 module.exports = { registerMelhorEnvioOAuthRoutes };
+

@@ -143,3 +143,4 @@ function registerMercadoPagoWebhookCompat(app) {
 }
 
 module.exports = { registerMercadoPagoWebhookCompat };
+

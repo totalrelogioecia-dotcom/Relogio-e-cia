@@ -141,3 +141,4 @@ function runProductDataMigrations() {
 }
 
 module.exports = { runProductDataMigrations };
+

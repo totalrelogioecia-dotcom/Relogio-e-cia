@@ -1,0 +1,207 @@
+{
+  "updated_at": "2026-08-21T23:05:00.000Z",
+  "source": "Casio Brasil",
+  "products": {
+    "F-91W-1": {
+      "sku": "F-91W-1",
+      "nome": "Casio F-91W-1",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital clássico e leve, com cronômetro de 1/100 de segundo, alarme diário, luz LED e bateria com duração aproximada de 7 anos.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/F/F9/F91/F-91W-1/assets/F-91W-1_Seq1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "38.2 × 35.2 × 8.5 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.F-91W-1/",
+      "origem": "Casio Brasil"
+    },
+    "A168WA-1": {
+      "sku": "A168WA-1",
+      "nome": "Casio A168WA-1",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital com pulseira de aço inoxidável, fundo luminoso eletroluminescente, cronômetro, alarme diário e bateria com duração aproximada de 7 anos.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A16/A168WA-1/assets/A168WA-1_Seq1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38.6 × 36.3 × 9.6 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.A168WA-1/",
+      "origem": "Casio Brasil"
+    },
+    "A158WA-1": {
+      "sku": "A158WA-1",
+      "nome": "Casio A158WA-1",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital com pulseira de aço inoxidável, luz LED, cronômetro de 1/100 de segundo, alarme diário e design clássico de perfil fino.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A15/A158WA-1/assets/A158WA-1_sq.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "36.8 × 33.2 × 8.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.A158WA-1DF-SC/",
+      "origem": "Casio Brasil"
+    },
+    "AE-1200WH-1AV": {
+      "sku": "AE-1200WH-1AV",
+      "nome": "Casio AE-1200WH-1AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital com hora mundial, mapa mundial, cinco alarmes, cronômetro, iluminação LED, resistência à água de 100 metros e bateria de aproximadamente 10 anos.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/AE/AE1/AE-1200WH-1AV/assets/AE-1200WH-1AV.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "45 × 42.1 × 12.5 mm",
+        "resistencia_agua": "Resistência à água até 100 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.AE-1200WH-1AV/",
+      "origem": "Casio Brasil"
+    },
+    "A171WE-1A": {
+      "sku": "A171WE-1A",
+      "nome": "Casio A171WE-1A",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Casio Vintage digital de caixa arredondada e pulseira de aço inoxidável, com cronômetro, alarme diário, calendário e iluminação LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A17/A171WE-1A/assets/A171WE-1A.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina/cromado",
+        "pulseira_material": "Pulseira de aço inoxidável",
+        "diametro": "38.8 × 37.7 × 9.2 mm",
+        "resistencia_agua": "Resistente à água",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.A171WE-1A/",
+      "origem": "Casio Brasil"
+    },
+    "W-218H-1AV": {
+      "sku": "W-218H-1AV",
+      "nome": "Casio W-218H-1AV",
+      "marca": "Casio",
+      "categoria": "Relógios",
+      "desc": "Relógio digital esportivo com resistência à água de 50 metros, cronômetro de 1/100 de segundo, alarme diário e iluminação LED.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/W/W2/W21/W-218H-1AV/assets/W-218H-1AV_Seq1.jpg.transform/main-visual-sp/image.jpg"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "44.4 × 43.2 × 10.8 mm",
+        "resistencia_agua": "Resistência à água até 50 metros",
+        "vidro": "Vidro de resina"
+      },
+      "fonte": "https://www.casio.com/br/watches/casio/product.W-218H-1AV/",
+      "origem": "Casio Brasil"
+    },
+    "DW-5600UE-1": {
+      "sku": "DW-5600UE-1",
+      "nome": "G-Shock DW-5600UE-1",
+      "marca": "G-Shock",
+      "categoria": "Relógios",
+      "desc": "G-Shock digital da série 5600 com formato quadrado clássico, resistência a impactos, resistência à água de 200 metros e iluminação LED Super Illuminator.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/D/DW/DW5/dw-5600ue-1/assets/DW-5600UE-1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48.9 × 42.8 × 13.4 mm",
+        "resistencia_agua": "Resistência à água até 200 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/gshock/product.DW-5600UE-1/",
+      "origem": "Casio Brasil — G-Shock"
+    },
+    "GA-2100-1A1": {
+      "sku": "GA-2100-1A1",
+      "nome": "G-Shock GA-2100-1A1",
+      "marca": "G-Shock",
+      "categoria": "Relógios",
+      "desc": "G-Shock digital-analógico da série GA-2100 com estrutura Carbon Core Guard, caixa fina em carbono/resina e resistência à água de 200 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GA/GA2/GA-2100-1A1/assets/GA-2100-1A1_Seq01.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital + analógico",
+        "caixa_material": "Carbono/resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48.5 × 45.4 × 11.8 mm",
+        "resistencia_agua": "Resistência à água até 200 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/gshock/product.GA-2100-1A1/",
+      "origem": "Casio Brasil — G-Shock"
+    },
+    "GA-B2100-1A": {
+      "sku": "GA-B2100-1A",
+      "nome": "G-Shock GA-B2100-1A",
+      "marca": "G-Shock",
+      "categoria": "Relógios",
+      "desc": "G-Shock digital-analógico octogonal com estrutura Carbon Core Guard, Bluetooth para conexão com smartphone, Tough Solar e resistência à água de 200 metros.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GA/gab/ga-b2100-1a/assets/GA-B2100-1A.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital + analógico",
+        "caixa_material": "Carbono/resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "48.5 × 45.4 × 11.9 mm",
+        "resistencia_agua": "Resistência à água até 200 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/gshock/product.GA-B2100-1A/",
+      "origem": "Casio Brasil — G-Shock"
+    },
+    "GA-700-1B": {
+      "sku": "GA-700-1B",
+      "nome": "G-Shock GA-700-1B",
+      "marca": "G-Shock",
+      "categoria": "Relógios",
+      "desc": "G-Shock digital-analógico de caixa grande e visual robusto, com resistência a impactos, resistência à água de 200 metros e iluminação LED Super Illuminator.",
+      "fotos": [
+        "https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GA/GA7/GA-700-1B/assets/GA-700-1B_Seq1.png.transform/main-visual-sp/image.png"
+      ],
+      "detalhes": {
+        "movimento": "Digital + analógico",
+        "caixa_material": "Resina",
+        "pulseira_material": "Pulseira em resina",
+        "diametro": "57.5 × 53.4 × 18.4 mm",
+        "resistencia_agua": "Resistência à água até 200 metros",
+        "vidro": "Vidro mineral"
+      },
+      "fonte": "https://www.casio.com/br/watches/gshock/product.GA-700-1B/",
+      "origem": "Casio Brasil — G-Shock"
+    }
+  }
+}
+
