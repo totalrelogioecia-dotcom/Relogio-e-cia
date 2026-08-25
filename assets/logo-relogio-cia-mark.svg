@@ -1,27 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
   <title id="title">Símbolo Relógio e Cia</title>
-  <desc id="desc">Quadrado vermelho com um rotor de relógio estilizado em branco.</desc>
+  <desc id="desc">Quadrado vermelho com um balanço mecânico estilizado em preto.</desc>
   <style>
-    .rotor {
-      transform-box: view-box;
-      transform-origin: 32px 32px;
-      animation: rotor-settle 1.35s cubic-bezier(.2,.78,.25,1) both;
-    }
-    @keyframes rotor-settle {
-      0% { transform: rotate(-150deg); }
-      72% { transform: rotate(12deg); }
-      100% { transform: rotate(0); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .rotor { animation: none; }
-    }
+    .balance { transform-box:view-box; transform-origin:32px 32px; animation:balance-beat 1.25s cubic-bezier(.45,0,.55,1) infinite alternate; will-change:transform; }
+    @keyframes balance-beat { from{transform:rotate(-11deg)} to{transform:rotate(11deg)} }
+    @media (prefers-reduced-motion:reduce){ .balance{animation:none} }
   </style>
   <rect width="64" height="64" rx="1" fill="#e31e24"/>
-  <circle cx="32" cy="32" r="21" fill="none" stroke="#fff" stroke-width="2" opacity=".28"/>
-  <g class="rotor" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M32 32 32 13M32 32l16 9M32 32l-16 9" stroke-width="3.5"/>
-    <path d="M12.5 42.8a22.2 22.2 0 0 0 39 0l-7-3.7a14.3 14.3 0 0 1-25 0z" fill="#fff" stroke="none"/>
-    <circle cx="32" cy="32" r="6" fill="#e31e24" stroke-width="3"/>
-    <circle cx="32" cy="32" r="1.8" fill="#fff" stroke="none"/>
+  <g class="balance" fill="none" stroke="#111" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="32" cy="32" r="21" stroke-width="3.5"/>
+    <path d="M32 11v16M53 32H37M32 53V37M11 32h16" stroke-width="3.5"/>
+    <circle cx="46.8" cy="17.2" r="2.2" fill="#111" stroke="none"/>
+    <circle cx="46.8" cy="46.8" r="2.2" fill="#111" stroke="none"/>
+    <circle cx="17.2" cy="46.8" r="2.2" fill="#111" stroke="none"/>
+    <circle cx="17.2" cy="17.2" r="2.2" fill="#111" stroke="none"/>
+    <circle cx="32" cy="32" r="6" fill="#e31e24" stroke-width="3.5"/>
+    <circle cx="32" cy="32" r="2" fill="#fff" stroke="none"/>
   </g>
+  <path d="M32 32c2-5 10-5 11 1 1 6-7 9-12 6-7-4-7-14 0-19" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round" opacity=".72"/>
 </svg>
