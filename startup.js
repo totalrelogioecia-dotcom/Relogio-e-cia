@@ -9,6 +9,7 @@ const {
 } = require('./persistent-store');
 const { runProductDataMigrations } = require('./product-data-migrations');
 const { runAffectedProductRelaunch } = require('./relaunch-affected-products');
+const { runVerifiedMissingPhotoFix } = require('./fix-verified-missing-photos');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const USERS = path.join(DATA, 'users.json');
@@ -75,10 +76,11 @@ process.on('SIGINT', () => shutdown('SIGINT'));
   try {
     await initPersistentStore();
     // Primeiro normaliza os dados persistidos; depois remove e recria apenas os
-    // produtos que tiveram os cadastros de foto afetados. Não há proxy nem
-    // alteração global do catálogo.
+    // produtos que tiveram os cadastros de foto afetados. Em seguida aplica só
+    // as duas URLs que foram abertas e validadas diretamente no site da Casio.
     runProductDataMigrations();
     runAffectedProductRelaunch();
+    runVerifiedMissingPhotoFix();
     await clearTestAccountsOnce();
     await flushPersistentStore();
     // Instala a proteção do painel antes do bootstrap de autenticação e antes
