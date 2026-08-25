@@ -18,6 +18,9 @@ const FILES = new Map([
   [path.resolve(path.join(DATA, 'return-requests.json')), 'return_requests']
 ]);
 
+const PRODUCT_RESTORE_MARKER = 'products_restored_from_commit_1055198_2026_08_25';
+const PRODUCT_BACKUP_KEY = 'products_backup_before_restore_1055198_2026_08_25';
+
 let pool = null;
 let patched = false;
 let ready = false;
@@ -139,7 +142,49 @@ async function initPersistentStore() {
     )
   `);
 
+  const restoreMarker = await pool.query(
+    'SELECT value FROM relogio_state WHERE key = $1',
+    [PRODUCT_RESTORE_MARKER]
+  );
+  const shouldRestoreProducts = restoreMarker.rows.length === 0;
+
   for (const [file, key] of FILES.entries()) {
+    if (key === 'products' && shouldRestoreProducts) {
+      // Neste deploy o arquivo local é exatamente o catálogo do commit 1055198.
+      // Fazemos backup do catálogo atual do banco e, uma única vez, usamos esse
+      // arquivo como fonte autoritativa para a chave `products` do PostgreSQL.
+      const desiredProducts = readLocalJson(file, []);
+      const currentProducts = await pool.query(
+        'SELECT value FROM relogio_state WHERE key = $1',
+        ['products']
+      );
+
+      if (currentProducts.rows.length) {
+        const existingBackup = await pool.query(
+          'SELECT value FROM relogio_state WHERE key = $1',
+          [PRODUCT_BACKUP_KEY]
+        );
+        if (!existingBackup.rows.length) {
+          await upsertState(PRODUCT_BACKUP_KEY, currentProducts.rows[0].value ?? []);
+        }
+      }
+
+      await upsertState('products', desiredProducts);
+      await upsertState(PRODUCT_RESTORE_MARKER, {
+        completed: true,
+        source_commit: '1055198b3485870e4562d47dce8fd3f53fd89733',
+        restored_at: new Date().toISOString(),
+        product_count: Array.isArray(desiredProducts) ? desiredProducts.length : 0,
+        backup_key: PRODUCT_BACKUP_KEY
+      });
+      writeLocalJson(file, desiredProducts);
+      console.log('Catálogo de produtos restaurado do commit 1055198 e backup salvo no PostgreSQL.', {
+        registros: Array.isArray(desiredProducts) ? desiredProducts.length : 0,
+        backup_key: PRODUCT_BACKUP_KEY
+      });
+      continue;
+    }
+
     const result = await pool.query('SELECT value FROM relogio_state WHERE key = $1', [key]);
 
     if (result.rows.length) {
