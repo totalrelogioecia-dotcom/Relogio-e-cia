@@ -8,4 +8,4 @@ Arquivos disponíveis em SVG e PNG:
 Para impressão ou alteração de tamanho, prefira SVG.
 Para redes sociais, documentos e sistemas que não aceitam SVG, use PNG.
 
-O favicon utilizado no site é o quadrado vermelho com balanço preto.
+O favicon utilizado no site é o quadrado vermelho com balanço branco.
