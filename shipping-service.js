@@ -49,16 +49,30 @@ function shippingMap() {
   return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
 }
 
-function getShippingData(productId) {
+function defaultWatchShippingData(product) {
+  const category = String(product?.categoria || '').trim().toLowerCase();
+  const brand = String(product?.marca || '').trim().toLowerCase();
+  const isWatch = category.includes('relógio') || category.includes('relogio') ||
+    ['technos', 'casio', 'g-shock', 'citizen', 'orient'].includes(brand);
+  if (!isWatch) return null;
+
+  // Embalagem conservadora para um relógio com estojo e proteção externa.
+  return { weight: 0.5, width: 12, height: 10, length: 16 };
+}
+
+function getShippingData(productId, product = null) {
   const map = shippingMap();
   const data = map[String(productId)] || {};
   const num = value => Number(value);
-  return {
+  const stored = {
     weight: num(data.weight_kg),
     width: num(data.width_cm),
     height: num(data.height_cm),
     length: num(data.length_cm)
   };
+  const complete = [stored.weight, stored.width, stored.height, stored.length]
+    .every(value => Number.isFinite(value) && value > 0);
+  return complete ? stored : (defaultWatchShippingData(product) || stored);
 }
 
 function validateShippingData(product, data) {
@@ -91,7 +105,7 @@ function normalizeItems(rawItems) {
     }
 
     const quantity = Math.max(1, Math.min(99, Number(raw.qtd) || 1));
-    const shipping = getShippingData(product.id);
+    const shipping = getShippingData(product.id, product);
     const issue = validateShippingData(product, shipping);
     if (issue) missing.push(issue);
 
@@ -118,6 +132,21 @@ function buildProducts(rawItems) {
     insurance_value: Number(Number(product.preco || 0).toFixed(2)),
     quantity
   }));
+}
+
+function buildVolume(products) {
+  const width = Math.max(...products.map(product => Number(product.width)));
+  const length = Math.max(...products.map(product => Number(product.length)));
+  const height = products.reduce((total, product) => total + Number(product.height) * Number(product.quantity), 0);
+  const weight = products.reduce((total, product) => total + Number(product.weight) * Number(product.quantity), 0);
+  const insurance = products.reduce((total, product) => total + Number(product.insurance_value) * Number(product.quantity), 0);
+  return {
+    width: Number(width.toFixed(2)),
+    height: Number(height.toFixed(2)),
+    length: Number(length.toFixed(2)),
+    weight: Number(weight.toFixed(3)),
+    insurance: Number(insurance.toFixed(2))
+  };
 }
 
 async function callMelhorEnvio(pathname, body) {
@@ -178,6 +207,19 @@ function normalizeQuote(entry) {
   };
 }
 
+function normalizeQuotes(result) {
+  return (Array.isArray(result) ? result : [])
+    .map(normalizeQuote)
+    .filter(Boolean)
+    .sort((a, b) => a.price - b.price);
+}
+
+function providerErrors(result) {
+  return [...new Set((Array.isArray(result) ? result : [])
+    .map(entry => String(entry?.error || entry?.message || '').trim())
+    .filter(Boolean))].slice(0, 8);
+}
+
 async function quoteShipping({ postalCode, items }) {
   const destination = digits(postalCode).slice(0, 8);
   if (destination.length !== 8) {
@@ -186,23 +228,38 @@ async function quoteShipping({ postalCode, items }) {
     throw error;
   }
 
-  const payload = {
+  const products = buildProducts(items);
+  const productPayload = {
     from: { postal_code: originPostalCode() },
     to: { postal_code: destination },
-    products: buildProducts(items),
+    products,
     options: { receipt: false, own_hand: false }
   };
 
-  const result = await callMelhorEnvio('/api/v2/me/shipment/calculate', payload);
-  const quotes = (Array.isArray(result) ? result : [])
-    .map(normalizeQuote)
-    .filter(Boolean)
-    .sort((a, b) => a.price - b.price);
+  const productResult = await callMelhorEnvio('/api/v2/me/shipment/calculate', productPayload);
+  let quotes = normalizeQuotes(productResult);
+  let volumeResult = null;
+
+  // A API oficial aceita cotação por produtos ou por volumes. Alguns serviços
+  // do Sandbox recusam o empacotamento automático, mas aceitam o volume pronto.
+  if (!quotes.length) {
+    volumeResult = await callMelhorEnvio('/api/v2/me/shipment/calculate', {
+      from: { postal_code: originPostalCode() },
+      to: { postal_code: destination },
+      volumes: [buildVolume(products)],
+      options: { receipt: false, own_hand: false }
+    });
+    quotes = normalizeQuotes(volumeResult);
+  }
 
   if (!quotes.length) {
-    const error = new Error('Nenhuma opção de entrega ficou disponível para este CEP.');
+    const reasons = [...new Set([...providerErrors(productResult), ...providerErrors(volumeResult)])];
+    const error = new Error(envMode() === 'sandbox'
+      ? 'As transportadoras do ambiente de testes estão indisponíveis para esta cotação. Tente novamente em alguns minutos.'
+      : 'Nenhuma opção de entrega ficou disponível para este CEP.');
     error.status = 422;
     error.code = 'shipping_no_services';
+    error.data = { provider_errors: reasons };
     throw error;
   }
 
@@ -239,4 +296,3 @@ module.exports = {
   getShippingData,
   SHIPPING_PRODUCTS
 };
-
