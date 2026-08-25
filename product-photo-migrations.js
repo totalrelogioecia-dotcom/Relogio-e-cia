@@ -14,13 +14,20 @@ function writeJson(file, value) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2), 'utf8');
 }
 
-// Fotos oficiais hospedadas pela própria Casio.
-// Somente as referências que estavam com URL quebrada foram trocadas.
-// As demais URLs que já funcionavam permanecem exatamente como estavam.
+// URLs diretas das imagens oficiais da Casio.
+// Esta migração existe para restaurar os campos `fotos` que foram alterados
+// anteriormente para URLs locais de proxy. Não cria proxy nem muda o frontend.
 const OFFICIAL_PHOTOS = {
   'F-91W-1': [
     'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/F/F9/F91/F-91W-1/assets/F-91W-1_Seq1.png.transform/main-visual-sp/image.png',
     'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/F/F9/F91/F-91W-1/assets/F-91W-1_kv.jpg.transform/main-visual-sp/image.jpg'
+  ],
+  'A168WA-1': [
+    'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A16/A168WA-1/assets/A168WA-1_01.jpg.transform/main-visual-sp/image.jpg',
+    'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/A/A1/A16/A168WA-1/assets/A168WA-1_kv.jpg.transform/main-visual-sp/image.jpg'
+  ],
+  'EFV-620D-1A2V': [
+    'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/E/EF/EFV/efv-620d-1a2v/assets/EFV-620D-1A2VU.png.transform/main-visual-sp/image.png'
   ],
   'GPR-H1000-9': [
     'https://www.casio.com/content/dam/casio/product-info/locales/br/pt-br/timepiece/product/watch/G/GP/GPR/GPR-H1000-9/assets/GPR-H1000-9.png.transform/main-visual-sp/image.png'
@@ -95,15 +102,6 @@ function normalizeSku(value) {
   return String(value || '').trim().toUpperCase();
 }
 
-function isCasioHosted(value) {
-  try {
-    const u = new URL(String(value || ''));
-    return u.hostname === 'www.casio.com' && u.pathname.startsWith('/content/dam/casio/');
-  } catch {
-    return false;
-  }
-}
-
 function samePhotos(a, b) {
   return JSON.stringify(a || []) === JSON.stringify(b || []);
 }
@@ -114,7 +112,7 @@ function runProductPhotoMigrations() {
 
   let changed = 0;
   for (const product of products) {
-    // O produto Teste 5 não é alterado.
+    // O produto Teste 5 continua totalmente fora desta correção.
     if (String(product?.nome || '').trim().toLowerCase() === 'teste 5') continue;
 
     const sku = normalizeSku(product?.sku);
@@ -122,17 +120,18 @@ function runProductPhotoMigrations() {
     if (!photos || !photos.length) continue;
 
     const current = Array.isArray(product.fotos) ? product.fotos.filter(Boolean) : [];
-    const hasManualPhoto = current.some(url => !isCasioHosted(url));
-    if (hasManualPhoto) continue;
     if (samePhotos(current, photos)) continue;
 
+    // Substitui o conteúdo do campo `fotos` pela URL direta correta.
+    // Isso também remove URLs antigas como /api/casio-image?... gravadas no banco.
     product.fotos = [...photos];
+    if (product.foto) delete product.foto;
     changed += 1;
   }
 
   if (!changed) return false;
   writeJson(PRODUCTS, products);
-  console.log(`Migração aplicada: fotos oficiais sincronizadas em ${changed} produto(s) Casio/G-Shock.`);
+  console.log(`URLs diretas das fotos restauradas em ${changed} produto(s).`);
   return true;
 }
 
