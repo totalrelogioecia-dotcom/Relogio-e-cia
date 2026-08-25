@@ -8,7 +8,7 @@ const {
   closePersistentStore
 } = require('./persistent-store');
 const { runProductDataMigrations } = require('./product-data-migrations');
-const { runProductPhotoMigrations } = require('./product-photo-migrations');
+const { runAffectedProductRelaunch } = require('./relaunch-affected-products');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const USERS = path.join(DATA, 'users.json');
@@ -74,11 +74,11 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 (async () => {
   try {
     await initPersistentStore();
-    // As migrações rodam somente depois de o conteúdo persistido do PostgreSQL
-    // ser materializado nos arquivos locais; assim as correções chegam ao banco
-    // em vez de serem substituídas pelos dados antigos durante o boot.
+    // Primeiro normaliza os dados persistidos; depois remove e recria apenas os
+    // produtos que tiveram os cadastros de foto afetados. Não há proxy nem
+    // alteração global do catálogo.
     runProductDataMigrations();
-    runProductPhotoMigrations();
+    runAffectedProductRelaunch();
     await clearTestAccountsOnce();
     await flushPersistentStore();
     // Instala a proteção do painel antes do bootstrap de autenticação e antes
