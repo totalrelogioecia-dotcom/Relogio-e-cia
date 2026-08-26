@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Produtos — Relógio e Cia Relojoaria</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<meta name="description" content="Relógios e acessórios Technos, Casio, G-Shock, Citizen e Orient. Filtre por marca, categoria e preço.">
+<meta name="description" content="Relógios e acessórios Technos, Casio, G-Shock, Citizen e Orient. Filtre por marca, movimento, materiais, categoria e preço.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="site-search.css">
+<link rel="stylesheet" href="catalog-filters.css">
 </head>
 <body>
 
@@ -45,7 +46,7 @@
       <div class="section-content">
         <p class="eyebrow">Catálogo</p>
         <h1 style="font-family:var(--font-display); font-size:clamp(1.9rem,3.4vw,2.7rem); margin:0 0 10px; font-weight:700; letter-spacing:-.01em;">Relógios e acessórios</h1>
-        <p style="color:var(--ink-soft); max-width:56ch; margin:0 0 40px;">Use os filtros para encontrar o relógio ou acessório ideal por marca, categoria e faixa de preço.</p>
+        <p style="color:var(--ink-soft); max-width:62ch; margin:0 0 40px;">Use os filtros para encontrar o relógio ideal por marca, movimento, materiais, categoria e faixa de preço.</p>
 
         <div class="products-layout" style="padding-bottom:64px;">
           <aside class="filters">
@@ -65,8 +66,28 @@
               <legend>Categoria</legend>
               <label class="check-row"><input type="checkbox" name="categoria" value="Relógios"> Relógios <span class="count">0</span></label>
               <label class="check-row"><input type="checkbox" name="categoria" value="Pulseiras"> Pulseiras <span class="count">0</span></label>
-              <label class="check-row"><input type="checkbox" name="categoria" value="Pilhas"> Pilhas <span class="count">0</span></label>
               <label class="check-row"><input type="checkbox" name="categoria" value="Acessórios"> Acessórios <span class="count">0</span></label>
+            </fieldset>
+
+            <fieldset class="filter-group" style="border:none; margin:0;">
+              <legend>Movimento</legend>
+              <div id="filter-movement-options">
+                <span class="filter-options-loading">Carregando ficha técnica…</span>
+              </div>
+            </fieldset>
+
+            <fieldset class="filter-group" style="border:none; margin:0;">
+              <legend>Material da caixa</legend>
+              <div id="filter-case-options">
+                <span class="filter-options-loading">Carregando materiais…</span>
+              </div>
+            </fieldset>
+
+            <fieldset class="filter-group" style="border:none; margin:0;">
+              <legend>Material da pulseira</legend>
+              <div id="filter-strap-options">
+                <span class="filter-options-loading">Carregando materiais…</span>
+              </div>
             </fieldset>
 
             <fieldset class="filter-group" style="border:none; margin:0;">
@@ -157,6 +178,7 @@
 </div>
 
 <script src="script.js"></script>
+<script src="catalog-technical-filters.js"></script>
 <script src="catalog-product-links.js"></script>
 <script src="site-search.js"></script>
 <script>
