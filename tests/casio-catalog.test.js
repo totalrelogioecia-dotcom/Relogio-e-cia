@@ -46,3 +46,18 @@ test('produto sem estoque oferece cadastro de aviso de reposição', () => {
   assert.match(alertSource, /status: 'pending'/);
   assert.match(alertSource, /api\.resend\.com\/emails/);
 });
+
+test('filtro público separa tipo de mostrador do movimento e mantém aplicação manual', () => {
+  const page = readText('produtos.html');
+  const source = readText('catalog-technical-filters.js');
+
+  assert.match(page, /<legend>Tipo de mostrador<\/legend>/);
+  assert.match(page, /id="filter-display-options"/);
+  assert.match(source, /function displayTypeLabel/);
+  assert.match(source, /optionMarkup\('tipo-exibicao', 'Anadigi'/);
+  assert.match(source, /optionMarkup\('tipo-exibicao', 'Digital'/);
+  assert.match(source, /optionMarkup\('tipo-exibicao', 'Analógico'/);
+  assert.match(source, /exibicoes: checkedValues\('tipo-exibicao'\)/);
+  assert.match(source, /filters\.exibicoes\.includes\(info\.exibicao\)/);
+  assert.match(source, /id="apply-filters"|getElementById\('apply-filters'\)/);
+});
