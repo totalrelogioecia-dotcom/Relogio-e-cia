@@ -48,6 +48,7 @@ test('caixa automática não dispensa peso do produto', () => {
 test('painel carrega diagnóstico protegido e mostra frete incompleto', () => {
   const page = readText('admin.html');
   const client = readText('admin-store-health.js');
+  const styles = readText('admin-store-health.css');
   const bootstrap = readText('store-health-bootstrap.js');
   const pkg = JSON.parse(readText('package.json'));
 
@@ -55,6 +56,10 @@ test('painel carrega diagnóstico protegido e mostra frete incompleto', () => {
   assert.match(page, /Produtos com frete incompleto/);
   assert.match(client, /\/api\/admin\/store-health/);
   assert.match(client, /blocking_in_stock/);
+  assert.match(client, /setupShippingCollapse/);
+  assert.match(client, /store-health-shipping-toggle/);
+  assert.match(client, /table\.hidden = !nextExpanded/);
+  assert.match(styles, /\.store-health-shipping-toggle/);
   assert.match(bootstrap, /reloja_admin_session/);
   assert.match(bootstrap, /validAdminToken/);
   assert.match(pkg.scripts.start, /store-health-bootstrap\.js/);
