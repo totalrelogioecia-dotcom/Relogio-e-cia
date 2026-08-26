@@ -1,4 +1,4 @@
-/* Galeria da página de produto: alinhamento e visualizador de zoom. */
+/* Galeria da página de produto: alinhamento, enquadramento visual e zoom. */
 @media (min-width: 961px) {
   /* O topo da galeria acompanha o início do nome do produto. */
   .product-gallery {
@@ -8,6 +8,15 @@
 
 .product-main-photo.has-product-zoom {
   cursor: zoom-in;
+}
+
+/* O JS calcula o enquadramento a partir dos limites visuais do relógio.
+   Retiramos apenas o padding interno da imagem para que esse cálculo seja exato. */
+.product-main-photo.has-product-zoom > img {
+  padding: 0 !important;
+  transform-origin: center center;
+  transition: transform .28s ease;
+  will-change: transform;
 }
 
 .product-main-photo.has-product-zoom:focus-visible {
@@ -158,6 +167,12 @@ body.product-zoom-open {
 }
 
 @media (max-width: 960px) {
+  /* Em telas menores mantemos o enquadramento nativo para evitar cortes durante a rolagem. */
+  .product-main-photo.has-product-zoom > img {
+    transform: none !important;
+    padding: 18px !important;
+  }
+
   .product-zoom-hint {
     right: 10px;
     bottom: 10px;
