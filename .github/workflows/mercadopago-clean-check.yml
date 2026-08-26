@@ -30,6 +30,7 @@ jobs:
           node --check store-health.js
           node --check store-health-bootstrap.js
           node --check admin-store-health.js
+          node --check home-enhancements.js
           node --check mercadopago-clean.js
           node --check mercadopago-orders-pix.js
           node --check mercadopago-checkout-client.js
