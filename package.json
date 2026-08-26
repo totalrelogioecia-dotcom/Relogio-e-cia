@@ -4,8 +4,8 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node startup.js",
-    "dev": "node --watch startup.js",
+    "start": "node -r ./store-health-bootstrap.js startup.js",
+    "dev": "node --watch -r ./store-health-bootstrap.js startup.js",
     "test": "node --test tests/*.test.js"
   },
   "engines": {
