@@ -7,7 +7,7 @@
   const DETAILS_URL = '/api/product-details';
   let detailsMap = {};
   let observer = null;
-  let appliedTechnicalFilters = { movimentos: [], caixas: [], pulseiras: [] };
+  let appliedTechnicalFilters = { movimentos: [], exibicoes: [], caixas: [], pulseiras: [] };
   let appliedCoreFilters = null;
 
   function plain(value) {
@@ -52,6 +52,25 @@
     return '';
   }
 
+  function displayTypeLabel(product, details) {
+    /* Anadigi/analógico/digital descreve a forma de exibição, não o mecanismo.
+       Procuramos primeiro na ficha técnica e só depois em nome/descrição. */
+    const technical = fold(`${details?.tipo_exibicao || ''} ${details?.movimento || ''}`);
+
+    if (technical) {
+      if (/anadigi|ana[ -]?digi|digital.{0,18}analog|analog.{0,18}digital/.test(technical)) return 'Anadigi';
+      if (/\bdigital\b/.test(technical)) return 'Digital';
+      if (/analog/.test(technical)) return 'Analógico';
+    }
+
+    const fallback = fold(`${product?.nome || ''} ${product?.desc || ''}`);
+    if (/anadigi|ana[ -]?digi|digital.{0,18}analog|analog.{0,18}digital/.test(fallback)) return 'Anadigi';
+    if (/\bdigital\b/.test(fallback)) return 'Digital';
+    if (/analog/.test(fallback)) return 'Analógico';
+
+    return '';
+  }
+
   function materialLabel(value) {
     const raw = plain(value);
     const text = fold(raw);
@@ -74,6 +93,7 @@
     const details = detailsMap[String(product?.id)] || product?.detalhes || {};
     return {
       movimento: movementLabel(product, details),
+      exibicao: displayTypeLabel(product, details),
       caixa: materialLabel(details?.caixa_material),
       pulseira: materialLabel(details?.pulseira_material)
     };
@@ -86,6 +106,7 @@
   function activeTechnicalFilters() {
     return {
       movimentos: checkedValues('movimento'),
+      exibicoes: checkedValues('tipo-exibicao'),
       caixas: checkedValues('caixa-material'),
       pulseiras: checkedValues('pulseira-material')
     };
@@ -117,9 +138,10 @@
   function matchesTechnical(product, filters) {
     const info = productTechnical(product);
     const okMovement = !filters.movimentos.length || filters.movimentos.includes(info.movimento);
+    const okDisplay = !filters.exibicoes.length || filters.exibicoes.includes(info.exibicao);
     const okCase = !filters.caixas.length || filters.caixas.includes(info.caixa);
     const okStrap = !filters.pulseiras.length || filters.pulseiras.includes(info.pulseira);
-    return okMovement && okCase && okStrap;
+    return okMovement && okDisplay && okCase && okStrap;
   }
 
   function cardProductId(card) {
@@ -147,7 +169,7 @@
 
     const cards = Array.from(grid.querySelectorAll('.product-card'));
     const filters = appliedTechnicalFilters;
-    const hasTechnicalFilter = filters.movimentos.length || filters.caixas.length || filters.pulseiras.length;
+    const hasTechnicalFilter = filters.movimentos.length || filters.exibicoes.length || filters.caixas.length || filters.pulseiras.length;
     let visible = 0;
 
     cards.forEach(card => {
@@ -200,6 +222,17 @@
     ].join('');
   }
 
+  function renderDisplayOptions() {
+    const host = document.getElementById('filter-display-options');
+    if (!host) return;
+    const counts = technicalCounts('exibicao');
+    host.innerHTML = [
+      optionMarkup('tipo-exibicao', 'Anadigi', counts.get('Anadigi') || 0),
+      optionMarkup('tipo-exibicao', 'Digital', counts.get('Digital') || 0),
+      optionMarkup('tipo-exibicao', 'Analógico', counts.get('Analógico') || 0)
+    ].join('');
+  }
+
   function renderMaterialOptions(hostId, inputName, kind) {
     const host = document.getElementById(hostId);
     if (!host) return;
@@ -224,7 +257,7 @@
        links como produtos.html?marca=Casio e para o botão Aplicar. */
     panel.addEventListener('change', event => {
       if (!event.isTrusted) return;
-      if (event.target.matches('input[name="marca"], input[name="categoria"], input[name="movimento"], input[name="caixa-material"], input[name="pulseira-material"]')) {
+      if (event.target.matches('input[name="marca"], input[name="categoria"], input[name="movimento"], input[name="tipo-exibicao"], input[name="caixa-material"], input[name="pulseira-material"]')) {
         event.stopPropagation();
       }
     }, true);
@@ -281,9 +314,9 @@
     if (!reset || reset.dataset.technicalResetBound) return;
     reset.dataset.technicalResetBound = '1';
     reset.addEventListener('click', () => {
-      document.querySelectorAll('input[name="movimento"], input[name="caixa-material"], input[name="pulseira-material"]')
+      document.querySelectorAll('input[name="movimento"], input[name="tipo-exibicao"], input[name="caixa-material"], input[name="pulseira-material"]')
         .forEach(input => { input.checked = false; });
-      appliedTechnicalFilters = { movimentos: [], caixas: [], pulseiras: [] };
+      appliedTechnicalFilters = { movimentos: [], exibicoes: [], caixas: [], pulseiras: [] };
       appliedCoreFilters = readCoreFilters();
       window.setTimeout(applyTechnicalFilters, 0);
     });
@@ -325,13 +358,14 @@
     await waitForProducts();
 
     renderMovementOptions();
+    renderDisplayOptions();
     renderMaterialOptions('filter-case-options', 'caixa-material', 'caixa');
     renderMaterialOptions('filter-strap-options', 'pulseira-material', 'pulseira');
 
     /* Neste ponto o parâmetro ?marca=, se existir, já foi processado pelo
        script da página. Ele passa a ser o estado oficialmente aplicado. */
     appliedCoreFilters = readCoreFilters();
-    appliedTechnicalFilters = { movimentos: [], caixas: [], pulseiras: [] };
+    appliedTechnicalFilters = { movimentos: [], exibicoes: [], caixas: [], pulseiras: [] };
     applyTechnicalFilters();
   }
 
