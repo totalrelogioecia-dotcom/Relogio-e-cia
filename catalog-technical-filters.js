@@ -7,7 +7,7 @@
   const DETAILS_URL = '/api/product-details';
   let detailsMap = {};
   let observer = null;
-  let appliedTechnicalFilters = { movimentos: [], exibicoes: [], caixas: [], pulseiras: [] };
+  let appliedTechnicalFilters = { movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: [] };
   let appliedCoreFilters = null;
 
   function plain(value) {
@@ -71,6 +71,42 @@
     return '';
   }
 
+  function colorLabels(value) {
+    const raw = plain(value);
+    const text = fold(raw);
+    if (!text) return [];
+
+    const labels = [];
+    const add = label => {
+      if (!labels.includes(label)) labels.push(label);
+    };
+
+    if (/preto|black/.test(text)) add('Preto');
+    if (/branco|white/.test(text)) add('Branco');
+    if (/prata|silver/.test(text)) add('Prata');
+
+    /* Ouro rosé é tratado como Rosé, não como dourado comum. */
+    const roseGold = /ouro\s*rose|rose\s*gold|\brose\b/.test(text);
+    if (roseGold) add('Rosé');
+    else if (/dourad|\bgold\b/.test(text)) add('Dourado');
+
+    if (/azul|blue/.test(text)) add('Azul');
+    if (/verde|green/.test(text)) add('Verde');
+    if (/vermelh|\bred\b/.test(text)) add('Vermelho');
+    if (/amarel|yellow/.test(text)) add('Amarelo');
+    if (/laranj|orange/.test(text)) add('Laranja');
+    if (/marrom|castanh|brown/.test(text)) add('Marrom');
+    if (/cinza|grafite|gray|grey/.test(text)) add('Cinza');
+    if (/bege|beige/.test(text)) add('Bege');
+    if (/\brosa\b|pink/.test(text)) add('Rosa');
+    if (/roxo|violeta|purple|violet/.test(text)) add('Roxo');
+
+    /* Se a ficha usa uma cor não prevista, preservamos o texto cadastrado
+       para não descartar informação real nem inventar uma classificação. */
+    if (!labels.length) add(raw.length <= 28 ? raw : `${raw.slice(0, 25)}…`);
+    return labels;
+  }
+
   function materialLabel(value) {
     const raw = plain(value);
     const text = fold(raw);
@@ -94,6 +130,7 @@
     return {
       movimento: movementLabel(product, details),
       exibicao: displayTypeLabel(product, details),
+      cores: colorLabels(details?.cor),
       caixa: materialLabel(details?.caixa_material),
       pulseira: materialLabel(details?.pulseira_material)
     };
@@ -107,6 +144,7 @@
     return {
       movimentos: checkedValues('movimento'),
       exibicoes: checkedValues('tipo-exibicao'),
+      cores: checkedValues('cor'),
       caixas: checkedValues('caixa-material'),
       pulseiras: checkedValues('pulseira-material')
     };
@@ -139,9 +177,10 @@
     const info = productTechnical(product);
     const okMovement = !filters.movimentos.length || filters.movimentos.includes(info.movimento);
     const okDisplay = !filters.exibicoes.length || filters.exibicoes.includes(info.exibicao);
+    const okColor = !filters.cores.length || filters.cores.some(color => info.cores.includes(color));
     const okCase = !filters.caixas.length || filters.caixas.includes(info.caixa);
     const okStrap = !filters.pulseiras.length || filters.pulseiras.includes(info.pulseira);
-    return okMovement && okDisplay && okCase && okStrap;
+    return okMovement && okDisplay && okColor && okCase && okStrap;
   }
 
   function cardProductId(card) {
@@ -169,7 +208,7 @@
 
     const cards = Array.from(grid.querySelectorAll('.product-card'));
     const filters = appliedTechnicalFilters;
-    const hasTechnicalFilter = filters.movimentos.length || filters.exibicoes.length || filters.caixas.length || filters.pulseiras.length;
+    const hasTechnicalFilter = filters.movimentos.length || filters.exibicoes.length || filters.cores.length || filters.caixas.length || filters.pulseiras.length;
     let visible = 0;
 
     cards.forEach(card => {
@@ -205,9 +244,11 @@
     PRODUTOS
       .filter(product => product?.ativo !== false && String(product?.categoria || '') === 'Relógios')
       .forEach(product => {
-        const value = productTechnical(product)[kind];
-        if (!value) return;
-        map.set(value, (map.get(value) || 0) + 1);
+        const rawValue = productTechnical(product)[kind];
+        const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+        values.filter(Boolean).forEach(value => {
+          map.set(value, (map.get(value) || 0) + 1);
+        });
       });
     return map;
   }
@@ -231,6 +272,28 @@
       optionMarkup('tipo-exibicao', 'Digital', counts.get('Digital') || 0),
       optionMarkup('tipo-exibicao', 'Analógico', counts.get('Analógico') || 0)
     ].join('');
+  }
+
+  function renderColorOptions() {
+    const host = document.getElementById('filter-color-options');
+    if (!host) return;
+    const counts = technicalCounts('cores');
+    const preferred = ['Preto', 'Prata', 'Dourado', 'Rosé', 'Branco', 'Azul', 'Verde', 'Vermelho', 'Amarelo', 'Laranja', 'Cinza', 'Marrom', 'Bege', 'Rosa', 'Roxo'];
+    const values = Array.from(counts.keys()).sort((a, b) => {
+      const ai = preferred.indexOf(a);
+      const bi = preferred.indexOf(b);
+      if (ai >= 0 && bi >= 0) return ai - bi;
+      if (ai >= 0) return -1;
+      if (bi >= 0) return 1;
+      return a.localeCompare(b, 'pt-BR');
+    });
+
+    if (!values.length) {
+      host.innerHTML = '<span class="filter-options-empty">Sem cores cadastradas na ficha técnica.</span>';
+      return;
+    }
+
+    host.innerHTML = values.map(value => optionMarkup('cor', value, counts.get(value))).join('');
   }
 
   function renderMaterialOptions(hostId, inputName, kind) {
@@ -257,7 +320,7 @@
        links como produtos.html?marca=Casio e para o botão Aplicar. */
     panel.addEventListener('change', event => {
       if (!event.isTrusted) return;
-      if (event.target.matches('input[name="marca"], input[name="categoria"], input[name="movimento"], input[name="tipo-exibicao"], input[name="caixa-material"], input[name="pulseira-material"]')) {
+      if (event.target.matches('input[name="marca"], input[name="categoria"], input[name="movimento"], input[name="tipo-exibicao"], input[name="cor"], input[name="caixa-material"], input[name="pulseira-material"]')) {
         event.stopPropagation();
       }
     }, true);
@@ -314,9 +377,9 @@
     if (!reset || reset.dataset.technicalResetBound) return;
     reset.dataset.technicalResetBound = '1';
     reset.addEventListener('click', () => {
-      document.querySelectorAll('input[name="movimento"], input[name="tipo-exibicao"], input[name="caixa-material"], input[name="pulseira-material"]')
+      document.querySelectorAll('input[name="movimento"], input[name="tipo-exibicao"], input[name="cor"], input[name="caixa-material"], input[name="pulseira-material"]')
         .forEach(input => { input.checked = false; });
-      appliedTechnicalFilters = { movimentos: [], exibicoes: [], caixas: [], pulseiras: [] };
+      appliedTechnicalFilters = { movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: [] };
       appliedCoreFilters = readCoreFilters();
       window.setTimeout(applyTechnicalFilters, 0);
     });
@@ -359,13 +422,14 @@
 
     renderMovementOptions();
     renderDisplayOptions();
+    renderColorOptions();
     renderMaterialOptions('filter-case-options', 'caixa-material', 'caixa');
     renderMaterialOptions('filter-strap-options', 'pulseira-material', 'pulseira');
 
     /* Neste ponto o parâmetro ?marca=, se existir, já foi processado pelo
        script da página. Ele passa a ser o estado oficialmente aplicado. */
     appliedCoreFilters = readCoreFilters();
-    appliedTechnicalFilters = { movimentos: [], exibicoes: [], caixas: [], pulseiras: [] };
+    appliedTechnicalFilters = { movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: [] };
     applyTechnicalFilters();
   }
 
