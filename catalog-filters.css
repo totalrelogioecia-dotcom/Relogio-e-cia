@@ -38,7 +38,7 @@
 
 .filters .filter-apply-bar{
   display:grid;
-  gap:7px;
+  gap:8px;
 }
 
 .filter-apply-button{
@@ -62,8 +62,39 @@
 }
 
 .filters .filter-reset-button{
-  justify-self:start;
+  width:100%;
+  min-height:38px;
   margin:0;
+  padding:8px 12px;
+  border:1px solid var(--line-strong);
+  background:var(--bg);
+  color:var(--ink-soft);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  font-family:var(--font-mono);
+  font-size:.68rem;
+  font-weight:500;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  text-decoration:none;
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
+}
+
+.filters .filter-reset-button::before{
+  content:'↺';
+  font-size:.9rem;
+  line-height:1;
+}
+
+.filters .filter-reset-button:hover,
+.filters .filter-reset-button:focus-visible{
+  border-color:var(--ink);
+  background:var(--bg-soft);
+  color:var(--ink);
+  text-decoration:none;
 }
 
 .filters .filter-group{
