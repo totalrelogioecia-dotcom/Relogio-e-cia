@@ -14,9 +14,10 @@ test('perfis P M G têm as medidas definidas pela loja', () => {
   assert.deepEqual(BOX_PROFILES.G, { code: 'G', height: 24, width: 30, length: 30 });
 });
 
-test('Orient e Technos simples usam P automaticamente', () => {
+test('Orient, Technos simples e Casio usam P automaticamente', () => {
   assert.equal(defaultBoxSizeForProduct({ marca: 'Orient', categoria: 'Relógios' }), 'P');
   assert.equal(defaultBoxSizeForProduct({ marca: 'Technos', categoria: 'Relógios' }), 'P');
+  assert.equal(defaultBoxSizeForProduct({ marca: 'Casio', categoria: 'Relógios' }), 'P');
 });
 
 test('G-Shock e Citizen usam M automaticamente', () => {
@@ -25,7 +26,7 @@ test('G-Shock e Citizen usam M automaticamente', () => {
 });
 
 test('marca ainda não medida não recebe caixa automática', () => {
-  assert.equal(defaultBoxSizeForProduct({ marca: 'Casio', categoria: 'Relógios' }), '');
+  assert.equal(defaultBoxSizeForProduct({ marca: 'Outra marca', categoria: 'Relógios' }), '');
   assert.equal(defaultBoxSizeForProduct({ marca: 'Orient', categoria: 'Pulseiras' }), '');
 });
 
