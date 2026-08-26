@@ -6,6 +6,7 @@
   const token = () => localStorage.getItem(TOKEN_KEY) || '';
   let timer = null;
   let lastController = null;
+  let currentProducts = [];
 
   function esc(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -15,6 +16,15 @@
 
   function escAttr(value) {
     return esc(value).replace(/`/g, '&#96;');
+  }
+
+  function normalize(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
   }
 
   function ensureStyles() {
@@ -32,7 +42,7 @@
       .stock-catalog-product{display:flex;align-items:center;gap:10px}.stock-catalog-thumb{width:52px;height:52px;object-fit:contain;background:#fff;border:1px solid #e2e2e2;flex:0 0 auto}
       .stock-catalog-placeholder{padding:18px;border:1px dashed #ccc;background:#fff;color:#666;font-size:13px}
       .stock-catalog-badge{display:inline-block;padding:4px 7px;border:1px solid #cfcfcf;background:#fff;font-size:11px;white-space:nowrap}
-      .stock-catalog-badge.in{border-color:#83bd98;color:#087d3e}.stock-catalog-badge.base{border-color:#c9b77a;color:#786516}.stock-catalog-badge.hidden{border-color:#bbb;color:#666}
+      .stock-catalog-badge.in{border-color:#83bd98;color:#087d3e}.stock-catalog-badge.out{border-color:#d6a4a4;color:#9a2525}.stock-catalog-badge.hidden{border-color:#bbb;color:#666}
       .stock-catalog-counts{font-size:11px;color:#777;white-space:nowrap}
       @media(max-width:720px){.stock-catalog-head{display:block}.stock-catalog-counts{margin-top:8px}.stock-catalog-search{grid-template-columns:1fr}}
     `;
@@ -51,23 +61,22 @@
     box.innerHTML = `
       <div class="stock-catalog-head">
         <div>
-          <h3>Pesquisa de estoque e catálogo</h3>
-          <p>Pesquise por referência, nome ou marca. O catálogo base fica separado dos produtos da loja e carrega só resultados compactos, deixando o painel leve mesmo com muitos modelos.</p>
+          <h3>Pesquisa de estoque</h3>
+          <p>Pesquise os produtos cadastrados por referência, nome ou marca. Produtos sem estoque continuam pesquisáveis e produtos ocultos permanecem disponíveis para edição no painel.</p>
         </div>
         <div id="stock-catalog-counts" class="stock-catalog-counts"></div>
       </div>
       <div class="stock-catalog-search">
-        <input id="stock-catalog-query" type="search" autocomplete="off" placeholder="Ex.: GA-2100, W-218H, G-Shock...">
-        <select id="stock-catalog-filter" aria-label="Filtrar catálogo">
+        <input id="stock-catalog-query" type="search" autocomplete="off" placeholder="Ex.: GA-2100, Orient, Citizen...">
+        <select id="stock-catalog-filter" aria-label="Filtrar estoque">
           <option value="todos">Todos</option>
-          <option value="base">Catálogo base</option>
           <option value="em_estoque">Em estoque</option>
           <option value="sem_estoque">Sem estoque</option>
           <option value="oculto">Ocultos</option>
         </select>
       </div>
-      <div id="stock-catalog-status" class="stock-catalog-status">Digite pelo menos 2 caracteres para pesquisar.</div>
-      <div id="stock-catalog-results" class="stock-catalog-results"><div class="stock-catalog-placeholder">O catálogo base não é carregado inteiro no navegador. Só os resultados da sua busca aparecem aqui.</div></div>`;
+      <div id="stock-catalog-status" class="stock-catalog-status">Digite pelo menos 2 caracteres para pesquisar ou escolha um filtro.</div>
+      <div id="stock-catalog-results" class="stock-catalog-results"><div class="stock-catalog-placeholder">A pesquisa usa somente o estoque real da loja.</div></div>`;
     const editor = $('#product-editor');
     if (editor) editor.insertAdjacentElement('afterend', box);
     else toolbar.insertAdjacentElement('afterend', box);
@@ -83,32 +92,32 @@
     return headers;
   }
 
-  function statusLabel(item) {
-    if (item.status === 'em_estoque') return ['Em estoque', 'in'];
-    if (item.status === 'sem_estoque') return ['Sem estoque', 'hidden'];
-    if (item.status === 'oculto') return ['Oculto', 'hidden'];
-    return ['Catálogo base', 'base'];
+  function productStatus(product) {
+    if (product?.ativo === false) return 'oculto';
+    return Number(product?.estoque || 0) > 0 ? 'em_estoque' : 'sem_estoque';
+  }
+
+  function statusLabel(product) {
+    const status = productStatus(product);
+    if (status === 'em_estoque') return ['Em estoque', 'in'];
+    if (status === 'sem_estoque') return ['Sem estoque', 'out'];
+    return ['Oculto', 'hidden'];
   }
 
   function scheduleSearch() {
     clearTimeout(timer);
-    timer = setTimeout(() => runSearch(false), 260);
+    timer = setTimeout(() => runSearch(false), 220);
   }
 
   async function runSearch(force) {
-    const input = $('#stock-catalog-query');
-    const query = String(input?.value || '').trim();
+    const query = String($('#stock-catalog-query')?.value || '').trim();
     const filter = $('#stock-catalog-filter')?.value || 'todos';
     const status = $('#stock-catalog-status');
     const results = $('#stock-catalog-results');
 
     if (!force && query.length < 2) {
-      status.textContent = 'Digite pelo menos 2 caracteres para pesquisar.';
-      results.innerHTML = '<div class="stock-catalog-placeholder">O catálogo base não é carregado inteiro no navegador. Só os resultados da sua busca aparecem aqui.</div>';
-      return;
-    }
-    if (force && query.length < 2) {
-      status.textContent = 'Digite pelo menos 2 caracteres para usar esse filtro.';
+      status.textContent = 'Digite pelo menos 2 caracteres para pesquisar ou escolha um filtro.';
+      results.innerHTML = '<div class="stock-catalog-placeholder">A pesquisa usa somente o estoque real da loja.</div>';
       return;
     }
 
@@ -117,133 +126,73 @@
     status.textContent = 'Pesquisando...';
 
     try {
-      const params = new URLSearchParams({ q: query, status: filter, limit: '30' });
-      const response = await fetch(`/api/admin/catalog-base?${params}`, {
+      const response = await fetch('/api/admin/products', {
         cache: 'no-store', credentials: 'same-origin', signal: lastController.signal, headers: authHeaders()
       });
-      const data = await response.json().catch(() => ({}));
+      const products = await response.json().catch(() => []);
       if (response.status === 401) throw new Error('Sua sessão administrativa expirou. Entre novamente no painel.');
-      if (!response.ok) throw new Error(data.error || 'Não foi possível pesquisar o catálogo.');
-      render(data);
+      if (!response.ok || !Array.isArray(products)) throw new Error('Não foi possível pesquisar o estoque.');
+      currentProducts = products;
+
+      const q = normalize(query);
+      const compact = q.replace(/\s+/g, '');
+      const filtered = products.filter(product => {
+        const productState = productStatus(product);
+        if (filter !== 'todos' && productState !== filter) return false;
+        if (!q) return true;
+        const sku = String(product.sku || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const searchable = normalize(`${product.sku || ''} ${product.nome || ''} ${product.marca || ''}`);
+        return searchable.includes(q) || sku.includes(compact);
+      }).sort((a, b) => {
+        const aSku = String(a.sku || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const bSku = String(b.sku || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const exactA = compact && aSku === compact ? 1 : 0;
+        const exactB = compact && bSku === compact ? 1 : 0;
+        return exactB - exactA || String(a.marca || '').localeCompare(String(b.marca || ''), 'pt-BR') || String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR');
+      });
+
+      render(filtered.slice(0, 50), products.length, filtered.length);
     } catch (error) {
       if (error?.name === 'AbortError') return;
-      status.textContent = error.message || 'Não foi possível pesquisar o catálogo.';
+      status.textContent = error.message || 'Não foi possível pesquisar o estoque.';
       results.innerHTML = '<div class="stock-catalog-placeholder">Tente novamente.</div>';
     }
   }
 
-  function render(data) {
-    const items = Array.isArray(data.items) ? data.items : [];
+  function render(items, storeTotal, matchTotal) {
     const status = $('#stock-catalog-status');
     const results = $('#stock-catalog-results');
     const counts = $('#stock-catalog-counts');
-    const c = data.counts || {};
-    counts.textContent = `${Number(c.catalogo || 0)} no catálogo base · ${Number(c.loja || 0)} produtos da loja`;
-    status.textContent = `${Number(data.total || 0)} resultado(s). Mostrando até ${Number(data.limit || 30)} por pesquisa.`;
+    counts.textContent = `${Number(storeTotal || 0)} produtos cadastrados`;
+    status.textContent = `${Number(matchTotal || 0)} resultado(s). Mostrando até 50 por pesquisa.`;
 
     if (!items.length) {
-      results.innerHTML = '<div class="stock-catalog-placeholder">Nenhum modelo encontrado com esse filtro.</div>';
+      results.innerHTML = '<div class="stock-catalog-placeholder">Nenhum produto encontrado com esse filtro.</div>';
       return;
     }
 
-    results.innerHTML = `<table class="admin-table"><thead><tr><th>Modelo</th><th>Referência</th><th>Status</th><th>Estoque</th><th>Ações</th></tr></thead><tbody>${items.map(item => {
-      const [label, css] = statusLabel(item);
-      const action = item.product_id
-        ? `<button type="button" data-catalog-edit="${escAttr(item.product_id)}">Editar produto</button>`
-        : `<button type="button" data-catalog-add="${escAttr(item.sku)}">Adicionar ao estoque</button>`;
-      const photo = item.foto ? `<img class="stock-catalog-thumb" src="${escAttr(item.foto)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '';
-      return `<tr><td><div class="stock-catalog-product">${photo}<div><strong>${esc(item.nome || item.sku)}</strong><br><small>${esc(item.marca || '')}</small></div></div></td><td>${esc(item.sku)}</td><td><span class="stock-catalog-badge ${css}">${label}</span></td><td>${Number(item.estoque || 0)}</td><td><div class="admin-actions">${action}</div></td></tr>`;
+    results.innerHTML = `<table class="admin-table"><thead><tr><th>Produto</th><th>Referência</th><th>Status</th><th>Estoque</th><th>Ações</th></tr></thead><tbody>${items.map(product => {
+      const [label, css] = statusLabel(product);
+      const photoUrl = Array.isArray(product.fotos) ? product.fotos.find(Boolean) : product.foto;
+      const photo = photoUrl ? `<img class="stock-catalog-thumb" src="${escAttr(photoUrl)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '';
+      return `<tr><td><div class="stock-catalog-product">${photo}<div><strong>${esc(product.nome || product.sku)}</strong><br><small>${esc(product.marca || '')}</small></div></div></td><td>${esc(product.sku || '')}</td><td><span class="stock-catalog-badge ${css}">${label}</span></td><td>${Math.max(0,Number(product.estoque||0))}</td><td><div class="admin-actions"><button type="button" data-stock-edit="${escAttr(product.id)}">Editar produto</button></div></td></tr>`;
     }).join('')}</tbody></table>`;
   }
 
-  async function handleAction(event) {
-    const add = event.target.closest('[data-catalog-add]');
-    if (add) {
-      event.preventDefault();
-      await prepareBase(add.dataset.catalogAdd, add);
+  function handleAction(event) {
+    const edit = event.target.closest('[data-stock-edit]');
+    if (!edit) return;
+    event.preventDefault();
+    const id = String(edit.dataset.stockEdit || '');
+    const existing = document.querySelector(`#products-list [data-edit="${CSS.escape(id)}"]`);
+    if (existing) {
+      existing.click();
       return;
     }
-
-    const edit = event.target.closest('[data-catalog-edit]');
-    if (edit) {
-      event.preventDefault();
-      const existing = document.querySelector(`#products-list [data-edit="${CSS.escape(String(edit.dataset.catalogEdit))}"]`);
-      if (existing) {
-        existing.click();
-        return;
-      }
-      try {
-        const response = await fetch('/api/admin/products', { cache: 'no-store', credentials: 'same-origin', headers: authHeaders() });
-        const products = await response.json().catch(() => []);
-        const product = Array.isArray(products) ? products.find(p => String(p.id) === String(edit.dataset.catalogEdit)) : null;
-        if (product && typeof window.fill === 'function') window.fill(product);
-      } catch {}
-    }
-  }
-
-  function clearShipping() {
-    ['shipping-weight', 'shipping-width', 'shipping-height', 'shipping-length'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-  }
-
-  function setDetails(details) {
-    const keys = ['movimento','caixa_material','pulseira_material','cor','diametro','resistencia_agua','vidro','garantia','conteudo_embalagem'];
-    keys.forEach(key => {
-      const el = document.getElementById(`pd-${key}`);
-      if (el) el.value = String(details?.[key] || '');
-    });
-  }
-
-  async function prepareBase(sku, button) {
-    const old = button.textContent;
-    button.disabled = true;
-    button.textContent = 'Abrindo...';
-    try {
-      const response = await fetch(`/api/admin/catalog-base/${encodeURIComponent(sku)}`, {
-        cache: 'no-store', credentials: 'same-origin', headers: authHeaders()
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Não foi possível abrir esse modelo.');
-      const item = data.item;
-      if (!item) throw new Error('Modelo não encontrado no catálogo base.');
-
-      if (typeof window.resetPhotos === 'function') window.resetPhotos();
-      if (typeof window.fill === 'function') window.fill();
-
-      $('#p-id').value = '';
-      $('#p-nome').value = item.nome || item.sku || '';
-      $('#p-marca').value = item.marca || '';
-      $('#p-categoria').value = item.categoria || 'Relógios';
-      $('#p-sku').value = item.sku || '';
-      $('#p-preco').value = '';
-      $('#p-estoque').value = '0';
-      $('#p-desc').value = item.desc || '';
-      $('#p-ativo').checked = false;
-      $('#editor-title').textContent = 'Adicionar modelo ao estoque';
-      if ($('#p-fotos')) $('#p-fotos').value = '';
-      if (typeof window.setPhotos === 'function') window.setPhotos(Array.isArray(item.fotos) ? item.fotos : []);
-      setDetails(item.detalhes || {});
-      clearShipping();
-
-      const editor = $('#product-editor');
-      if (editor) editor.style.display = 'block';
-      const adminMsg = $('#admin-msg');
-      if (adminMsg) {
-        adminMsg.className = 'form-success';
-        adminMsg.textContent = 'Modelo carregado do catálogo base. Informe preço, quantidade e dados de frete; ative a visibilidade somente quando estiver pronto para vender.';
-        adminMsg.style.display = 'block';
-      }
-      if (editor) editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      else window.scrollTo({ top: 0, behavior: 'smooth' });
-      window.setTimeout(() => $('#p-preco')?.focus({ preventScroll: true }), 450);
-    } catch (error) {
-      const status = $('#stock-catalog-status');
-      if (status) status.textContent = error.message || 'Não foi possível abrir esse modelo.';
-    } finally {
-      button.disabled = false;
-      button.textContent = old;
+    const product = currentProducts.find(item => String(item.id) === id);
+    if (product && typeof window.fill === 'function') {
+      window.fill(product);
+      document.getElementById('product-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
