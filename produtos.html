@@ -52,6 +52,11 @@
           <aside class="filters">
             <h3>Filtrar</h3>
 
+            <div class="filter-apply-bar">
+              <button type="button" class="filter-apply-button" id="apply-filters">Aplicar filtros</button>
+              <button type="button" class="reset-link filter-reset-button" id="reset-filtros">Limpar filtros</button>
+            </div>
+
             <fieldset class="filter-group" style="border:none; margin:0;">
               <legend>Marca</legend>
               <label class="check-row"><input type="checkbox" name="marca" value="Technos"> Technos <span class="count">0</span></label>
@@ -98,8 +103,6 @@
                 <input type="number" id="preco-max" placeholder="Máx." min="0">
               </div>
             </fieldset>
-
-            <button type="button" class="reset-link" id="reset-filtros">Limpar filtros</button>
           </aside>
 
           <div>
