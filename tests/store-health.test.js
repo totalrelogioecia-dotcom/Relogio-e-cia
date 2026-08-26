@@ -21,15 +21,17 @@ test('G-Shock com peso usa caixa M automática e fica pronto para frete', () => 
   assert.deepEqual(result.dimensions, { width_cm: 15, height_cm: 12, length_cm: 15 });
 });
 
-test('Casio sem caixa exige dimensões manuais além do peso', () => {
+test('Casio com peso usa caixa P automática e fica pronto para frete', () => {
   const result = buildProductShippingDiagnostic(
     { id: 2, nome: 'Casio Teste', marca: 'Casio', categoria: 'Relógios', estoque: 1, ativo: true },
     { weight_kg: 0.25 }
   );
 
-  assert.equal(result.ready, false);
-  assert.equal(result.box_size, null);
-  assert.deepEqual(result.missing, ['largura', 'altura', 'comprimento']);
+  assert.equal(result.ready, true);
+  assert.equal(result.box_size, 'P');
+  assert.equal(result.box_source, 'automática');
+  assert.deepEqual(result.missing, []);
+  assert.deepEqual(result.dimensions, { width_cm: 12, height_cm: 10, length_cm: 12 });
 });
 
 test('caixa automática não dispensa peso do produto', () => {
@@ -56,4 +58,13 @@ test('painel carrega diagnóstico protegido e mostra frete incompleto', () => {
   assert.match(bootstrap, /reloja_admin_session/);
   assert.match(bootstrap, /validAdminToken/);
   assert.match(pkg.scripts.start, /store-health-bootstrap\.js/);
+});
+
+test('startup zera todo o estoque uma única vez e preserva alterações futuras', () => {
+  const source = readText('startup.js');
+  assert.match(source, /async function zeroAllProductStockOnce\(\)/);
+  assert.match(source, /zero_all_product_stock_2026_08_26/);
+  assert.match(source, /return \{ \.\.\.product, estoque: 0 \}/);
+  assert.match(source, /if \(state\?\.\[markerKey\]\?\.completed\) return/);
+  assert.match(source, /await zeroAllProductStockOnce\(\)/);
 });
