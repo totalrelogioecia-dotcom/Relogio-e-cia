@@ -6,6 +6,7 @@ const {
   quoteShipping,
   SHIPPING_PRODUCTS
 } = require('./shipping-service');
+const { normalizeBoxSize } = require('./shipping-packaging');
 
 const quoteAttempts = new Map();
 
@@ -89,6 +90,7 @@ function normalizeShippingInput(body) {
     width_cm: width,
     height_cm: height,
     length_cm: length,
+    box_size: normalizeBoxSize(body?.box_size),
     updated_at: new Date().toISOString()
   };
 }
