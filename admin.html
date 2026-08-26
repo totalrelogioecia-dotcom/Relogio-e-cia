@@ -4,7 +4,7 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel administrativo — Relógio e Cia</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="admin-photo-order.css"><link rel="stylesheet" href="admin-payment-reasons.css"><link rel="stylesheet" href="admin-shipping.css"><link rel="stylesheet" href="admin-melhorenvio.css"><link rel="stylesheet" href="admin-coupons.css">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="admin-photo-order.css"><link rel="stylesheet" href="admin-store-health.css"><link rel="stylesheet" href="admin-payment-reasons.css"><link rel="stylesheet" href="admin-shipping.css"><link rel="stylesheet" href="admin-melhorenvio.css"><link rel="stylesheet" href="admin-coupons.css">
 </head><body class="admin-page">
 <header class="site-header"><nav class="nav"><a href="index.html" class="brand-mark"><img class="brand-symbol" src="assets/logo-relogio-cia-mark.svg?v=balance-3" alt=""><span class="word">Relógio e Cia<small>Painel administrativo</small></span></a><a href="index.html" class="nav-cta">Ver loja</a></nav></header>
 <main class="admin-main">
@@ -18,6 +18,19 @@
 <section id="dashboard" style="display:none">
 <div class="admin-head"><div><p class="eyebrow">Controle da loja</p><h1>Painel administrativo</h1></div><button id="logout-btn" class="btn btn-outline">Sair</button></div>
 <div id="admin-msg" class="form-success" style="display:none"></div>
+<section id="store-health-panel" class="admin-card store-health-panel" aria-labelledby="store-health-title">
+  <div class="store-health-head">
+    <div><p class="eyebrow">Pré-venda</p><h2 id="store-health-title">Status da loja</h2><p class="admin-muted">Diagnóstico somente de leitura. Ele não altera produtos, pesos, caixas, pagamentos ou estoque.</p></div>
+    <div class="store-health-refresh"><span id="store-health-refreshed" class="store-health-refreshed">Aguardando verificação</span><button id="refresh-store-health" type="button" class="btn btn-outline">Verificar novamente</button></div>
+  </div>
+  <div id="store-health-warnings" class="store-health-banner"><strong>Carregando diagnóstico...</strong></div>
+  <div id="store-health-cards" class="store-health-cards"></div>
+  <div class="store-health-shipping">
+    <h3>Produtos com frete incompleto</h3>
+    <p id="store-health-shipping-summary" class="store-health-summary">Verificando produtos visíveis...</p>
+    <div id="store-health-shipping-table" class="admin-table-wrap"></div>
+  </div>
+</section>
 <div class="admin-tabs"><button class="active" data-tab="produtos">📦 Produtos</button><button data-tab="pedidos">🛒 Pedidos</button><button data-tab="cupons">🎟️ Cupons</button><button data-tab="trocas">↩️ Trocas/Estornos</button></div>
 <div id="tab-produtos">
 <div class="admin-toolbar"><h2>Produtos</h2><button id="novo-produto" class="btn btn-primary">+ Novo produto</button></div>
@@ -76,4 +89,4 @@
   <div id="return-requests-list" class="admin-table-wrap"></div>
 </div>
 </section>
-</main><script src="admin-shipping.js"></script><script src="admin-product-details.js"></script><script src="admin.js"></script><script src="admin-photo-order.js"></script><script src="admin-stock-catalog.js"></script><script src="admin-customer-documents.js"></script><script src="admin-payment-reasons.js"></script><script src="admin-order-sync.js"></script><script src="admin-melhorenvio.js"></script><script src="admin-coupons.js"></script><script src="admin-returns.js"></script></body></html>
+</main><script src="admin-shipping.js"></script><script src="admin-product-details.js"></script><script src="admin.js"></script><script src="admin-photo-order.js"></script><script src="admin-store-health.js"></script><script src="admin-stock-catalog.js"></script><script src="admin-customer-documents.js"></script><script src="admin-payment-reasons.js"></script><script src="admin-order-sync.js"></script><script src="admin-melhorenvio.js"></script><script src="admin-coupons.js"></script><script src="admin-returns.js"></script></body></html>
