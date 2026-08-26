@@ -29,6 +29,13 @@
   }
 }
 
+/* O CSS principal define .product-card como display:flex.
+   Sem esta regra, o atributo hidden aplicado pelos filtros fica visualmente
+   anulado e os cards continuam aparecendo mesmo quando a contagem é zero. */
+.product-grid > .product-card[hidden]{
+  display:none!important;
+}
+
 .filters .filter-apply-bar{
   display:grid;
   gap:7px;
