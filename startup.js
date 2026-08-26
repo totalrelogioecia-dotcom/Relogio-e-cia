@@ -199,6 +199,53 @@ function correctImportedCatalogReleaseOnce() {
   });
 }
 
+async function zeroAllProductStockOnce() {
+  const state = readJson(ACCOUNT_RESET, {});
+  const markerKey = 'zero_all_product_stock_2026_08_26';
+  if (state?.[markerKey]?.completed) return;
+
+  const products = readJson(PRODUCTS, []);
+  if (!Array.isArray(products)) throw new Error('products.json inválido durante o zeramento de estoque.');
+
+  const previousStock = [];
+  let changedProducts = 0;
+  let previousTotalStock = 0;
+
+  const zeroedProducts = products.map(product => {
+    const stock = Math.max(0, Number(product?.estoque) || 0);
+    previousTotalStock += stock;
+    previousStock.push({
+      id: Number(product?.id) || null,
+      sku: String(product?.sku || '').trim(),
+      estoque: stock
+    });
+    if (stock > 0) changedProducts += 1;
+    return { ...product, estoque: 0 };
+  });
+
+  const completedAt = new Date().toISOString();
+  writeJson(PRODUCTS, zeroedProducts);
+  writeJson(ACCOUNT_RESET, {
+    ...state,
+    [markerKey]: {
+      completed: true,
+      changed_products: changedProducts,
+      total_products: zeroedProducts.length,
+      previous_total_stock: previousTotalStock,
+      previous_stock: previousStock,
+      reason: 'Bloquear compras enquanto frete e checkout são validados',
+      completed_at: completedAt
+    }
+  });
+
+  await flushPersistentStore();
+  console.log('Estoque de todos os produtos zerado uma única vez.', {
+    produtos_alterados: changedProducts,
+    produtos_totais: zeroedProducts.length,
+    estoque_anterior_total: previousTotalStock
+  });
+}
+
 async function clearTestAccountsOnce() {
   const marker = readJson(ACCOUNT_RESET, {});
   if (marker?.completed) return;
@@ -255,6 +302,10 @@ process.on('SIGINT', () => shutdown('SIGINT'));
     // Corrige a alteração anterior: somente os relógios que vieram do antigo
     // estoque-base recebem preço R$ 500 e passam a ficar visíveis.
     correctImportedCatalogReleaseOnce();
+    // Medida temporária de segurança: zera o estoque atual uma única vez para
+    // impedir compras enquanto frete e checkout são validados. Depois deste
+    // marcador, qualquer estoque recolocado manualmente no Admin é preservado.
+    await zeroAllProductStockOnce();
     await clearTestAccountsOnce();
     await flushPersistentStore();
     // Instala a proteção do painel antes do bootstrap de autenticação e antes
