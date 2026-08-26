@@ -61,3 +61,16 @@ test('filtro público separa tipo de mostrador do movimento e mantém aplicaçã
   assert.match(source, /filters\.exibicoes\.includes\(info\.exibicao\)/);
   assert.match(source, /id="apply-filters"|getElementById\('apply-filters'\)/);
 });
+
+test('filtro público usa cor da ficha técnica e aceita relógios bicolores', () => {
+  const page = readText('produtos.html');
+  const source = readText('catalog-technical-filters.js');
+
+  assert.match(page, /<legend>Cor<\/legend>/);
+  assert.match(page, /id="filter-color-options"/);
+  assert.match(source, /function colorLabels/);
+  assert.match(source, /cores: checkedValues\('cor'\)/);
+  assert.match(source, /filters\.cores\.some\(color => info\.cores\.includes\(color\)\)/);
+  assert.match(source, /renderColorOptions\(\)/);
+  assert.match(source, /details\?\.cor/);
+});
