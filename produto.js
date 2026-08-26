@@ -51,17 +51,23 @@
           <div class="product-price">${money(p.preco)}</div>
           <div class="product-pix">${money(pix)} no PIX com 5% de desconto</div>
           <div class="product-installments">ou em até <strong>${installmentCount}x de ${money(installmentValue)}</strong> no cartão</div>
-          <div class="product-payment-note">Condições e eventuais juros são informados pelo Mercado Pago no checkout.</div>
-          <div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Produto indisponível no momento'}</div>
+          <div class="product-payment-note">Condições e eventuais juros são informados pelo Mercado Pago no checkout. Parcelas com valor mínimo de R$ 50.</div>
+          <div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Esse produto encontra-se indisponível.'}</div>
+          ${stock<=0?`<form class="stock-alert-box" id="stock-alert-form">
+            <label for="stock-alert-email"><strong>Deixe seu e-mail que avisaremos quando chegar.</strong></label>
+            <div class="stock-alert-fields"><input id="stock-alert-email" name="email" type="email" autocomplete="email" maxlength="180" placeholder="seuemail@exemplo.com" required><button class="btn btn-primary" type="submit">Avise-me</button></div>
+            <p class="stock-alert-privacy">Usaremos este e-mail somente para avisar sobre a reposição deste produto. O aviso não reserva a unidade.</p>
+            <div class="stock-alert-message" id="stock-alert-message" aria-live="polite"></div>
+          </form>`:''}
           <div class="product-actions-main">
-            <button class="btn btn-primary" type="button" id="product-add" ${stock<=0?'disabled':''}>Adicionar ao carrinho</button>
+            <button class="btn btn-primary" type="button" id="product-add" ${stock<=0?'disabled':''}>${stock<=0?'Indisponível':'Adicionar ao carrinho'}</button>
             <a class="btn btn-outline" href="https://wa.me/555196311864?text=${encodeURIComponent('Olá! Tenho interesse no '+p.nome+' (Ref. '+p.sku+').')}" target="_blank" rel="noopener">Falar com a loja</a>
           </div>
-          <div class="product-shipping">
+          ${stock>0?`<div class="product-shipping">
             <h3>Calcule a entrega</h3><p>Veja preços e prazos para o seu CEP antes de adicionar o produto ao pedido.</p>
             <div class="product-shipping-form"><input id="product-cep" inputmode="numeric" maxlength="9" placeholder="00000-000" aria-label="CEP"><button class="btn btn-outline" id="product-calc-shipping" type="button">Calcular</button></div>
             <div class="product-shipping-result" id="product-shipping-result"></div>
-          </div>
+          </div>`:''}
           <div class="product-trust">
             <div><strong>Produto original</strong><span>Procedência e autenticidade.</span></div>
             <div><strong>Pagamento seguro</strong><span>Processado pelo Mercado Pago.</span></div>
@@ -80,11 +86,42 @@
       root.querySelectorAll('.product-thumb').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
     }));
     const add=document.getElementById('product-add');
-    if(add)add.onclick=()=>{adicionarAoCarrinho(p.id);add.textContent='Adicionado ✓';setTimeout(()=>add.textContent='Adicionar ao carrinho',1300)};
+    if(add&&stock>0)add.onclick=()=>{adicionarAoCarrinho(p.id);add.textContent='Adicionado ✓';setTimeout(()=>add.textContent='Adicionar ao carrinho',1300)};
+    const alertForm=document.getElementById('stock-alert-form');
+    if(alertForm)alertForm.addEventListener('submit',event=>cadastrarAviso(event,p));
     const cep=document.getElementById('product-cep');
     if(cep)cep.addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,8);e.target.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v});
     const calc=document.getElementById('product-calc-shipping');
     if(calc)calc.onclick=()=>calcularFrete(p);
+  }
+
+  async function cadastrarAviso(event,p){
+    event.preventDefault();
+    const form=event.currentTarget;
+    const input=form.querySelector('#stock-alert-email');
+    const button=form.querySelector('button[type="submit"]');
+    const message=form.querySelector('#stock-alert-message');
+    const email=String(input?.value||'').trim();
+    if(!email){message.textContent='Informe seu e-mail.';message.className='stock-alert-message error';return}
+    const old=button.textContent;
+    button.disabled=true;
+    button.textContent='Cadastrando...';
+    message.textContent='';
+    message.className='stock-alert-message';
+    try{
+      const response=await fetch('/api/stock-alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product_id:p.id,email})});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||'Não foi possível cadastrar o aviso.');
+      message.textContent=data.message||'Pronto. Avisaremos quando este produto voltar ao estoque.';
+      message.className='stock-alert-message success';
+      input.disabled=true;
+      button.textContent='Aviso cadastrado ✓';
+    }catch(error){
+      message.textContent=error.message||'Não foi possível cadastrar o aviso.';
+      message.className='stock-alert-message error';
+      button.disabled=false;
+      button.textContent=old;
+    }
   }
 
   async function calcularFrete(p){
