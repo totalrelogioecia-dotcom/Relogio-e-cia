@@ -1,11 +1,14 @@
 /* =========================================================
    RELÓGIO E CIA — filtros técnicos do catálogo
    Complementa marca/categoria/preço sem alterar script.js.
+   Os filtros só são efetivados ao clicar em "Aplicar filtros".
    ========================================================= */
 (function () {
   const DETAILS_URL = '/api/product-details';
   let detailsMap = {};
   let observer = null;
+  let appliedTechnicalFilters = { movimentos: [], caixas: [], pulseiras: [] };
+  let appliedCoreFilters = null;
 
   function plain(value) {
     return String(value || '').trim();
@@ -19,14 +22,33 @@
   }
 
   function movementLabel(product, details) {
-    const text = fold([
-      details?.movimento,
-      product?.nome,
-      product?.desc
-    ].filter(Boolean).join(' '));
+    const technical = fold(details?.movimento);
 
-    if (/automatic|mecan|self[ -]?winding/.test(text)) return 'Automático';
-    if (/quartz|quartzo|digital|solar|eco[ -]?drive|bateria|pilha/.test(text)) return 'Quartz';
+    /* A ficha técnica tem prioridade. Não usamos a palavra solta
+       "automático" da descrição porque ela também aparece em frases
+       como "calendário automático", o que não define o movimento. */
+    if (technical) {
+      if (/automatic[oa]?|mecan|self[ -]?winding/.test(technical)) return 'Automático';
+      if (/quartz|quartzo|digital|solar|eco[ -]?drive|bateria|pilha/.test(technical)) return 'Quartz';
+    }
+
+    const name = fold(product?.nome);
+    const description = fold(product?.desc);
+    const fallback = `${name} ${description}`;
+
+    if (/movimento\s+(automatic[oa]?|mecan)|relogio\s+(automatic[oa]?|mecan)|automatic\s+movement|mechanical\s+movement|self[ -]?winding/.test(fallback)) {
+      return 'Automático';
+    }
+
+    if (/quartz|quartzo|digital|movimento\s+solar|eco[ -]?drive|bateria|pilha/.test(fallback)) {
+      return 'Quartz';
+    }
+
+    /* Casio e G-Shock do catálogo atual são eletrônicos/quartz.
+       Esta regra só entra quando a ficha técnica ainda não informa o tipo. */
+    const brand = fold(product?.marca).replace(/\s+/g, '-');
+    if (brand === 'casio' || brand === 'g-shock') return 'Quartz';
+
     return '';
   }
 
@@ -69,6 +91,29 @@
     };
   }
 
+  function readCoreFilters() {
+    return {
+      marcas: checkedValues('marca'),
+      categorias: checkedValues('categoria'),
+      min: document.getElementById('preco-min')?.value || '',
+      max: document.getElementById('preco-max')?.value || ''
+    };
+  }
+
+  function writeCoreFilters(filters) {
+    if (!filters) return;
+    document.querySelectorAll('input[name="marca"]').forEach(input => {
+      input.checked = filters.marcas.includes(input.value);
+    });
+    document.querySelectorAll('input[name="categoria"]').forEach(input => {
+      input.checked = filters.categorias.includes(input.value);
+    });
+    const min = document.getElementById('preco-min');
+    const max = document.getElementById('preco-max');
+    if (min) min.value = filters.min;
+    if (max) max.value = filters.max;
+  }
+
   function matchesTechnical(product, filters) {
     const info = productTechnical(product);
     const okMovement = !filters.movimentos.length || filters.movimentos.includes(info.movimento);
@@ -101,7 +146,7 @@
     if (!grid || typeof PRODUTOS === 'undefined') return;
 
     const cards = Array.from(grid.querySelectorAll('.product-card'));
-    const filters = activeTechnicalFilters();
+    const filters = appliedTechnicalFilters;
     const hasTechnicalFilter = filters.movimentos.length || filters.caixas.length || filters.pulseiras.length;
     let visible = 0;
 
@@ -169,13 +214,66 @@
     host.innerHTML = values.map(value => optionMarkup(inputName, value, counts.get(value))).join('');
   }
 
-  function bindTechnicalInputs() {
-    document.querySelectorAll('input[name="movimento"], input[name="caixa-material"], input[name="pulseira-material"]')
-      .forEach(input => {
-        if (input.dataset.technicalBound) return;
-        input.dataset.technicalBound = '1';
-        input.addEventListener('change', applyTechnicalFilters);
-      });
+  function bindManualMode() {
+    const panel = document.querySelector('.filters');
+    if (!panel || panel.dataset.manualFiltersBound) return;
+    panel.dataset.manualFiltersBound = '1';
+
+    /* Impede os listeners antigos de aplicar os filtros enquanto o usuário
+       apenas marca as opções. Eventos sintéticos continuam liberados para
+       links como produtos.html?marca=Casio e para o botão Aplicar. */
+    panel.addEventListener('change', event => {
+      if (!event.isTrusted) return;
+      if (event.target.matches('input[name="marca"], input[name="categoria"], input[name="movimento"], input[name="caixa-material"], input[name="pulseira-material"]')) {
+        event.stopPropagation();
+      }
+    }, true);
+
+    panel.addEventListener('input', event => {
+      if (!event.isTrusted) return;
+      if (event.target.matches('#preco-min, #preco-max')) event.stopPropagation();
+    }, true);
+  }
+
+  function triggerCoreFilterRender() {
+    const trigger = document.querySelector('input[name="marca"], input[name="categoria"]');
+    if (trigger) {
+      trigger.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    }
+    return false;
+  }
+
+  function bindApplyButton() {
+    const button = document.getElementById('apply-filters');
+    if (!button || button.dataset.applyBound) return;
+    button.dataset.applyBound = '1';
+
+    button.addEventListener('click', () => {
+      appliedCoreFilters = readCoreFilters();
+      appliedTechnicalFilters = activeTechnicalFilters();
+      triggerCoreFilterRender();
+      window.setTimeout(applyTechnicalFilters, 0);
+
+      const original = 'Aplicar filtros';
+      button.textContent = 'Filtros aplicados ✓';
+      window.setTimeout(() => { button.textContent = original; }, 1200);
+    });
+  }
+
+  function bindSortProtection() {
+    const sort = document.getElementById('ordenar');
+    if (!sort || sort.dataset.manualProtectionBound) return;
+    sort.dataset.manualProtectionBound = '1';
+
+    /* Ordenar continua imediato, mas não deve aplicar marca/preço que ainda
+       estão apenas marcados e aguardando o botão Aplicar. */
+    sort.addEventListener('change', event => {
+      if (!event.isTrusted || !appliedCoreFilters) return;
+      const pending = readCoreFilters();
+      writeCoreFilters(appliedCoreFilters);
+      queueMicrotask(() => writeCoreFilters(pending));
+    }, true);
   }
 
   function patchResetButton() {
@@ -185,6 +283,8 @@
     reset.addEventListener('click', () => {
       document.querySelectorAll('input[name="movimento"], input[name="caixa-material"], input[name="pulseira-material"]')
         .forEach(input => { input.checked = false; });
+      appliedTechnicalFilters = { movimentos: [], caixas: [], pulseiras: [] };
+      appliedCoreFilters = readCoreFilters();
       window.setTimeout(applyTechnicalFilters, 0);
     });
   }
@@ -210,6 +310,9 @@
   async function init() {
     if (!document.getElementById('product-grid')) return;
 
+    bindManualMode();
+    bindApplyButton();
+    bindSortProtection();
     watchGrid();
     patchResetButton();
     detailsMap = await loadDetails();
@@ -224,7 +327,11 @@
     renderMovementOptions();
     renderMaterialOptions('filter-case-options', 'caixa-material', 'caixa');
     renderMaterialOptions('filter-strap-options', 'pulseira-material', 'pulseira');
-    bindTechnicalInputs();
+
+    /* Neste ponto o parâmetro ?marca=, se existir, já foi processado pelo
+       script da página. Ele passa a ser o estado oficialmente aplicado. */
+    appliedCoreFilters = readCoreFilters();
+    appliedTechnicalFilters = { movimentos: [], caixas: [], pulseiras: [] };
     applyTechnicalFilters();
   }
 
