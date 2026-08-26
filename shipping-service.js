@@ -7,6 +7,11 @@ const {
   getAccessToken,
   status: authStatus
 } = require('./melhorenvio-auth');
+const {
+  boxSizeForProduct,
+  dimensionsForBox,
+  orderBoxSize
+} = require('./shipping-packaging');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
@@ -57,18 +62,28 @@ function getShippingData(productId) {
     weight: num(data.weight_kg),
     width: num(data.width_cm),
     height: num(data.height_cm),
-    length: num(data.length_cm)
+    length: num(data.length_cm),
+    box_size: String(data.box_size || '').trim().toUpperCase()
   };
 }
 
-function validateShippingData(product, data) {
-  const fields = [
-    ['peso', data.weight],
-    ['largura', data.width],
-    ['altura', data.height],
-    ['comprimento', data.length]
-  ];
-  const missing = fields.filter(([, value]) => !Number.isFinite(value) || value <= 0).map(([name]) => name);
+function validateShippingData(product, data, automaticBoxSize = '') {
+  const fields = [['peso', data.weight]];
+
+  // Quando há uma caixa P/M/G definida, as dimensões vêm do perfil da caixa.
+  // Caso contrário, preservamos o cadastro manual de dimensões já existente.
+  if (!dimensionsForBox(automaticBoxSize)) {
+    fields.push(
+      ['largura', data.width],
+      ['altura', data.height],
+      ['comprimento', data.length]
+    );
+  }
+
+  const missing = fields
+    .filter(([, value]) => !Number.isFinite(value) || value <= 0)
+    .map(([name]) => name);
+
   if (!missing.length) return null;
   return `${product.nome || `Produto ${product.id}`} (${missing.join(', ')})`;
 }
@@ -81,7 +96,6 @@ function normalizeItems(rawItems) {
   }
 
   const products = read(PRODUCTS, []);
-  const missing = [];
   const normalized = rawItems.map(raw => {
     const product = products.find(p => Number(p.id) === Number(raw.id) && p.ativo !== false);
     if (!product) {
@@ -92,10 +106,17 @@ function normalizeItems(rawItems) {
 
     const quantity = Math.max(1, Math.min(99, Number(raw.qtd) || 1));
     const shipping = getShippingData(product.id);
-    const issue = validateShippingData(product, shipping);
-    if (issue) missing.push(issue);
+    const boxSize = boxSizeForProduct(product, shipping);
+    return { product, quantity, shipping, boxSize };
+  });
 
-    return { product, quantity, shipping };
+  const selectedOrderBox = orderBoxSize(normalized);
+  const missing = [];
+
+  normalized.forEach(({ product, shipping, boxSize }) => {
+    const effectiveBox = selectedOrderBox || boxSize;
+    const issue = validateShippingData(product, shipping, effectiveBox);
+    if (issue) missing.push(issue);
   });
 
   if (missing.length) {
@@ -108,8 +129,8 @@ function normalizeItems(rawItems) {
   return normalized;
 }
 
-function buildProducts(rawItems) {
-  return normalizeItems(rawItems).map(({ product, quantity, shipping }) => ({
+function buildProductsFromNormalized(normalized) {
+  return normalized.map(({ product, quantity, shipping }) => ({
     id: String(product.sku || product.id || 'produto').slice(0, 100),
     width: Number(shipping.width),
     height: Number(shipping.height),
@@ -118,6 +139,41 @@ function buildProducts(rawItems) {
     insurance_value: Number(Number(product.preco || 0).toFixed(2)),
     quantity
   }));
+}
+
+function buildShipment(rawItems) {
+  const normalized = normalizeItems(rawItems);
+  const boxSize = orderBoxSize(normalized);
+  const box = dimensionsForBox(boxSize);
+
+  if (!box) {
+    return {
+      payload: { products: buildProductsFromNormalized(normalized) },
+      box_size: null
+    };
+  }
+
+  const weight = normalized.reduce(
+    (sum, item) => sum + Number(item.shipping.weight) * Number(item.quantity),
+    0
+  );
+  const insurance = normalized.reduce(
+    (sum, item) => sum + Number(item.product.preco || 0) * Number(item.quantity),
+    0
+  );
+
+  return {
+    payload: {
+      volumes: [{
+        width: Number(box.width),
+        height: Number(box.height),
+        length: Number(box.length),
+        weight: Number(weight.toFixed(3)),
+        insurance: Number(insurance.toFixed(2))
+      }]
+    },
+    box_size: box.box_size
+  };
 }
 
 async function callMelhorEnvio(pathname, body) {
@@ -186,10 +242,11 @@ async function quoteShipping({ postalCode, items }) {
     throw error;
   }
 
+  const shipment = buildShipment(items);
   const payload = {
     from: { postal_code: originPostalCode() },
     to: { postal_code: destination },
-    products: buildProducts(items),
+    ...shipment.payload,
     options: { receipt: false, own_hand: false }
   };
 
@@ -210,6 +267,7 @@ async function quoteShipping({ postalCode, items }) {
     destination_postal_code: destination,
     quotes,
     environment: envMode(),
+    box_size: shipment.box_size,
     quoted_at: new Date().toISOString()
   };
 }
@@ -226,6 +284,7 @@ async function resolveSelectedShipping({ postalCode, serviceId, items }) {
   return {
     ...selected,
     destination_postal_code: result.destination_postal_code,
+    box_size: result.box_size,
     quoted_at: result.quoted_at,
     provider: 'melhor_envio'
   };
@@ -237,5 +296,6 @@ module.exports = {
   quoteShipping,
   resolveSelectedShipping,
   getShippingData,
-  SHIPPING_PRODUCTS
+  SHIPPING_PRODUCTS,
+  buildShipment
 };
