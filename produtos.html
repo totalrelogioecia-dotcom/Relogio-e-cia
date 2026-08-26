@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Produtos — Relógio e Cia Relojoaria</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<meta name="description" content="Relógios e acessórios Technos, Casio, G-Shock, Citizen e Orient. Filtre por marca, movimento, tipo de mostrador, materiais, categoria e preço.">
+<meta name="description" content="Relógios e acessórios Technos, Casio, G-Shock, Citizen e Orient. Filtre por marca, movimento, tipo de mostrador, cor, materiais, categoria e preço.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -46,7 +46,7 @@
       <div class="section-content">
         <p class="eyebrow">Catálogo</p>
         <h1 style="font-family:var(--font-display); font-size:clamp(1.9rem,3.4vw,2.7rem); margin:0 0 10px; font-weight:700; letter-spacing:-.01em;">Relógios e acessórios</h1>
-        <p style="color:var(--ink-soft); max-width:62ch; margin:0 0 40px;">Use os filtros para encontrar o relógio ideal por marca, movimento, tipo de mostrador, materiais, categoria e faixa de preço.</p>
+        <p style="color:var(--ink-soft); max-width:62ch; margin:0 0 40px;">Use os filtros para encontrar o relógio ideal por marca, movimento, tipo de mostrador, cor, materiais, categoria e faixa de preço.</p>
 
         <div class="products-layout" style="padding-bottom:64px;">
           <aside class="filters">
@@ -84,6 +84,13 @@
               <legend>Tipo de mostrador</legend>
               <div id="filter-display-options">
                 <span class="filter-options-loading">Carregando tipos…</span>
+              </div>
+            </fieldset>
+
+            <fieldset class="filter-group" style="border:none; margin:0;">
+              <legend>Cor</legend>
+              <div id="filter-color-options">
+                <span class="filter-options-loading">Carregando cores…</span>
               </div>
             </fieldset>
 
