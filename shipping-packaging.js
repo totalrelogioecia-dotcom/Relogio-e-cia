@@ -43,6 +43,10 @@ function defaultBoxSizeForProduct(product) {
   // Modelos/estojos especiais podem ser sobrescritos manualmente para G no Admin.
   if (brand === 'technos') return 'P';
 
+  // Casio comum: regra definida pela loja -> caixa P 10 x 12 x 12 cm.
+  // G-Shock continua separado abaixo e usa caixa M.
+  if (brand === 'casio') return 'P';
+
   // G-Shock: estojo medido em 10 x 13 x 13 cm -> caixa M 12 x 15 x 15 cm.
   if (brand === 'gshock' || brand.includes('gshock')) return 'M';
 
