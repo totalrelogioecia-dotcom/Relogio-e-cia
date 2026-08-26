@@ -74,13 +74,15 @@ function normalizeShippingInput(body) {
     return Number(n.toFixed(3));
   };
 
+  // O peso pode ficar pendente enquanto a loja ainda valida caixa + proteção reais.
   const weight = cleanNumber(body?.weight_kg, 1000);
   const width = cleanNumber(body?.width_cm, 1000);
   const height = cleanNumber(body?.height_cm, 1000);
   const length = cleanNumber(body?.length_cm, 1000);
+  const boxSize = normalizeBoxSize(body?.box_size);
 
-  if (![weight, width, height, length].every(Boolean)) {
-    const error = new Error('Informe peso, largura, altura e comprimento com valores maiores que zero.');
+  if (![width, height, length].every(Boolean) && !boxSize) {
+    const error = new Error('Informe largura, altura e comprimento ou escolha uma caixa P, M ou G.');
     error.status = 400;
     throw error;
   }
@@ -90,7 +92,7 @@ function normalizeShippingInput(body) {
     width_cm: width,
     height_cm: height,
     length_cm: length,
-    box_size: normalizeBoxSize(body?.box_size),
+    box_size: boxSize,
     updated_at: new Date().toISOString()
   };
 }
