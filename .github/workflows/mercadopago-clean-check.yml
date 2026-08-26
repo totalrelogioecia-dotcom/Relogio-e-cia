@@ -39,6 +39,7 @@ jobs:
           node --check shipping-service.js
           node --check shipping-routes.js
           node --check admin-shipping.js
+          node --check catalog-technical-filters.js
           node --check return-requests.js
           node --check order-email.js
           node --check admin-returns.js
