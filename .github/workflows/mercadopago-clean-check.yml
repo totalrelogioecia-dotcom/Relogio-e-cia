@@ -26,6 +26,7 @@ jobs:
 
       - name: Check JavaScript syntax
         run: |
+          node --check startup.js
           node --check mercadopago-clean.js
           node --check mercadopago-orders-pix.js
           node --check mercadopago-checkout-client.js
@@ -47,6 +48,8 @@ jobs:
           node --check legal-footer.js
           node --check casio-enrichment-v2.js
           node --check admin-product-enrichment.js
+          node --check admin-stock-catalog.js
+          node --check stock-alerts.js
 
       - name: Run payment integration tests
         run: npm test
