@@ -2,6 +2,7 @@
    RELÓGIO E CIA — melhorias exclusivas da página inicial
    - Relógio sincronizado pela zona America/Sao_Paulo.
    - Mostruários expansíveis com carrossel de relógios por marca.
+   - Produtos sem estoque permanecem visíveis, mas não podem ser adicionados.
    ========================================================= */
 (() => {
   'use strict';
@@ -78,13 +79,9 @@
       const segundoFracionado = segundo + agora.getMilliseconds() / 1000;
       const hora12 = hora % 12;
 
-      const anguloHora = (hora12 + minuto / 60 + segundoFracionado / 3600) * 30;
-      const anguloMinuto = (minuto + segundoFracionado / 60) * 6;
-      const anguloSegundo = segundoFracionado * 6;
-
-      handHour.style.transform = `rotate(${anguloHora}deg)`;
-      handMinute.style.transform = `rotate(${anguloMinuto}deg)`;
-      handSecond.style.transform = `rotate(${anguloSegundo}deg)`;
+      handHour.style.transform = `rotate(${(hora12 + minuto / 60 + segundoFracionado / 3600) * 30}deg)`;
+      handMinute.style.transform = `rotate(${(minuto + segundoFracionado / 60) * 6}deg)`;
+      handSecond.style.transform = `rotate(${segundoFracionado * 6}deg)`;
 
       if (dataEl && segundo !== ultimoSegundoTexto) {
         ultimoSegundoTexto = segundo;
@@ -125,8 +122,15 @@
   }
 
   function ehRelogio(produto) {
-    const categoria = String(produto?.categoria || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const categoria = String(produto?.categoria || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
     return categoria.includes('relog');
+  }
+
+  function produtoDisponivel(produto) {
+    return produto?.ativo !== false && Number(produto?.estoque || 0) > 0;
   }
 
   function criarCardHome(produto, marca) {
@@ -134,12 +138,17 @@
     const urlProduto = `produto.html?id=${encodeURIComponent(produto.id)}`;
     const nome = escapeHtml(produto.nome || 'Relógio');
     const sku = escapeHtml(produto.sku || '');
+    const disponivel = produtoDisponivel(produto);
     const preco = typeof formatarPreco === 'function'
       ? formatarPreco(Number(produto.preco || 0))
       : Number(produto.preco || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+    const acao = disponivel
+      ? `<button class="btn btn-primary" type="button" data-home-add="${Number(produto.id)}">Adicionar</button>`
+      : '<button class="btn btn-primary" type="button" disabled aria-disabled="true" title="Produto sem estoque">Indisponível</button>';
+
     return `
-      <article class="home-watch-card" data-home-product="${Number(produto.id)}">
+      <article class="home-watch-card" data-home-product="${Number(produto.id)}" data-stock="${Math.max(0, Number(produto.estoque) || 0)}">
         <a class="home-watch-photo" href="${urlProduto}" aria-label="Ver detalhes de ${nome}">
           ${foto
             ? `<img src="${escapeHtml(foto)}" alt="${nome}" loading="lazy" onerror="tratarErroFoto(this)">`
@@ -151,7 +160,7 @@
           <p class="home-watch-price">${preco}<small>5% de desconto no PIX</small></p>
           <div class="home-watch-actions">
             <a class="btn btn-outline" href="${urlProduto}">Ver detalhes</a>
-            <button class="btn btn-primary" type="button" data-home-add="${Number(produto.id)}">Adicionar</button>
+            ${acao}
           </div>
         </div>
       </article>`;
@@ -167,7 +176,10 @@
       let rowAberta = null;
 
       function fecharAtual() {
-        if (painelAberto) painelAberto.classList.remove('is-open');
+        if (painelAberto) {
+          painelAberto.classList.remove('is-open');
+          painelAberto.setAttribute('aria-hidden', 'true');
+        }
         if (rowAberta) {
           rowAberta.classList.remove('brand-row-open');
           rowAberta.setAttribute('aria-expanded', 'false');
@@ -177,16 +189,18 @@
       }
 
       rows.forEach((row, index) => {
-        const marca = new URL(row.href, window.location.href).searchParams.get('marca') || row.querySelector('.name')?.textContent?.trim() || '';
+        const marca = new URL(row.href, window.location.href).searchParams.get('marca')
+          || row.querySelector('.name')?.textContent?.trim()
+          || '';
         const panelId = `brand-showcase-${index + 1}`;
         row.setAttribute('aria-expanded', 'false');
         row.setAttribute('aria-controls', panelId);
         row.setAttribute('title', `Mostrar relógios ${marca}`);
 
         const produtos = PRODUTOS.filter(produto =>
-          produto?.ativo !== false &&
-          String(produto?.marca || '').toLowerCase() === marca.toLowerCase() &&
-          ehRelogio(produto)
+          produto?.ativo !== false
+          && String(produto?.marca || '').toLowerCase() === marca.toLowerCase()
+          && ehRelogio(produto)
         );
 
         const painel = document.createElement('div');
@@ -234,7 +248,9 @@
         painel.querySelectorAll('[data-home-add]').forEach(button => {
           button.addEventListener('click', () => {
             const id = Number(button.dataset.homeAdd);
-            if (!Number.isFinite(id) || typeof adicionarAoCarrinho !== 'function') return;
+            const produto = PRODUTOS.find(item => Number(item.id) === id);
+            if (!Number.isFinite(id) || !produtoDisponivel(produto) || typeof adicionarAoCarrinho !== 'function') return;
+
             adicionarAoCarrinho(id);
             const original = button.textContent;
             button.textContent = 'Adicionado ✓';
