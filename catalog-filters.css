@@ -1,0 +1,65 @@
+/* =========================================================
+   RELÓGIO E CIA — filtros avançados do catálogo
+   Mantém a lateral acessível sem exigir rolar até o fim da página.
+   ========================================================= */
+
+@media (min-width: 861px){
+  .products-layout .filters{
+    position:sticky;
+    top:96px;
+    max-height:calc(100vh - 116px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-gutter:stable;
+    padding:22px 20px;
+  }
+
+  .products-layout .filters::-webkit-scrollbar{ width:8px; }
+  .products-layout .filters::-webkit-scrollbar-track{ background:var(--bg-soft); }
+  .products-layout .filters::-webkit-scrollbar-thumb{ background:#b7b7b7; border:2px solid var(--bg-soft); }
+}
+
+.filters .filter-group{
+  padding:0 0 18px;
+  margin:0 0 18px!important;
+  border-bottom:1px solid var(--line)!important;
+}
+
+.filters .filter-group:last-of-type{
+  margin-bottom:14px!important;
+}
+
+.filters .filter-group legend{
+  width:100%;
+}
+
+.filter-options-loading,
+.filter-options-empty{
+  display:block;
+  margin-top:8px;
+  color:var(--muted);
+  font-family:var(--font-mono);
+  font-size:.68rem;
+  line-height:1.45;
+}
+
+.catalog-technical-empty{
+  margin-top:22px;
+  border:1px dashed var(--line-strong);
+  padding:28px 20px;
+  text-align:center;
+  color:var(--ink-soft);
+}
+
+.catalog-technical-empty strong{
+  display:block;
+  margin-bottom:5px;
+  color:var(--ink);
+}
+
+@media (max-width: 860px){
+  .products-layout .filters{
+    max-height:none;
+    overflow:visible;
+  }
+}
