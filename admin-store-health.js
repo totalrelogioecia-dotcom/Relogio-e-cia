@@ -66,16 +66,60 @@
     return 'Dimensões manuais';
   }
 
+  function setShippingExpanded(expanded) {
+    const table = $('#store-health-shipping-table');
+    const toggle = $('#store-health-shipping-toggle');
+    if (!table || !toggle) return;
+    const hasProducts = toggle.dataset.hasProducts === '1';
+    const nextExpanded = Boolean(expanded && hasProducts);
+    table.hidden = !nextExpanded;
+    toggle.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+    toggle.querySelector('.store-health-toggle-label').textContent = nextExpanded ? 'Ocultar lista' : 'Ver lista';
+    toggle.querySelector('.store-health-toggle-icon').textContent = nextExpanded ? '−' : '+';
+  }
+
+  function setupShippingCollapse() {
+    const section = document.querySelector('.store-health-shipping');
+    const title = section?.querySelector('h3');
+    const table = $('#store-health-shipping-table');
+    if (!section || !title || !table || $('#store-health-shipping-toggle')) return;
+
+    const toggle = document.createElement('button');
+    toggle.id = 'store-health-shipping-toggle';
+    toggle.type = 'button';
+    toggle.className = 'store-health-shipping-toggle';
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', 'store-health-shipping-table');
+    toggle.dataset.hasProducts = '0';
+    toggle.innerHTML = '<span>Produtos com frete incompleto</span><span class="store-health-toggle-action"><span class="store-health-toggle-label">Ver lista</span><span class="store-health-toggle-icon" aria-hidden="true">+</span></span>';
+
+    title.textContent = '';
+    title.appendChild(toggle);
+    table.hidden = true;
+
+    toggle.addEventListener('click', () => {
+      if (toggle.dataset.hasProducts !== '1') return;
+      setShippingExpanded(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+  }
+
   function renderShippingTable(data) {
     const summary = $('#store-health-shipping-summary');
     const table = $('#store-health-shipping-table');
+    const toggle = $('#store-health-shipping-toggle');
     if (!summary || !table) return;
     const shipping = data?.shipping || {};
     const products = Array.isArray(shipping.products) ? shipping.products : [];
 
+    if (toggle) {
+      toggle.dataset.hasProducts = products.length ? '1' : '0';
+      toggle.disabled = !products.length;
+    }
+
     if (!products.length) {
       summary.innerHTML = '<strong>Frete completo.</strong> Todos os produtos visíveis têm os dados mínimos necessários para uma cotação individual.';
       table.innerHTML = '';
+      setShippingExpanded(false);
       return;
     }
 
@@ -150,6 +194,8 @@
   window.loadStoreHealth = loadStoreHealth;
 
   function setup() {
+    setupShippingCollapse();
+
     const refresh = $('#refresh-store-health');
     if (refresh) refresh.onclick = loadStoreHealth;
 
