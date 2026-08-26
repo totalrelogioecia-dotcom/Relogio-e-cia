@@ -51,7 +51,7 @@
           <div class="product-price">${money(p.preco)}</div>
           <div class="product-pix">${money(pix)} no PIX com 5% de desconto</div>
           <div class="product-installments">ou em até <strong>${installmentCount}x de ${money(installmentValue)}</strong> no cartão</div>
-          <div class="product-payment-note">Condições e eventuais juros são informados pelo Mercado Pago no checkout. Parcelas com valor mínimo de R$ 50.</div>
+          <div class="product-payment-note">Condições e eventuais juros são informados pelo Mercado Pago no checkout.</div>
           <div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Esse produto encontra-se indisponível.'}</div>
           ${stock<=0?`<form class="stock-alert-box" id="stock-alert-form">
             <label for="stock-alert-email"><strong>Deixe seu e-mail que avisaremos quando chegar.</strong></label>
