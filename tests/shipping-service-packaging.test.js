@@ -63,17 +63,15 @@ test('duas unidades do mesmo relógio também viram um volume G', () => {
   }]);
 });
 
-test('marca ainda sem caixa definida preserva o cálculo manual por produto', () => {
+test('um Casio usa um único volume P automaticamente', () => {
   const shipment = buildShipment([{ id: 3, qtd: 1 }]);
-  assert.equal(shipment.box_size, null);
-  assert.deepEqual(shipment.payload.products, [{
-    id: 'CAS-1',
-    width: 11,
-    height: 8,
-    length: 14,
+  assert.equal(shipment.box_size, 'P');
+  assert.deepEqual(shipment.payload.volumes, [{
+    width: 12,
+    height: 10,
+    length: 12,
     weight: 0.25,
-    insurance_value: 300,
-    quantity: 1
+    insurance: 300
   }]);
 });
 
