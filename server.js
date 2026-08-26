@@ -4,6 +4,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { registerStockAlertRoutes, queueStockAvailableEmails } = require('./stock-alerts');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,8 @@ const getProducts = () => read(PRODUCTS, []);
 const getOrders = () => read(ORDERS, []);
 
 app.use(express.json({ limit: '10mb' }));
+app.use('/data/stock-alerts.json', (req, res) => res.status(404).end());
+registerStockAlertRoutes(app);
 app.use(express.static(ROOT, { index: 'index.html' }));
 
 function safeEqual(a, b) {
@@ -219,7 +222,11 @@ app.post('/api/admin/products', admin, (req, res) => {
 app.put('/api/admin/products/:id', admin, (req, res) => {
   const id = Number(req.params.id), products = getProducts(), index = products.findIndex(p => Number(p.id) === id);
   if (index < 0) return res.status(404).json({ error: 'Produto não encontrado.' });
-  products[index] = normalizeProduct({ ...products[index], ...req.body, id }); write(PRODUCTS, products); res.json(products[index]);
+  const product = normalizeProduct({ ...products[index], ...req.body, id });
+  products[index] = product;
+  write(PRODUCTS, products);
+  if (product.ativo !== false && Number(product.estoque || 0) > 0) queueStockAvailableEmails(product);
+  res.json(product);
 });
 app.delete('/api/admin/products/:id', admin, (req, res) => {
   const id = Number(req.params.id), products = getProducts(), index = products.findIndex(p => Number(p.id) === id);
