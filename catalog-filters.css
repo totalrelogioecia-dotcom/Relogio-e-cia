@@ -17,6 +17,46 @@
   .products-layout .filters::-webkit-scrollbar{ width:8px; }
   .products-layout .filters::-webkit-scrollbar-track{ background:var(--bg-soft); }
   .products-layout .filters::-webkit-scrollbar-thumb{ background:#b7b7b7; border:2px solid var(--bg-soft); }
+
+  .filters .filter-apply-bar{
+    position:sticky;
+    top:-22px;
+    z-index:5;
+    margin:0 -20px 18px;
+    padding:10px 20px 12px;
+    border-bottom:1px solid var(--line);
+    background:var(--bg);
+  }
+}
+
+.filters .filter-apply-bar{
+  display:grid;
+  gap:7px;
+}
+
+.filter-apply-button{
+  width:100%;
+  border:1px solid var(--ink);
+  background:var(--ink);
+  color:var(--bg);
+  padding:11px 12px;
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  font-weight:500;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
+.filter-apply-button:hover,
+.filter-apply-button:focus-visible{
+  background:var(--red);
+  border-color:var(--red);
+}
+
+.filters .filter-reset-button{
+  justify-self:start;
+  margin:0;
 }
 
 .filters .filter-group{
@@ -61,5 +101,12 @@
   .products-layout .filters{
     max-height:none;
     overflow:visible;
+  }
+
+  .filters .filter-apply-bar{
+    position:static;
+    margin:0 0 18px;
+    padding:0 0 16px;
+    border-bottom:1px solid var(--line);
   }
 }
