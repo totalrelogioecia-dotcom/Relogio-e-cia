@@ -4,6 +4,10 @@
   const COMPANY_CNPJ = '05.583.329/0001-46';
   const INSTAGRAM_URL = 'https://www.instagram.com/relogio.ecia/';
   const INSTAGRAM_HANDLE = '@relogio.ecia';
+  const WHATSAPP_NUMBER = '555196311864';
+  const WHATSAPP_LABEL = '(51) 9631-1864';
+  const LANDLINE_HREF = 'tel:+555137371597';
+  const LANDLINE_LABEL = '(51) 3737-1597';
 
   function ensureMobileStyles() {
     if (document.querySelector('link[data-relogio-mobile-fixes]')) return;
@@ -54,20 +58,18 @@
     firstColumn.appendChild(identity);
   }
 
-  function ensureInstagram(grid) {
-    const firstColumn = grid?.children?.[0];
-    if (!firstColumn || firstColumn.querySelector('.footer-instagram-link')) return;
-
+  function makeFooterButton({ className, href, label, ariaLabel, iconHtml, newTab = false }) {
     const link = document.createElement('a');
-    link.className = 'footer-instagram-link';
-    link.href = INSTAGRAM_URL;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.setAttribute('aria-label', `Instagram da Relógio e Cia: ${INSTAGRAM_HANDLE}`);
+    link.className = className;
+    link.href = href;
+    if (newTab) {
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    }
+    link.setAttribute('aria-label', ariaLabel);
     link.style.display = 'inline-flex';
     link.style.alignItems = 'center';
     link.style.gap = '8px';
-    link.style.marginTop = '14px';
     link.style.padding = '8px 11px';
     link.style.border = '1px solid rgba(255,255,255,.24)';
     link.style.borderRadius = '999px';
@@ -86,14 +88,59 @@
     icon.setAttribute('fill', 'none');
     icon.setAttribute('stroke', 'currentColor');
     icon.setAttribute('stroke-width', '1.8');
-    icon.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"></circle>';
+    icon.setAttribute('stroke-linecap', 'round');
+    icon.setAttribute('stroke-linejoin', 'round');
+    icon.innerHTML = iconHtml;
 
     const text = document.createElement('span');
-    text.textContent = `Instagram ${INSTAGRAM_HANDLE}`;
+    text.textContent = label;
 
     link.appendChild(icon);
     link.appendChild(text);
-    firstColumn.appendChild(link);
+    return link;
+  }
+
+  function ensureContactButtons(grid) {
+    const firstColumn = grid?.children?.[0];
+    if (!firstColumn || firstColumn.querySelector('.footer-contact-buttons')) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'footer-contact-buttons';
+    wrap.style.display = 'flex';
+    wrap.style.flexWrap = 'wrap';
+    wrap.style.gap = '8px';
+    wrap.style.marginTop = '14px';
+
+    const instagram = makeFooterButton({
+      className: 'footer-instagram-link',
+      href: INSTAGRAM_URL,
+      label: `Instagram ${INSTAGRAM_HANDLE}`,
+      ariaLabel: `Instagram da Relógio e Cia: ${INSTAGRAM_HANDLE}`,
+      newTab: true,
+      iconHtml: '<rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"></circle>'
+    });
+
+    const whatsapp = makeFooterButton({
+      className: 'footer-whatsapp-link',
+      href: `https://wa.me/${WHATSAPP_NUMBER}`,
+      label: `WhatsApp ${WHATSAPP_LABEL}`,
+      ariaLabel: `Conversar com a Relógio e Cia pelo WhatsApp ${WHATSAPP_LABEL}`,
+      newTab: true,
+      iconHtml: '<path d="M20.5 11.6a8.5 8.5 0 0 1-12.6 7.5L3.5 20.5l1.4-4.2a8.5 8.5 0 1 1 15.6-4.7Z"></path><path d="M8.4 7.7c.3-.5.7-.5 1-.1l1.1 1.5c.2.3.2.6 0 .9l-.6.8c-.2.2-.1.5.1.8.8 1.3 1.8 2.3 3.2 3 .3.2.6.2.8 0l.9-1c.2-.3.5-.3.8-.2l1.7.8c.4.2.5.5.4.9-.3 1.2-1.4 2.1-2.7 2.2-1.4.1-3.2-.6-5.2-2.4-2-1.8-3.1-3.7-3.1-5.2 0-.8.3-1.5.8-2Z"></path>'
+    });
+
+    const landline = makeFooterButton({
+      className: 'footer-landline-link',
+      href: LANDLINE_HREF,
+      label: `Fixo ${LANDLINE_LABEL}`,
+      ariaLabel: `Ligar para o telefone fixo da Relógio e Cia ${LANDLINE_LABEL}`,
+      iconHtml: '<path d="M6.5 3.5h3l1.2 4-2.2 1.6a15.2 15.2 0 0 0 6.4 6.4l1.6-2.2 4 1.2v3c0 1.1-.9 2-2 2C10.8 19.5 4.5 13.2 4.5 5.5c0-1.1.9-2 2-2Z"></path>'
+    });
+
+    wrap.appendChild(instagram);
+    wrap.appendChild(whatsapp);
+    wrap.appendChild(landline);
+    firstColumn.appendChild(wrap);
   }
 
   function clarifyLegalPageIdentity() {
@@ -111,7 +158,7 @@
 
     document.querySelectorAll('footer .footer-grid').forEach(grid => {
       ensureCompanyIdentity(grid);
-      ensureInstagram(grid);
+      ensureContactButtons(grid);
 
       const navigation = Array.from(grid.children).find(column => {
         const title = column.querySelector('h5')?.textContent?.trim().toLowerCase();
