@@ -273,6 +273,11 @@ async function quoteShipping({ postalCode, items }) {
 }
 
 async function resolveSelectedShipping({ postalCode, serviceId, items }) {
+  // Retirada na loja é uma opção local: não há transportadora, cotação nem frete.
+  // Retornamos null para que os checkouts existentes mantenham custo R$ 0,00 e
+  // não criem o bloco `shipments` no Mercado Pago.
+  if (String(serviceId || '').trim().toLowerCase() === 'pickup') return null;
+
   const result = await quoteShipping({ postalCode, items });
   const selected = result.quotes.find(q => String(q.service_id) === String(serviceId));
   if (!selected) {
