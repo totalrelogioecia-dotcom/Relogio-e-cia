@@ -24,8 +24,11 @@ test('CNPJ informado possui dígitos verificadores válidos', () => {
   assert.equal(isValidCnpj(CNPJ), true);
 });
 
-test('rodapé jurídico exibe empresa e CNPJ e garante links legais', () => {
+test('rodapé jurídico distingue nome fantasia, razão social e CNPJ', () => {
   const source = read('legal-footer.js');
+  assert.match(source, /Nome fantasia:/);
+  assert.match(source, /Relógio & Cia/);
+  assert.match(source, /Razão social:/);
   assert.match(source, /Albernard Comércio de Relógios Ltda/);
   assert.match(source, /05\.583\.329\/0001-46/);
   assert.match(source, /trocas-estornos\.html/);
