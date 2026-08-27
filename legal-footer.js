@@ -1,5 +1,6 @@
 (() => {
-  const COMPANY_NAME = 'Albernard Comércio de Relógios Ltda';
+  const TRADE_NAME = 'Relógio & Cia';
+  const COMPANY_LEGAL_NAME = 'Albernard Comércio de Relógios Ltda';
   const COMPANY_CNPJ = '05.583.329/0001-46';
 
   function ensureMobileStyles() {
@@ -32,21 +33,37 @@
     identity.style.lineHeight = '1.55';
     identity.style.opacity = '.82';
 
-    const company = document.createElement('strong');
-    company.textContent = COMPANY_NAME;
-    company.style.display = 'block';
-    company.style.fontWeight = '600';
+    const tradeName = document.createElement('span');
+    tradeName.textContent = `Nome fantasia: ${TRADE_NAME}`;
+    tradeName.style.display = 'block';
+
+    const legalName = document.createElement('strong');
+    legalName.textContent = `Razão social: ${COMPANY_LEGAL_NAME}`;
+    legalName.style.display = 'block';
+    legalName.style.fontWeight = '600';
 
     const cnpj = document.createElement('span');
-    cnpj.textContent = `CNPJ ${COMPANY_CNPJ}`;
+    cnpj.textContent = `CNPJ: ${COMPANY_CNPJ}`;
+    cnpj.style.display = 'block';
 
-    identity.appendChild(company);
+    identity.appendChild(tradeName);
+    identity.appendChild(legalName);
     identity.appendChild(cnpj);
     firstColumn.appendChild(identity);
   }
 
+  function clarifyLegalPageIdentity() {
+    document.querySelectorAll('.policy-contact li strong').forEach(label => {
+      const text = String(label.textContent || '').trim().toLowerCase();
+      if (text === 'responsável pela loja:' || text === 'empresa:') {
+        label.textContent = 'Razão social:';
+      }
+    });
+  }
+
   function enhanceFooter() {
     ensureMobileStyles();
+    clarifyLegalPageIdentity();
 
     document.querySelectorAll('footer .footer-grid').forEach(grid => {
       ensureCompanyIdentity(grid);
