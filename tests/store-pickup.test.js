@@ -12,26 +12,39 @@ test('carrinho oferece retirada na loja grátis sem remover o Melhor Envio', () 
   assert.match(source, /Av\. Cristóvão Colombo, 545/);
   assert.match(source, /mode: 'pickup'/);
   assert.match(source, /price: 0/);
-  assert.match(source, /body\.shipping = \{ mode: 'pickup' \}/);
   assert.match(source, /\/api\/shipping\/quote/);
   assert.match(source, /Melhor Envio/);
 });
 
-test('servidor aceita retirada sem consultar frete e não envia shipments ao Mercado Pago', () => {
-  const source = read('checkout-with-shipping.js');
-  assert.match(source, /function isStorePickup/);
-  assert.match(source, /String\(shipping\?\.mode \|\| ''\).*=== 'pickup'/);
-  assert.match(source, /function storePickupShipping/);
-  assert.match(source, /service_name: 'Retirada na loja'/);
-  assert.match(source, /price: 0/);
-  assert.match(source, /if \(pickup\) \{\s*shipping = storePickupShipping\(\);/s);
-  assert.match(source, /else \{[\s\S]*resolveSelectedShipping/);
-  assert.match(source, /if \(!pickup\) \{\s*preferenceBody\.shipments =/s);
+test('checkout real do Render passa pelo Mercado Pago clean', () => {
+  const bootstrap = read('auth-bootstrap.js');
+  assert.match(bootstrap, /registerMercadoPagoClean\(app\)/);
+  assert.match(bootstrap, /registerCouponCheckout\(app\)/);
 });
 
-test('entrega normal continua exigindo seleção quando configurada', () => {
-  const source = read('checkout-with-shipping.js');
-  assert.match(source, /if \(!pickup && \(!shippingRequest\?\.service_id \|\| !shippingRequest\?\.postal_code\)\)/);
-  assert.match(source, /shippingRequired\(\) && isConfigured\(\)/);
-  assert.match(source, /resolveSelectedShipping/);
+test('ponte envia pickup com service id e CEP antes da validação legada', () => {
+  const bridge = read('pickup-checkout-bridge.js');
+  assert.match(bridge, /service_id: 'pickup'/);
+  assert.match(bridge, /postal_code: postalCode/);
+  assert.match(bridge, /shipping-postal-code/);
+
+  const cart = read('carrinho.html');
+  const bridgeIndex = cart.indexOf('pickup-checkout-bridge.js');
+  const shippingIndex = cart.indexOf('shipping-cart.js');
+  assert.ok(bridgeIndex >= 0 && shippingIndex >= 0 && bridgeIndex < shippingIndex,
+    'a ponte deve ser carregada antes do interceptador de frete');
+});
+
+test('serviço central trata pickup sem consultar o Melhor Envio', () => {
+  const source = read('shipping-service.js');
+  assert.match(source, /String\(serviceId \|\| ''\).*=== 'pickup'\) return null/);
+  assert.match(source, /async function resolveSelectedShipping/);
+  assert.match(source, /const result = await quoteShipping/);
+});
+
+test('entrega normal continua usando cotação e revalidação do Melhor Envio', () => {
+  const source = read('shipping-service.js');
+  assert.match(source, /callMelhorEnvio\('\/api\/v2\/me\/shipment\/calculate'/);
+  assert.match(source, /shipping_service_changed/);
+  assert.match(source, /provider: 'melhor_envio'/);
 });
