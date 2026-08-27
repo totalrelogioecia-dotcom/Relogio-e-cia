@@ -37,6 +37,15 @@ test('rodapé jurídico distingue nome fantasia, razão social e CNPJ', () => {
   assert.match(source, /termos-de-uso\.html/);
 });
 
+test('rodapé exibe Instagram oficial em nova aba com proteção', () => {
+  const source = read('legal-footer.js');
+  assert.match(source, /https:\/\/www\.instagram\.com\/relogio\.ecia\//);
+  assert.match(source, /@relogio\.ecia/);
+  assert.match(source, /footer-instagram-link/);
+  assert.match(source, /target = '_blank'/);
+  assert.match(source, /noopener noreferrer/);
+});
+
 test('principais páginas públicas carregam a identificação empresarial', () => {
   for (const file of ['index.html', 'produtos.html', 'produto.html', 'carrinho.html', 'conta.html', 'sobre.html', 'politica-de-privacidade.html', 'termos-de-uso.html']) {
     assert.match(read(file), /legal-footer\.js/, `${file} deve carregar legal-footer.js`);
