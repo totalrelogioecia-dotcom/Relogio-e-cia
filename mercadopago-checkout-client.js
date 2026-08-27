@@ -7,6 +7,7 @@
   const CART_KEY = 'reloja_carrinho';
   const SESSION_KEY = 'reloja_sessao';
   const TOKEN_KEY = 'reloja_auth_token';
+  const SHIPPING_KEY = 'reloja_frete_selecionado';
   const SDK_URL = 'https://sdk.mercadopago.com/js/v2';
   const SECURITY_URL = 'https://www.mercadopago.com/v2/security.js';
 
@@ -43,6 +44,16 @@
 
   function paymentMethod() {
     return document.querySelector('input[name="pagamento"]:checked')?.value === 'pix' ? 'pix' : 'cartao';
+  }
+
+  function pickupSelected() {
+    if (document.getElementById('shipping-pickup-input')?.checked) return true;
+    try {
+      const selected = JSON.parse(sessionStorage.getItem(SHIPPING_KEY) || 'null');
+      return selected?.mode === 'pickup' || String(selected?.service_id || '') === 'pickup';
+    } catch {
+      return false;
+    }
   }
 
   function message(text, type = 'info') {
@@ -265,6 +276,7 @@
     const items = cart();
     const user = session();
     const method = paymentMethod();
+    const isPickup = pickupSelected();
     const finalizeButton = button();
 
     if (!items.length) return;
@@ -284,7 +296,7 @@
       finalizeButton.disabled = true;
       finalizeButton.textContent = 'Preparando pagamento…';
     }
-    message('Preparando seu pedido com segurança…');
+    message(isPickup ? 'Preparando pagamento com retirada na loja…' : 'Preparando seu pedido com segurança…');
 
     try {
       const deviceId = await loadSecurity();
@@ -302,6 +314,7 @@
           items: items.map(item => ({ id: item.id, qtd: item.qtd })),
           payer: { nome: user.nome, email: user.email },
           metodo: method,
+          ...(isPickup ? { shipping: { mode: 'pickup' } } : {}),
           ...(deviceId ? { device_id: deviceId } : {})
         })
       });
@@ -320,14 +333,11 @@
         return;
       }
 
-      // O backend devolve o init_point oficial da preferência. Assim o cliente
-      // clica em FINALIZAR PEDIDO uma única vez e segue direto ao Checkout Pro.
       if (data.init_point) {
         window.location.assign(data.init_point);
         return;
       }
 
-      // Fallback de segurança para preferências antigas sem init_point.
       if (!data.preference_id) {
         throw new Error('O Mercado Pago não retornou o identificador da preferência.');
       }
@@ -355,13 +365,15 @@
     ensureWalletHost();
     loadSecurity().catch(() => null);
 
-    // Captura o clique antes do listener legado de script.js. Assim somente
-    // esta implementação controla /api/checkout nesta versão da integração.
     finalizeButton.addEventListener('click', event => {
       event.preventDefault();
       event.stopImmediatePropagation();
       beginCheckout();
     }, true);
+
+    document.getElementById('shipping-pickup-input')?.addEventListener('change', event => {
+      if (event.target.checked) message('');
+    });
 
     document.getElementById('payment-form')?.addEventListener('change', () => {
       if (walletController || currentPreferenceId) {
