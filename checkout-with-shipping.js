@@ -22,6 +22,20 @@ function digits(value) {
 function shippingRequired() {
   return ['1', 'true', 'yes', 'on'].includes(String(process.env.MELHORENVIO_REQUIRE_SHIPPING || '').trim().toLowerCase());
 }
+function isStorePickup(shipping) {
+  return String(shipping?.mode || '').trim().toLowerCase() === 'pickup';
+}
+function storePickupShipping() {
+  return {
+    mode: 'pickup',
+    service_id: 'pickup',
+    service_name: 'Retirada na loja',
+    company_name: 'Relógio e Cia',
+    price: 0,
+    delivery_time: null,
+    postal_code: null
+  };
+}
 function normalizeCategory(product) {
   if (product?.categoria_id_mp) return String(product.categoria_id_mp).trim().slice(0, 100);
   const categoria = String(product?.categoria || '').toLowerCase();
@@ -174,9 +188,10 @@ function registerCheckoutWithShipping(app) {
 
   app.post('/api/checkout', async (req, res, next) => {
     const shippingRequest = req.body?.shipping;
-    if (!shippingRequest?.service_id || !shippingRequest?.postal_code) {
+    const pickup = isStorePickup(shippingRequest);
+    if (!pickup && (!shippingRequest?.service_id || !shippingRequest?.postal_code)) {
       if (shippingRequired() && isConfigured()) {
-        return res.status(409).json({ error: 'Calcule e selecione uma opção de frete antes de finalizar o pedido.' });
+        return res.status(409).json({ error: 'Calcule e selecione uma opção de frete ou escolha Retirar na loja antes de finalizar o pedido.' });
       }
       return next();
     }
@@ -184,20 +199,25 @@ function registerCheckoutWithShipping(app) {
     try {
       const { items, payer, metodo } = req.body || {};
       if (!payer?.email || !payer?.nome) return res.status(400).json({ error: 'Faça login antes de finalizar a compra.' });
-      if (!isConfigured()) return res.status(503).json({ error: 'Frete automático ainda não está configurado no servidor.' });
-
-      const accountZip = digits(payer?.endereco?.zip_code).slice(0, 8);
-      const selectedZip = digits(shippingRequest.postal_code).slice(0, 8);
-      if (accountZip && accountZip !== selectedZip) {
-        return res.status(409).json({ error: 'O CEP do frete deve ser o mesmo do endereço de entrega cadastrado na sua conta.' });
-      }
+      if (!pickup && !isConfigured()) return res.status(503).json({ error: 'Frete automático ainda não está configurado no servidor.' });
 
       const normalized = normalizeCartItems(items);
-      const shipping = await resolveSelectedShipping({
-        postalCode: selectedZip,
-        serviceId: shippingRequest.service_id,
-        items
-      });
+      let shipping;
+
+      if (pickup) {
+        shipping = storePickupShipping();
+      } else {
+        const accountZip = digits(payer?.endereco?.zip_code).slice(0, 8);
+        const selectedZip = digits(shippingRequest.postal_code).slice(0, 8);
+        if (accountZip && accountZip !== selectedZip) {
+          return res.status(409).json({ error: 'O CEP do frete deve ser o mesmo do endereço de entrega cadastrado na sua conta.' });
+        }
+        shipping = await resolveSelectedShipping({
+          postalCode: selectedZip,
+          serviceId: shippingRequest.service_id,
+          items
+        });
+      }
 
       const base = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '');
       if (!base.startsWith('https://')) return res.status(503).json({ error: 'PUBLIC_URL precisa ser HTTPS.' });
@@ -243,7 +263,7 @@ function registerCheckoutWithShipping(app) {
           created_at: new Date().toISOString()
         };
         const orders = read(ORDERS, []); orders.push(order); write(ORDERS, orders);
-        console.log('Checkout com frete criado:', { orderId, metodo: 'pix', shipping_service: shipping.service_name, shipping_cost: shippingCost, total });
+        console.log('Checkout criado:', { orderId, metodo: 'pix', entrega: pickup ? 'retirada_na_loja' : shipping.service_name, shipping_cost: shippingCost, total });
         return res.json({ order_id: orderId, payment_id: order.payment_id, redirect_url: `${base}/pagamento-pix.html?pedido=${encodeURIComponent(orderId)}` });
       }
 
@@ -252,11 +272,6 @@ function registerCheckoutWithShipping(app) {
         items: preferenceItems(normalized),
         payer: preferencePayer(payer),
         payment_methods: { excluded_payment_types: [{ id: 'ticket' }, { id: 'bank_transfer' }], installments: 12 },
-        shipments: {
-          cost: shippingCost,
-          mode: 'not_specified',
-          receiver_address: receiverAddress(payer)
-        },
         statement_descriptor: statementDescriptor(),
         external_reference: orderId,
         back_urls: {
@@ -267,7 +282,14 @@ function registerCheckoutWithShipping(app) {
         auto_return: 'approved',
         notification_url: `${base}/api/mercadopago/webhook`
       };
-      if (!preferenceBody.shipments.receiver_address?.street_name) delete preferenceBody.shipments.receiver_address;
+      if (!pickup) {
+        preferenceBody.shipments = {
+          cost: shippingCost,
+          mode: 'not_specified',
+          receiver_address: receiverAddress(payer)
+        };
+        if (!preferenceBody.shipments.receiver_address?.street_name) delete preferenceBody.shipments.receiver_address;
+      }
 
       const data = await preference.create({ body: preferenceBody, requestOptions: { idempotencyKey: crypto.randomUUID() } });
       if (!data?.id || !data?.init_point) throw new Error('O Mercado Pago não retornou a preferência de pagamento completa.');
@@ -287,12 +309,12 @@ function registerCheckoutWithShipping(app) {
         created_at: new Date().toISOString()
       };
       const orders = read(ORDERS, []); orders.push(order); write(ORDERS, orders);
-      console.log('Checkout com frete criado:', { orderId, metodo: 'cartao', shipping_service: shipping.service_name, shipping_cost: shippingCost, total });
+      console.log('Checkout criado:', { orderId, metodo: 'cartao', entrega: pickup ? 'retirada_na_loja' : shipping.service_name, shipping_cost: shippingCost, total });
       return res.json({ order_id: orderId, init_point: data.init_point });
     } catch (error) {
-      console.error('Erro checkout com frete:', { message: error.message, status: error.status || null, data: error?.cause || error?.data || null });
+      console.error('Erro checkout com frete/retirada:', { message: error.message, status: error.status || null, data: error?.cause || error?.data || null });
       const status = Number(error.status || error.statusCode || error?.api_response?.status || error?.cause?.status) || 502;
-      return res.status(status >= 400 && status < 500 ? status : 502).json({ error: error.message || 'Não foi possível iniciar o pagamento com frete.' });
+      return res.status(status >= 400 && status < 500 ? status : 502).json({ error: error.message || 'Não foi possível iniciar o pagamento.' });
     }
   });
 }
