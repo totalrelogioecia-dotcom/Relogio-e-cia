@@ -2,6 +2,7 @@
   const TRADE_NAME = 'Relógio & Cia';
   const COMPANY_LEGAL_NAME = 'Albernard Comércio de Relógios Ltda';
   const COMPANY_CNPJ = '05.583.329/0001-46';
+  const COMPANY_STATE_REGISTRATION = '096/2976806';
 
   function ensureMobileStyles() {
     if (document.querySelector('link[data-relogio-mobile-fixes]')) return;
@@ -46,9 +47,14 @@
     cnpj.textContent = `CNPJ: ${COMPANY_CNPJ}`;
     cnpj.style.display = 'block';
 
+    const stateRegistration = document.createElement('span');
+    stateRegistration.textContent = `Inscrição Estadual: ${COMPANY_STATE_REGISTRATION}`;
+    stateRegistration.style.display = 'block';
+
     identity.appendChild(tradeName);
     identity.appendChild(legalName);
     identity.appendChild(cnpj);
+    identity.appendChild(stateRegistration);
     firstColumn.appendChild(identity);
   }
 
