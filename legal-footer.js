@@ -1,4 +1,7 @@
 (() => {
+  const COMPANY_NAME = 'Albernard Comércio de Relógios Ltda';
+  const COMPANY_CNPJ = '05.583.329/0001-46';
+
   function ensureMobileStyles() {
     if (document.querySelector('link[data-relogio-mobile-fixes]')) return;
     const link = document.createElement('link');
@@ -18,10 +21,36 @@
     list.appendChild(li);
   }
 
+  function ensureCompanyIdentity(grid) {
+    const firstColumn = grid?.children?.[0];
+    if (!firstColumn || firstColumn.querySelector('.footer-company-identity')) return;
+
+    const identity = document.createElement('p');
+    identity.className = 'footer-company-identity';
+    identity.style.marginTop = '12px';
+    identity.style.fontSize = '12px';
+    identity.style.lineHeight = '1.55';
+    identity.style.opacity = '.82';
+
+    const company = document.createElement('strong');
+    company.textContent = COMPANY_NAME;
+    company.style.display = 'block';
+    company.style.fontWeight = '600';
+
+    const cnpj = document.createElement('span');
+    cnpj.textContent = `CNPJ ${COMPANY_CNPJ}`;
+
+    identity.appendChild(company);
+    identity.appendChild(cnpj);
+    firstColumn.appendChild(identity);
+  }
+
   function enhanceFooter() {
     ensureMobileStyles();
 
     document.querySelectorAll('footer .footer-grid').forEach(grid => {
+      ensureCompanyIdentity(grid);
+
       const navigation = Array.from(grid.children).find(column => {
         const title = column.querySelector('h5')?.textContent?.trim().toLowerCase();
         return title === 'navegação' || title === 'navegacao';
