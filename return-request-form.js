@@ -18,7 +18,64 @@
   }
 
   function typeLabel(value) {
-    return ({ troca:'Troca', devolucao:'Devolução', estorno:'Estorno/cancelamento', garantia:'Garantia/defeito', outro:'Outro' })[value] || value;
+    return ({ troca:'Troca', devolucao:'Devolução / arrependimento', estorno:'Estorno/cancelamento', garantia:'Garantia/defeito', outro:'Outro' })[value] || value;
+  }
+
+  function loadLegalFooter() {
+    if (document.querySelector('script[data-legal-footer-loader]') || document.querySelector('.footer-company-identity')) return;
+    const script = document.createElement('script');
+    script.src = 'legal-footer.js';
+    script.defer = true;
+    script.setAttribute('data-legal-footer-loader', '1');
+    document.head.appendChild(script);
+  }
+
+  function enhanceConsumerRights() {
+    const formCard = document.querySelector('#solicitar');
+    if (formCard && !document.querySelector('#direito-arrependimento')) {
+      const card = document.createElement('section');
+      card.className = 'policy-card';
+      card.id = 'direito-arrependimento';
+      card.innerHTML = `
+        <p class="policy-kicker">Compra pela internet</p>
+        <h2>Direito de arrependimento: 7 dias</h2>
+        <p>Nas compras realizadas pela internet, o consumidor pode exercer o direito de arrependimento no prazo de <strong>7 dias corridos</strong>, contado da assinatura do contrato ou do recebimento do produto, conforme aplicável, nos termos do art. 49 do Código de Defesa do Consumidor.</p>
+        <p>Não é necessário apresentar defeito no produto nem justificar a desistência. O exercício do direito não gera ônus ao consumidor. A Relógio e Cia fornecerá as orientações necessárias para a devolução e providenciará o cancelamento ou a restituição dos valores pagos conforme a legislação e o meio de pagamento utilizado.</p>
+        <div class="policy-note"><strong>Como exercer:</strong> use o formulário abaixo e escolha “Devolução / arrependimento (compra online)”. O protocolo gerado pelo próprio site confirma imediatamente o recebimento da solicitação. Você também pode utilizar nosso e-mail ou telefone.</div>`;
+      formCard.parentNode.insertBefore(card, formCard);
+    }
+
+    const intro = document.querySelector('.policy-hero .intro');
+    if (intro) intro.textContent = 'Se alguma coisa não saiu como esperado, fale com a gente. Nesta página você pode exercer o direito de arrependimento de uma compra online e também solicitar troca, devolução, garantia, cancelamento ou estorno.';
+
+    const type = $('#return-type');
+    const returnOption = type?.querySelector('option[value="devolucao"]');
+    if (returnOption) returnOption.textContent = 'Devolução / arrependimento (compra online)';
+
+    const reason = $('#return-reason');
+    if (reason) reason.placeholder = 'Ex.: direito de arrependimento da compra online';
+
+    const fileHelp = $('#return-files')?.parentElement?.querySelector('small');
+    if (fileHelp) fileHelp.textContent = 'Até 3 imagens. Para exercer o direito de arrependimento, fotos não são obrigatórias.';
+
+    const sections = Array.from(document.querySelectorAll('.policy-card'));
+    const rules = sections.find(section => /Regras principais/i.test(section.querySelector('h2')?.textContent || ''));
+    if (rules) {
+      const heading = Array.from(rules.querySelectorAll('h3')).find(h => /Desistência de compra online/i.test(h.textContent || ''));
+      const paragraph = heading?.nextElementSibling;
+      if (paragraph?.tagName === 'P') {
+        paragraph.innerHTML = 'Para compras realizadas pela internet, o direito de arrependimento pode ser exercido em <strong>7 dias corridos</strong>, contado da assinatura do contrato ou do recebimento do produto, conforme aplicável. A solicitação pode ser feita por este site, por e-mail ou telefone e não depende de defeito ou justificativa.';
+      }
+    }
+
+    const faq = sections.find(section => /Dúvidas frequentes/i.test(section.querySelector('h2')?.textContent || ''));
+    if (faq) {
+      const responseHeading = Array.from(faq.querySelectorAll('h3')).find(h => /Em quanto tempo vocês respondem/i.test(h.textContent || ''));
+      const responseParagraph = responseHeading?.nextElementSibling;
+      if (responseParagraph?.tagName === 'P') {
+        responseParagraph.textContent = 'O formulário gera imediatamente um protocolo confirmando o recebimento. A manifestação da loja sobre a demanda será encaminhada em até 5 dias, sem prejuízo de providências que devam ocorrer antes por força da legislação aplicável.';
+      }
+    }
   }
 
   function renderFiles() {
@@ -104,7 +161,7 @@
       if (!response.ok) throw Object.assign(new Error(data.error || 'Não foi possível enviar a solicitação.'), { data });
 
       const request = data.request;
-      feedback.innerHTML = `<strong>Solicitação registrada.</strong><br>Seu protocolo é <strong>${request.protocol}</strong>. Guarde esse número para acompanhar o atendimento.`;
+      feedback.innerHTML = `<strong>Solicitação registrada e recebida.</strong><br>Seu protocolo é <strong>${request.protocol}</strong>. Guarde esse número para acompanhar o atendimento.`;
       feedback.className = 'return-feedback success';
       $('#return-protocol').value = request.protocol;
       $('#return-status-email').value = body.email;
@@ -143,6 +200,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    loadLegalFooter();
+    enhanceConsumerRights();
     $('#return-request-form')?.addEventListener('submit', submitRequest);
     $('#return-status-form')?.addEventListener('submit', checkStatus);
     $('#return-files')?.addEventListener('change', event => {
