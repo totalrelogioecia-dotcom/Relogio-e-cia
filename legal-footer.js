@@ -6,8 +6,8 @@
   const INSTAGRAM_HANDLE = '@relogio.ecia';
   const WHATSAPP_NUMBER = '555196311864';
   const WHATSAPP_LABEL = '(51) 9631-1864';
-  const LANDLINE_HREF = 'tel:+555137371597';
-  const LANDLINE_LABEL = '(51) 3737-1597';
+  const LANDLINE_HREF = 'tel:+555137377267';
+  const LANDLINE_LABEL = '(51) 3737-7267';
 
   function ensureMobileStyles() {
     if (document.querySelector('link[data-relogio-mobile-fixes]')) return;
