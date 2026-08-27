@@ -47,8 +47,8 @@ test('rodapé exibe Instagram e WhatsApp como botões e fixo em Atendimento', ()
   assert.match(source, /footer-whatsapp-link/);
   assert.doesNotMatch(source, /footer-landline-link/);
   assert.match(source, /function replaceAttendancePhone/);
-  assert.match(source, /tel:\+555137371597/);
-  assert.match(source, /\(51\) 3737-1597/);
+  assert.match(source, /tel:\+555137377267/);
+  assert.match(source, /\(51\) 3737-7267/);
   assert.match(source, /phoneLink\.href = LANDLINE_HREF/);
   assert.match(source, /phoneLink\.textContent = LANDLINE_LABEL/);
   assert.match(source, /noopener noreferrer/);
