@@ -6,6 +6,7 @@
   const CART_KEY = 'reloja_carrinho';
   const SESSION_KEY = 'reloja_sessao';
   const SHIPPING_KEY = 'reloja_frete_selecionado';
+  const PICKUP_SERVICE_ID = 'pickup';
   let config = { configured: false };
   let selected = null;
   let lastQuotedCartSignature = '';
@@ -37,6 +38,10 @@
     return document.querySelector('input[name="pagamento"]:checked')?.value === 'pix';
   }
 
+  function pickupSelected() {
+    return selected?.mode === 'pickup' || String(selected?.service_id || '') === PICKUP_SERVICE_ID;
+  }
+
   function formatCep(value) {
     const n = digits(value).slice(0, 8);
     return n.length > 5 ? `${n.slice(0, 5)}-${n.slice(5)}` : n;
@@ -55,6 +60,31 @@
     } catch {}
   }
 
+  function setPickupVisual(active) {
+    const input = document.getElementById('shipping-pickup-input');
+    const label = document.getElementById('shipping-pickup-option');
+    if (input) input.checked = Boolean(active);
+    if (label) label.classList.toggle('is-selected', Boolean(active));
+  }
+
+  function selectPickup() {
+    saveSelected({
+      mode: 'pickup',
+      service_id: PICKUP_SERVICE_ID,
+      service_name: 'Retirada na loja',
+      company_name: 'Relógio e Cia',
+      price: 0,
+      delivery_time: null,
+      postal_code: null,
+      cart_signature: cartSignature()
+    });
+    document.querySelectorAll('#shipping-options .shipping-option').forEach(x => x.classList.remove('is-selected'));
+    document.querySelectorAll('#shipping-options input[name="shipping_service"]').forEach(x => { x.checked = false; });
+    setPickupVisual(true);
+    message('Retirada na loja selecionada. Você poderá pagar normalmente e o frete será R$ 0,00.', 'info');
+    updateTotal();
+  }
+
   function ensureUi() {
     const form = document.getElementById('payment-form');
     const summary = document.getElementById('cart-summary-box');
@@ -65,12 +95,19 @@
     box.className = 'shipping-box';
     box.innerHTML = `
       <div class="shipping-box__head">
-        <div><strong>Calcular entrega</strong><div class="shipping-help">Escolha o frete antes de finalizar o pedido.</div></div>
+        <div><strong>Entrega ou retirada</strong><div class="shipping-help">Escolha retirar na loja ou calcule uma entrega.</div></div>
         <span class="shipping-config-badge off" id="shipping-config-badge">Melhor Envio</span>
+      </div>
+      <div class="shipping-options shipping-pickup-options">
+        <label class="shipping-option" id="shipping-pickup-option">
+          <input type="radio" name="shipping_service" value="pickup" id="shipping-pickup-input">
+          <span class="shipping-option__name"><strong>Retirar na loja</strong><span>Av. Cristóvão Colombo, 545 · Porto Alegre</span></span>
+          <span class="shipping-option__price"><strong>Grátis</strong><span>R$ 0,00</span></span>
+        </label>
       </div>
       <div class="shipping-form">
         <input id="shipping-postal-code" inputmode="numeric" maxlength="9" placeholder="CEP de entrega" aria-label="CEP de entrega">
-        <button id="shipping-quote-btn" type="button">Calcular</button>
+        <button id="shipping-quote-btn" type="button">Calcular entrega</button>
       </div>
       <div id="shipping-lock-note" class="shipping-lock" style="display:none"></div>
       <div id="shipping-message" class="shipping-message"></div>
@@ -82,14 +119,19 @@
       const shippingRow = document.createElement('div');
       shippingRow.id = 'cart-shipping-row';
       shippingRow.className = 'cart-summary-row shipping-row';
-      shippingRow.innerHTML = '<span>Frete</span><span id="cart-shipping">R$ 0,00</span>';
+      shippingRow.innerHTML = '<span id="cart-shipping-label">Frete</span><span id="cart-shipping">R$ 0,00</span>';
       totalRow.parentNode.insertBefore(shippingRow, totalRow);
     }
+
+    const pickupInput = document.getElementById('shipping-pickup-input');
+    pickupInput?.addEventListener('change', () => {
+      if (pickupInput.checked) selectPickup();
+    });
 
     const input = document.getElementById('shipping-postal-code');
     input.addEventListener('input', () => {
       input.value = formatCep(input.value);
-      if (selected && digits(input.value) !== digits(selected.postal_code)) {
+      if (selected && !pickupSelected() && digits(input.value) !== digits(selected.postal_code)) {
         clearSelection('O CEP mudou. Calcule o frete novamente.');
       }
     });
@@ -128,6 +170,7 @@
 
   function clearSelection(reason) {
     saveSelected(null);
+    setPickupVisual(false);
     document.querySelectorAll('.shipping-option').forEach(x => x.classList.remove('is-selected'));
     document.querySelectorAll('input[name="shipping_service"]').forEach(x => { x.checked = false; });
     if (reason) message(reason, 'info');
@@ -142,9 +185,11 @@
     const totalEl = document.getElementById('cart-total');
     if (totalEl) totalEl.textContent = brl(total);
     const row = document.getElementById('cart-shipping-row');
+    const label = document.getElementById('cart-shipping-label');
     const value = document.getElementById('cart-shipping');
     if (row && value) {
-      value.textContent = brl(freight);
+      if (label) label.textContent = pickupSelected() ? 'Retirada na loja' : 'Frete';
+      value.textContent = pickupSelected() ? 'Grátis' : brl(freight);
       row.classList.toggle('is-visible', Boolean(selected));
     }
   }
@@ -152,7 +197,7 @@
   function renderQuotes(quotes, postalCode) {
     const host = document.getElementById('shipping-options');
     host.innerHTML = (quotes || []).map(q => {
-      const checked = selected && String(selected.service_id) === String(q.service_id);
+      const checked = selected && !pickupSelected() && String(selected.service_id) === String(q.service_id);
       const company = q.company_name ? `${q.company_name} · ` : '';
       const days = q.delivery_time == null ? 'prazo informado pela transportadora' : `${q.delivery_time} dia${q.delivery_time === 1 ? '' : 's'} útil${q.delivery_time === 1 ? '' : 'eis'}`;
       return `<label class="shipping-option${checked ? ' is-selected' : ''}">
@@ -166,6 +211,7 @@
       input.addEventListener('change', () => {
         const q = (quotes || []).find(x => String(x.service_id) === String(input.value));
         if (!q) return;
+        setPickupVisual(false);
         saveSelected({
           ...q,
           postal_code: digits(postalCode),
@@ -184,13 +230,14 @@
     const postal = digits(input?.value).slice(0, 8);
     if (postal.length !== 8) return message('Informe um CEP com 8 números.', 'error');
     if (!cart().length) return message('Seu carrinho está vazio.', 'error');
-    if (!config.configured) return message('O Melhor Envio ainda precisa ser configurado no servidor.', 'error');
+    if (!config.configured) return message('O Melhor Envio ainda precisa ser configurado no servidor. Você ainda pode escolher Retirar na loja.', 'error');
 
     button.disabled = true;
     button.textContent = 'Calculando...';
     message('Consultando transportadoras e prazos...', 'info');
     document.getElementById('shipping-options').innerHTML = '';
     saveSelected(null);
+    setPickupVisual(false);
     updateTotal();
 
     try {
@@ -206,12 +253,12 @@
       if (!response.ok) throw new Error(data.error || 'Não foi possível calcular o frete.');
       lastQuotedCartSignature = cartSignature();
       renderQuotes(data.quotes, postal);
-      message(data.quotes?.length ? 'Escolha uma das opções de entrega abaixo.' : 'Nenhum serviço encontrado.', data.quotes?.length ? 'info' : 'error');
+      message(data.quotes?.length ? 'Escolha uma das opções de entrega abaixo ou Retirar na loja.' : 'Nenhum serviço encontrado. Você pode Retirar na loja.', data.quotes?.length ? 'info' : 'error');
     } catch (error) {
-      message(error.message || 'Não foi possível calcular o frete.', 'error');
+      message(`${error.message || 'Não foi possível calcular o frete.'} Você pode escolher Retirar na loja.`, 'error');
     } finally {
       button.disabled = false;
-      button.textContent = 'Calcular';
+      button.textContent = 'Calcular entrega';
     }
   }
 
@@ -226,11 +273,18 @@
         if (selected || lastQuotedCartSignature) {
           lastQuotedCartSignature = '';
           document.getElementById('shipping-options').innerHTML = '';
-          clearSelection('O carrinho mudou. Calcule o frete novamente.');
+          clearSelection('O carrinho mudou. Escolha novamente a entrega ou retirada.');
         }
       }
       updateTotal();
     }).observe(host, { childList: true, subtree: true, characterData: true });
+  }
+
+  function checkoutBlockedResponse() {
+    return new Response(JSON.stringify({ error: 'Selecione uma opção de entrega ou Retirar na loja antes de finalizar o pedido.' }), {
+      status: 409,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   function interceptCheckout() {
@@ -241,23 +295,23 @@
         return originalFetch(input, init);
       }
 
-      if (config.configured) {
-        if (!selected || selected.cart_signature !== cartSignature()) {
-          return new Response(JSON.stringify({ error: 'Calcule e selecione o frete antes de finalizar o pedido.' }), {
-            status: 409,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
+      if (selected && selected.cart_signature !== cartSignature()) return checkoutBlockedResponse();
 
-        try {
-          const body = JSON.parse(init.body || '{}');
+      try {
+        const body = JSON.parse(init.body || '{}');
+        if (pickupSelected()) {
+          body.shipping = { mode: 'pickup' };
+          init = { ...init, body: JSON.stringify(body) };
+        } else if (config.configured) {
+          if (!selected) return checkoutBlockedResponse();
           body.shipping = {
             service_id: selected.service_id,
             postal_code: selected.postal_code
           };
           init = { ...init, body: JSON.stringify(body) };
-        } catch {}
-      }
+        }
+      } catch {}
+
       return originalFetch(input, init);
     };
   }
@@ -272,9 +326,9 @@
       badge.classList.toggle('off', !config.configured);
       badge.textContent = config.configured
         ? `Melhor Envio · ${config.environment === 'production' ? 'produção' : 'teste'}`
-        : 'Aguardando configuração';
+        : 'Entrega aguardando configuração';
     }
-    if (!config.configured) message('O cálculo aparecerá assim que configurarmos o Melhor Envio no Render.', 'info');
+    if (!config.configured) message('O cálculo de entrega aparecerá quando o Melhor Envio estiver configurado. A retirada na loja já está disponível.', 'info');
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -285,6 +339,7 @@
     watchCartChanges();
     await loadConfig();
     if (selected && selected.cart_signature === cartSignature()) {
+      if (pickupSelected()) setPickupVisual(true);
       updateTotal();
     } else if (selected) {
       clearSelection();
