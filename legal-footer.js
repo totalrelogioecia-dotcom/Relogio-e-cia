@@ -129,18 +129,22 @@
       iconHtml: '<path d="M20.5 11.6a8.5 8.5 0 0 1-12.6 7.5L3.5 20.5l1.4-4.2a8.5 8.5 0 1 1 15.6-4.7Z"></path><path d="M8.4 7.7c.3-.5.7-.5 1-.1l1.1 1.5c.2.3.2.6 0 .9l-.6.8c-.2.2-.1.5.1.8.8 1.3 1.8 2.3 3.2 3 .3.2.6.2.8 0l.9-1c.2-.3.5-.3.8-.2l1.7.8c.4.2.5.5.4.9-.3 1.2-1.4 2.1-2.7 2.2-1.4.1-3.2-.6-5.2-2.4-2-1.8-3.1-3.7-3.1-5.2 0-.8.3-1.5.8-2Z"></path>'
     });
 
-    const landline = makeFooterButton({
-      className: 'footer-landline-link',
-      href: LANDLINE_HREF,
-      label: `Fixo ${LANDLINE_LABEL}`,
-      ariaLabel: `Ligar para o telefone fixo da Relógio e Cia ${LANDLINE_LABEL}`,
-      iconHtml: '<path d="M6.5 3.5h3l1.2 4-2.2 1.6a15.2 15.2 0 0 0 6.4 6.4l1.6-2.2 4 1.2v3c0 1.1-.9 2-2 2C10.8 19.5 4.5 13.2 4.5 5.5c0-1.1.9-2 2-2Z"></path>'
-    });
-
     wrap.appendChild(instagram);
     wrap.appendChild(whatsapp);
-    wrap.appendChild(landline);
     firstColumn.appendChild(wrap);
+  }
+
+  function replaceAttendancePhone(grid) {
+    const attendance = Array.from(grid.children).find(column => {
+      const title = column.querySelector('h5')?.textContent?.trim().toLowerCase();
+      return title === 'atendimento';
+    });
+    if (!attendance) return;
+
+    const phoneLink = attendance.querySelector('a[href^="tel:"]');
+    if (!phoneLink) return;
+    phoneLink.href = LANDLINE_HREF;
+    phoneLink.textContent = LANDLINE_LABEL;
   }
 
   function clarifyLegalPageIdentity() {
@@ -159,6 +163,7 @@
     document.querySelectorAll('footer .footer-grid').forEach(grid => {
       ensureCompanyIdentity(grid);
       ensureContactButtons(grid);
+      replaceAttendancePhone(grid);
 
       const navigation = Array.from(grid.children).find(column => {
         const title = column.querySelector('h5')?.textContent?.trim().toLowerCase();
