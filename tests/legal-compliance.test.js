@@ -37,12 +37,18 @@ test('rodapé jurídico distingue nome fantasia, razão social e CNPJ', () => {
   assert.match(source, /termos-de-uso\.html/);
 });
 
-test('rodapé exibe Instagram oficial em nova aba com proteção', () => {
+test('rodapé exibe Instagram oficial, WhatsApp e telefone fixo', () => {
   const source = read('legal-footer.js');
   assert.match(source, /https:\/\/www\.instagram\.com\/relogio\.ecia\//);
   assert.match(source, /@relogio\.ecia/);
   assert.match(source, /footer-instagram-link/);
-  assert.match(source, /target = '_blank'/);
+  assert.match(source, /https:\/\/wa\.me\/\$\{WHATSAPP_NUMBER\}/);
+  assert.match(source, /555196311864/);
+  assert.match(source, /WhatsApp \$\{WHATSAPP_LABEL\}/);
+  assert.match(source, /footer-whatsapp-link/);
+  assert.match(source, /tel:\+555137371597/);
+  assert.match(source, /\(51\) 3737-1597/);
+  assert.match(source, /footer-landline-link/);
   assert.match(source, /noopener noreferrer/);
 });
 
