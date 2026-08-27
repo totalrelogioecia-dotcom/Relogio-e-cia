@@ -1,12 +1,14 @@
 /* =========================================================
    RELÓGIO E CIA — ponte de retirada na loja
-   Redundância intencional: garante que o checkout receba o modo
-   pickup mesmo se outro script substituir/interceptar window.fetch.
+   Garante que o checkout reconheça a retirada antes das
+   validações legadas de frete, sem consultar o Melhor Envio.
    ========================================================= */
 (function () {
   'use strict';
 
   const SHIPPING_KEY = 'reloja_frete_selecionado';
+
+  const digits = value => String(value || '').replace(/\D/g, '');
 
   function pickupSelected() {
     const input = document.getElementById('shipping-pickup-input');
@@ -16,6 +18,19 @@
       return selected?.mode === 'pickup' || String(selected?.service_id || '') === 'pickup';
     } catch {
       return false;
+    }
+  }
+
+  function pickupPostalCode() {
+    const input = document.getElementById('shipping-postal-code');
+    const postal = digits(input?.value).slice(0, 8);
+    if (postal.length === 8) return postal;
+    try {
+      const selected = JSON.parse(sessionStorage.getItem(SHIPPING_KEY) || 'null');
+      const saved = digits(selected?.postal_code).slice(0, 8);
+      return saved.length === 8 ? saved : '';
+    } catch {
+      return '';
     }
   }
 
@@ -46,7 +61,13 @@
     clearOldCheckoutError();
     try {
       const body = JSON.parse(init.body || '{}');
-      body.shipping = { ...(body.shipping || {}), mode: 'pickup' };
+      const postalCode = pickupPostalCode();
+      body.shipping = {
+        ...(body.shipping || {}),
+        mode: 'pickup',
+        service_id: 'pickup',
+        ...(postalCode ? { postal_code: postalCode } : {})
+      };
       init = { ...init, body: JSON.stringify(body) };
     } catch (_) {}
 
