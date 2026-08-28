@@ -3,22 +3,35 @@ const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
 const { maxInstallmentsForAmount } = require('./installment-policy');
-const {
-  MercadoPagoConfig,
-  Preference,
-  Payment,
-  WebhookSignatureValidator
-} = require('mercadopago');
 const { resolveSelectedShipping, isConfigured } = require('./shipping-service');
 const { flushPersistentStore } = require('./persistent-store');
+const {
+  WebhookSignatureValidator,
+  clients,
+  errorStatus,
+  mercadoPagoEnvironment,
+  paymentPayer,
+  paymentSafe,
+  preferencePayer,
+  publicBaseUrl,
+  publicKey,
+  receiverAddress,
+  requestOptions,
+  safeErrorData,
+  statementDescriptor,
+  webhookSecret
+} = require('./mercadopago-core');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
 const ORDERS = path.join(DATA, 'orders.json');
 
 function read(file, fallback) {
-  try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
-  catch { return fallback; }
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return fallback;
+  }
 }
 
 function write(file, value) {
@@ -44,9 +57,13 @@ function digits(value) {
 }
 
 function normalizeCategory(product) {
-  if (product?.categoria_id_mp) return String(product.categoria_id_mp).trim().slice(0, 100);
+  if (product?.categoria_id_mp) {
+    return String(product.categoria_id_mp).trim().slice(0, 100);
+  }
   const category = String(product?.categoria || '').toLowerCase();
-  if (category.includes('relóg') || category.includes('relog') || category.includes('acess')) return 'fashion';
+  if (category.includes('relóg') || category.includes('relog') || category.includes('acess')) {
+    return 'fashion';
+  }
   return undefined;
 }
 
@@ -59,7 +76,9 @@ function normalizeCartItems(rawItems) {
 
   const products = read(PRODUCTS, []);
   return rawItems.map(raw => {
-    const product = products.find(item => Number(item.id) === Number(raw.id) && item.ativo !== false);
+    const product = products.find(
+      item => Number(item.id) === Number(raw.id) && item.ativo !== false
+    );
     if (!product) {
       const error = new Error('Um produto do carrinho não foi encontrado.');
       error.status = 400;
@@ -93,7 +112,11 @@ function normalizeCartItems(rawItems) {
 function itemDescription(item) {
   const description = String(item.descricao || '').trim();
   if (description) return description.slice(0, 256);
-  return [item.nome, item.sku ? `SKU ${item.sku}` : '', 'Produto físico vendido pela Relógio e Cia']
+  return [
+    item.nome,
+    item.sku ? `SKU ${item.sku}` : '',
+    'Produto físico vendido pela Relógio e Cia'
+  ]
     .filter(Boolean)
     .join(' - ')
     .slice(0, 256);
@@ -130,108 +153,6 @@ function pixItems(items) {
   });
 }
 
-function splitName(fullName) {
-  const parts = String(fullName || '').trim().replace(/\s+/g, ' ').split(' ').filter(Boolean);
-  const firstName = parts.shift() || 'Cliente';
-  return { firstName: firstName.slice(0, 80), lastName: parts.join(' ').slice(0, 120) };
-}
-
-function pixPayer(payer) {
-  const name = splitName(payer?.nome);
-  const result = {
-    email: String(payer?.email || '').trim().toLowerCase().slice(0, 180),
-    first_name: name.firstName
-  };
-  if (name.lastName) result.last_name = name.lastName;
-
-  const type = String(payer?.identificacao?.type || '').trim().toUpperCase().slice(0, 20);
-  const number = digits(payer?.identificacao?.number).slice(0, 30);
-  if (type && number) result.identification = { type, number };
-
-  const area = digits(payer?.telefone?.area_code).slice(0, 4);
-  const phone = digits(payer?.telefone?.number).slice(0, 15);
-  if (area && phone) result.phone = { area_code: area, number: phone };
-
-  return result;
-}
-
-function receiverAddress(payer) {
-  const address = payer?.endereco || {};
-  const zipCode = digits(address.zip_code).slice(0, 8);
-  const streetName = String(address.street_name || '').trim().slice(0, 120);
-  const streetNumber = Number(String(address.street_number || '').match(/\d+/)?.[0] || 0);
-  if (zipCode.length !== 8 || !streetName || !streetNumber) return undefined;
-
-  return {
-    zip_code: zipCode,
-    street_name: streetName,
-    city_name: String(address.city_name || '').trim().slice(0, 120),
-    state_name: String(address.state_code || address.state_name || '').trim().slice(0, 120),
-    street_number: streetNumber,
-    country_name: 'Brasil'
-  };
-}
-
-function statementDescriptor() {
-  return String(process.env.MERCADOPAGO_STATEMENT_DESCRIPTOR || 'RELOGIOECIA')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toUpperCase()
-    .replace(/[^A-Z0-9 ]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 13) || 'RELOGIOECIA';
-}
-
-function publicBaseUrl() {
-  const base = String(process.env.PUBLIC_URL || '').trim().replace(/\/+$/, '');
-  if (!base.startsWith('https://')) {
-    const error = new Error('PUBLIC_URL precisa estar configurada com HTTPS.');
-    error.status = 503;
-    throw error;
-  }
-  return base;
-}
-
-function sdkClients() {
-  const accessToken = String(process.env.MERCADOPAGO_ACCESS_TOKEN || '').trim();
-  if (!accessToken) {
-    const error = new Error('MERCADOPAGO_ACCESS_TOKEN não configurado.');
-    error.status = 503;
-    throw error;
-  }
-
-  const client = new MercadoPagoConfig({
-    accessToken,
-    options: { timeout: 10000, maxRetries: 2 }
-  });
-
-  return {
-    preference: new Preference(client),
-    payment: new Payment(client)
-  };
-}
-
-function paymentSafe(payment) {
-  return {
-    id: payment?.id ? String(payment.id) : null,
-    status: payment?.status ? String(payment.status) : null,
-    status_detail: payment?.status_detail ? String(payment.status_detail) : null,
-    payment_method_id: payment?.payment_method_id ? String(payment.payment_method_id) : null,
-    payment_type_id: payment?.payment_type_id ? String(payment.payment_type_id) : null,
-    operation_type: payment?.operation_type ? String(payment.operation_type) : null,
-    transaction_amount: Number.isFinite(Number(payment?.transaction_amount)) ? Number(payment.transaction_amount) : null,
-    currency_id: payment?.currency_id ? String(payment.currency_id) : null,
-    installments: Number.isFinite(Number(payment?.installments)) ? Number(payment.installments) : null,
-    issuer_id: payment?.issuer_id ? String(payment.issuer_id) : null,
-    external_reference: payment?.external_reference ? String(payment.external_reference) : null,
-    date_created: payment?.date_created ? String(payment.date_created) : null,
-    date_approved: payment?.date_approved ? String(payment.date_approved) : null,
-    date_last_updated: payment?.date_last_updated ? String(payment.date_last_updated) : null,
-    live_mode: typeof payment?.live_mode === 'boolean' ? payment.live_mode : null
-  };
-}
-
 function orderStatus(paymentStatus) {
   if (paymentStatus === 'approved') return 'paid';
   if (paymentStatus === 'rejected') return 'rejected';
@@ -242,15 +163,29 @@ function orderStatus(paymentStatus) {
 async function resolveShipping(body, payer) {
   if (!isConfigured()) return null;
 
-  const request = body?.shipping;
-  if (!request?.service_id || !request?.postal_code) {
+  const selected = body?.shipping;
+  if (!selected?.service_id) {
+    const error = new Error('Calcule e selecione uma opção de frete antes de finalizar o pedido.');
+    error.status = 409;
+    throw error;
+  }
+
+  if (String(selected.service_id).trim().toLowerCase() === 'pickup') {
+    return resolveSelectedShipping({
+      postalCode: digits(selected.postal_code).slice(0, 8),
+      serviceId: 'pickup',
+      items: body.items
+    });
+  }
+
+  const selectedZip = digits(selected.postal_code).slice(0, 8);
+  if (selectedZip.length !== 8) {
     const error = new Error('Calcule e selecione uma opção de frete antes de finalizar o pedido.');
     error.status = 409;
     throw error;
   }
 
   const accountZip = digits(payer?.endereco?.zip_code).slice(0, 8);
-  const selectedZip = digits(request.postal_code).slice(0, 8);
   if (accountZip && accountZip !== selectedZip) {
     const error = new Error('O CEP do frete deve ser o mesmo do endereço de entrega cadastrado na sua conta.');
     error.status = 409;
@@ -259,7 +194,7 @@ async function resolveShipping(body, payer) {
 
   return resolveSelectedShipping({
     postalCode: selectedZip,
-    serviceId: request.service_id,
+    serviceId: selected.service_id,
     items: body.items
   });
 }
@@ -282,7 +217,9 @@ async function applyPayment(payment) {
   if (payment?.status === 'approved' && !order.stock_applied) {
     const products = read(PRODUCTS, []);
     for (const item of order.items || []) {
-      const productIndex = products.findIndex(product => Number(product.id) === Number(item.id));
+      const productIndex = products.findIndex(
+        product => Number(product.id) === Number(item.id)
+      );
       if (productIndex >= 0) {
         products[productIndex].estoque = Math.max(
           0,
@@ -296,26 +233,29 @@ async function applyPayment(payment) {
 
   orders[index] = order;
   await persistOrders(orders);
-  await flushPersistentStore();
 
-  console.log('Mercado Pago clean: pedido atualizado', {
+  console.log('Mercado Pago: pedido atualizado', {
     orderId,
     status: order.status,
     payment_status: order.payment_status,
     payment_id: order.payment_id,
-    status_detail: order.payment_detail?.status_detail || null
+    status_detail: order.payment_detail?.status_detail || null,
+    live_mode: order.payment_detail?.live_mode ?? null
   });
 
   return order;
 }
 
-async function getPayment(paymentId) {
-  const { payment } = sdkClients();
-  return payment.get({ id: String(paymentId) });
+async function getPayment(paymentId, options = {}) {
+  const { payment } = clients();
+  return payment.get({
+    id: String(paymentId),
+    requestOptions: options
+  });
 }
 
 async function findPaymentByOrder(orderId) {
-  const { payment } = sdkClients();
+  const { payment } = clients();
   const result = await payment.search({
     options: {
       external_reference: String(orderId),
@@ -324,7 +264,9 @@ async function findPaymentByOrder(orderId) {
       limit: 1
     }
   });
-  return Array.isArray(result?.results) && result.results.length ? result.results[0] : null;
+  return Array.isArray(result?.results) && result.results.length
+    ? result.results[0]
+    : null;
 }
 
 async function syncOrder(order) {
@@ -336,9 +278,9 @@ async function syncOrder(order) {
       ? await getPayment(order.payment_id)
       : await findPaymentByOrder(order.id);
     if (!payment) return order;
-    return await applyPayment(payment) || order;
+    return (await applyPayment(payment)) || order;
   } catch (error) {
-    console.warn('Mercado Pago clean: não foi possível sincronizar pedido', {
+    console.warn('Mercado Pago: não foi possível sincronizar pedido', {
       orderId: order.id,
       message: error.message
     });
@@ -352,18 +294,11 @@ async function markCheckoutError(orderId, error) {
   if (index < 0) return;
   orders[index].status = 'checkout_error';
   orders[index].payment_status = 'checkout_error';
-  orders[index].checkout_error = String(error?.message || 'Falha ao iniciar pagamento.').slice(0, 500);
+  orders[index].checkout_error = String(
+    error?.message || 'Falha ao iniciar pagamento.'
+  ).slice(0, 500);
   orders[index].updated_at = new Date().toISOString();
   await persistOrders(orders);
-}
-
-function errorStatus(error) {
-  return Number(
-    error?.status ||
-    error?.statusCode ||
-    error?.api_response?.status ||
-    error?.cause?.status
-  ) || 502;
 }
 
 function registerMercadoPagoClean(app) {
@@ -371,13 +306,14 @@ function registerMercadoPagoClean(app) {
   app.use('/api/mercadopago/webhook', express.json({ limit: '1mb' }));
 
   app.get('/api/mercadopago/config', (req, res) => {
-    const publicKey = String(process.env.MERCADOPAGO_PUBLIC_KEY || '').trim();
+    const key = publicKey();
     res.set('Cache-Control', 'no-store');
     return res.json({
-      integration: 'checkout-pro-clean',
-      configured: Boolean(publicKey && String(process.env.MERCADOPAGO_ACCESS_TOKEN || '').trim()),
-      public_key: publicKey || null,
-      webhook_secret_configured: Boolean(String(process.env.MERCADOPAGO_WEBHOOK_SECRET || '').trim())
+      integration: 'checkout-pro-preferences-api',
+      environment: mercadoPagoEnvironment(),
+      configured: Boolean(key && String(process.env.MERCADOPAGO_ACCESS_TOKEN || '').trim()),
+      public_key: key || null,
+      webhook_secret_configured: Boolean(webhookSecret())
     });
   });
 
@@ -388,6 +324,7 @@ function registerMercadoPagoClean(app) {
       const body = req.body || {};
       const payer = body.payer || {};
       const method = body.metodo === 'pix' ? 'pix' : 'cartao';
+      const deviceId = body.device_id;
 
       if (!payer.email || !payer.nome) {
         return res.status(401).json({ error: 'Faça login antes de finalizar a compra.' });
@@ -424,7 +361,7 @@ function registerMercadoPagoClean(app) {
       if (method === 'pix') {
         const discountedProducts = Number((productsSubtotal * 0.95).toFixed(2));
         const total = Number((discountedProducts + shippingCost).toFixed(2));
-        const { payment } = sdkClients();
+        const { payment } = clients();
         const data = await payment.create({
           body: {
             transaction_amount: total,
@@ -433,10 +370,13 @@ function registerMercadoPagoClean(app) {
             payment_method_id: 'pix',
             external_reference: orderId,
             notification_url: `${base}/api/mercadopago/webhook`,
-            payer: pixPayer(payer),
+            payer: paymentPayer(payer),
             additional_info: { items: pixItems(items) }
           },
-          requestOptions: { idempotencyKey: crypto.randomUUID() }
+          requestOptions: requestOptions({
+            idempotencyKey: crypto.randomUUID(),
+            deviceId
+          })
         });
 
         const transaction = data?.point_of_interaction?.transaction_data || {};
@@ -458,18 +398,18 @@ function registerMercadoPagoClean(app) {
         await saveOrder(order);
 
         const redirectUrl = `${base}/pagamento-pix.html?pedido=${encodeURIComponent(orderId)}`;
-        console.log('Mercado Pago clean: PIX criado', {
+        console.log('Mercado Pago: PIX criado', {
           orderId,
           payment_id: order.payment_id,
           shipping_cost: shippingCost,
-          total
+          total,
+          environment: mercadoPagoEnvironment()
         });
 
         return res.json({
           order_id: orderId,
           payment_id: order.payment_id,
-          redirect_url: redirectUrl,
-          init_point: redirectUrl
+          redirect_url: redirectUrl
         });
       }
 
@@ -477,6 +417,7 @@ function registerMercadoPagoClean(app) {
       const maxInstallments = maxInstallmentsForAmount(cardTotal);
       const preferenceBody = {
         items: preferenceItems(items),
+        payer: preferencePayer(payer),
         payment_methods: {
           excluded_payment_types: [
             { id: 'ticket' },
@@ -504,13 +445,18 @@ function registerMercadoPagoClean(app) {
         if (address) preferenceBody.shipments.receiver_address = address;
       }
 
-      const { preference } = sdkClients();
+      const { preference } = clients();
       const data = await preference.create({
         body: preferenceBody,
-        requestOptions: { idempotencyKey: crypto.randomUUID() }
+        requestOptions: requestOptions({
+          idempotencyKey: crypto.randomUUID(),
+          deviceId
+        })
       });
 
-      if (!data?.id) throw new Error('O Mercado Pago não retornou o ID da preferência.');
+      if (!data?.id) {
+        throw new Error('O Mercado Pago não retornou o ID da preferência.');
+      }
 
       order.status = 'pending';
       order.payment_status = 'pending';
@@ -519,13 +465,15 @@ function registerMercadoPagoClean(app) {
       order.updated_at = new Date().toISOString();
       await saveOrder(order);
 
-      console.log('Mercado Pago clean: preferência Checkout Pro criada', {
+      console.log('Mercado Pago: preferência Checkout Pro criada', {
         orderId,
         preference_id: order.preference_id,
         shipping_cost: shippingCost,
         total: order.total,
         max_installments: maxInstallments,
-        frontend: 'mercadopago.js-wallet'
+        device_id_sent: Boolean(requestOptions({ deviceId }).meliSessionId),
+        environment: mercadoPagoEnvironment(),
+        frontend: 'wallet-brick'
       });
 
       return res.json({
@@ -534,11 +482,11 @@ function registerMercadoPagoClean(app) {
       });
     } catch (error) {
       if (orderId) await markCheckoutError(orderId, error).catch(() => {});
-      console.error('Mercado Pago clean: erro no checkout', {
+      console.error('Mercado Pago: erro no checkout', {
         orderId,
         message: error.message,
         status: errorStatus(error),
-        data: error?.cause || error?.data || null
+        data: safeErrorData(error)
       });
       const status = errorStatus(error);
       return res.status(status >= 400 && status < 500 ? status : 502).json({
@@ -548,65 +496,57 @@ function registerMercadoPagoClean(app) {
   });
 
   app.post('/api/mercadopago/webhook', async (req, res) => {
-    const type = String(req.body?.type || req.query?.type || '').trim();
-    const queryDataId = String(req.query?.['data.id'] || '').trim();
-    const paymentId = queryDataId || String(req.body?.data?.id || '').trim();
+    const type = String(req.body?.type || req.query?.type || '').trim().toLowerCase();
+    const dataId = String(req.query?.['data.id'] || '').trim();
 
-    if (type !== 'payment' || !paymentId) {
-      console.log('Mercado Pago clean: webhook ignorado', {
+    if (type !== 'payment' || !dataId) {
+      console.log('Mercado Pago: webhook ignorado', {
         type: type || null,
-        data_id: paymentId || null
+        data_id: dataId || null
       });
       return res.sendStatus(200);
     }
 
-    const secret = String(process.env.MERCADOPAGO_WEBHOOK_SECRET || '').trim();
+    const secret = webhookSecret();
     if (!secret) {
-      console.warn('Mercado Pago clean: webhook recebido sem MERCADOPAGO_WEBHOOK_SECRET configurado.');
+      console.warn('Mercado Pago: webhook recebido sem MERCADOPAGO_WEBHOOK_SECRET configurado.');
       return res.sendStatus(503);
     }
 
-    if (!queryDataId) {
-      console.warn('Mercado Pago clean: webhook sem data.id na query; assinatura não pode ser validada.');
-      return res.sendStatus(400);
-    }
-
     try {
-      if (!WebhookSignatureValidator?.validate) {
-        throw new Error('A versão instalada do SDK não possui WebhookSignatureValidator.');
-      }
-
       WebhookSignatureValidator.validate({
         xSignature: req.headers['x-signature'],
         xRequestId: req.headers['x-request-id'],
-        dataId: queryDataId,
+        dataId,
         secret
       });
     } catch (error) {
-      console.warn('Mercado Pago clean: assinatura do webhook inválida', {
+      console.warn('Mercado Pago: assinatura do webhook inválida', {
         type,
-        paymentId,
+        paymentId: dataId,
         message: error.message
       });
       return res.sendStatus(401);
     }
 
     try {
-      const payment = await getPayment(paymentId);
+      const payment = await getPayment(
+        dataId,
+        requestOptions({ timeout: 8000, maxRetries: 0 })
+      );
       await applyPayment(payment);
       return res.sendStatus(200);
     } catch (error) {
       const status = errorStatus(error);
-
       if (status === 404) {
-        console.warn('Mercado Pago clean: webhook válido, pagamento não encontrado', {
-          paymentId
+        console.warn('Mercado Pago: webhook válido, pagamento não encontrado', {
+          paymentId: dataId
         });
         return res.sendStatus(200);
       }
 
-      console.error('Mercado Pago clean: falha ao processar webhook', {
-        paymentId,
+      console.error('Mercado Pago: falha ao processar webhook', {
+        paymentId: dataId,
         message: error.message,
         status
       });
@@ -618,7 +558,10 @@ function registerMercadoPagoClean(app) {
     let order = read(ORDERS, []).find(item => item.id === req.params.id);
     if (!order) return res.status(404).json({ error: 'Pedido não encontrado.' });
 
-    if (['creating', 'pending'].includes(order.status) || ['creating', 'pending'].includes(order.payment_status)) {
+    if (
+      ['creating', 'pending'].includes(order.status) ||
+      ['creating', 'pending'].includes(order.payment_status)
+    ) {
       order = await syncOrder(order);
     }
 
