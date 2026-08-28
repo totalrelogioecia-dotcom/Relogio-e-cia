@@ -174,31 +174,60 @@
   }
 
   function validDeviceId(value) {
-    const id = String(value || '').trim();
-    return /^[A-Za-z0-9_-]{8,256}$/.test(id) ? id : null;
+    const id = String(value ?? '').trim();
+    // A documentação do Mercado Pago não define um alfabeto/formato para o
+    // Device ID. Não descarte um ID legítimo com regex própria; apenas limite
+    // o tamanho transportado pela aplicação.
+    return id ? id.slice(0, 1024) : null;
+  }
+
+  function currentDeviceId() {
+    return validDeviceId(window.MP_DEVICE_SESSION_ID)
+      || validDeviceId(document.getElementById('deviceId')?.value);
   }
 
   function loadSecurity() {
-    const existingId = validDeviceId(window.MP_DEVICE_SESSION_ID);
+    const existingId = currentDeviceId();
     if (existingId) return Promise.resolve(existingId);
     if (securityPromise) return securityPromise;
 
     securityPromise = new Promise(resolve => {
-      let script = document.querySelector(`script[src="${SECURITY_URL}"]`);
-      const finish = () => resolve(validDeviceId(window.MP_DEVICE_SESSION_ID));
+      let settled = false;
+      const deadline = Date.now() + 5000;
 
+      const finish = () => {
+        if (settled) return;
+        const id = currentDeviceId();
+        if (id) {
+          settled = true;
+          resolve(id);
+          return;
+        }
+        if (Date.now() >= deadline) {
+          settled = true;
+          resolve(null);
+          return;
+        }
+        setTimeout(finish, 100);
+      };
+
+      let script = document.querySelector(`script[src="${SECURITY_URL}"]`);
       if (!script) {
         script = document.createElement('script');
         script.src = SECURITY_URL;
         script.async = true;
         script.setAttribute('view', 'checkout');
-        script.setAttribute('output', 'MP_DEVICE_SESSION_ID');
         document.head.appendChild(script);
       }
 
       script.addEventListener('load', finish, { once: true });
-      script.addEventListener('error', () => resolve(null), { once: true });
-      setTimeout(finish, 2500);
+      script.addEventListener('error', () => {
+        if (!settled) {
+          settled = true;
+          resolve(null);
+        }
+      }, { once: true });
+      finish();
     });
 
     return securityPromise;
