@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node -r ./store-health-bootstrap.js startup.js",
     "dev": "node --watch -r ./store-health-bootstrap.js startup.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "test:payments": "node --test tests/payment-integration.test.js tests/mercadopago-official.test.js"
   },
   "engines": {
     "node": ">=18"
@@ -14,7 +15,7 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "mercadopago": "^3.4.0",
+    "mercadopago": "^3.5.1",
     "pg": "^8.13.3"
   }
 }
