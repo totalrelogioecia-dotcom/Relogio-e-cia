@@ -281,7 +281,7 @@
   }
 
   function checkoutBlockedResponse() {
-    return new Response(JSON.stringify({ error: 'Selecione uma opção de entrega ou Retirar na loja antes de finalizar o pedido.' }), {
+    return new Response(JSON.stringify({ error: 'Escolha como receber seu pedido: selecione uma opção de entrega ou retire na loja para continuar.' }), {
       status: 409,
       headers: { 'Content-Type': 'application/json' }
     });
