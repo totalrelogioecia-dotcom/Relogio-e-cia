@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - mercadopago-clean-rebuild
+      - mp-official-audit-2026-08-28
   pull_request:
     branches:
       - main
@@ -31,9 +32,11 @@ jobs:
           node --check store-health-bootstrap.js
           node --check admin-store-health.js
           node --check home-enhancements.js
+          node --check mercadopago-core.js
           node --check mercadopago-clean.js
           node --check mercadopago-orders-pix.js
           node --check mercadopago-checkout-client.js
+          node --check coupon-checkout.js
           node --check auth-bootstrap.js
           node --check customer-address-service.js
           node --check customer-address-routes.js
@@ -57,7 +60,7 @@ jobs:
           node --check admin-stock-catalog.js
           node --check stock-alerts.js
 
-      - name: Run payment integration tests
+      - name: Run integration tests
         run: npm test
 
       - name: Check Mercado Pago SDK exports
