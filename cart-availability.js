@@ -5,12 +5,10 @@
   let details={};
   let products=[];
   let hasConfirmation=false;
-  const normalizeBrand=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/[_\s]+/g,'-');
-  const flexible=p=>['casio','g-shock','gshock'].includes(normalizeBrand(p?.marca));
   function cart(){try{const v=JSON.parse(localStorage.getItem(CART_KEY))||[];return Array.isArray(v)?v:[]}catch{return[]}}
   function product(id,item){return products.find(p=>Number(p.id)===Number(id))||item||null}
   function info(p){
-    if(!p||!flexible(p))return{type:'pronta_entrega',days:0};
+    if(!p)return{type:'pronta_entrega',days:0};
     const d=details[String(p.id)]||{};const raw=String(d.disponibilidade||'pronta_entrega').toLowerCase();
     const type=['sob_encomenda','mediante_confirmacao'].includes(raw)?raw:'pronta_entrega';
     return{type,days:type==='sob_encomenda'?Math.max(15,Number(d.prazo_preparacao_dias_uteis)||15):0};
