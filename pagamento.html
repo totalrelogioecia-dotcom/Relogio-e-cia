@@ -34,8 +34,15 @@
   <script>
   (async () => {
     const q = new URLSearchParams(location.search);
-    const retorno = q.get('status');
-    const id = q.get('pedido');
+    const retornoBruto = q.get('status') || q.get('collection_status') || '';
+    const retorno = retornoBruto === 'approved'
+      ? 'success'
+      : retornoBruto === 'rejected'
+        ? 'failure'
+        : retornoBruto;
+    // O Checkout Pro devolve external_reference nas back_urls. `pedido` fica
+    // aceito apenas por compatibilidade com links antigos da própria loja.
+    const id = q.get('external_reference') || q.get('pedido');
     const titulo = document.getElementById('titulo');
     const texto = document.getElementById('texto');
     const acoes = document.getElementById('acoes');
@@ -95,8 +102,6 @@
         aviso.innerHTML = '<strong>O pedido continua salvo.</strong><br>Seus produtos permanecem no carrinho. Você pode tentar novamente com outro cartão ou escolher PIX. Nenhuma cobrança foi aprovada nesta tentativa.';
         acoes.parentNode.insertBefore(aviso, acoes);
 
-        // O carrinho fica salvo no localStorage. O cliente volta ao checkout
-        // com os mesmos produtos e quantidades, sem precisar montar o pedido de novo.
         adicionarAcao('Tentar outro pagamento', 'carrinho.html?retorno=recusado', true);
         adicionarAcao('Voltar para a loja', 'index.html');
         return;
