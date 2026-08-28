@@ -10,6 +10,7 @@
   let config = { configured: false };
   let selected = null;
   let lastQuotedCartSignature = '';
+  let pickupAllowedForAddress = Boolean(window.__RELOJA_PICKUP_ALLOWED);
 
   const digits = value => String(value || '').replace(/\D/g, '');
   const brl = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -67,7 +68,28 @@
     if (label) label.classList.toggle('is-selected', Boolean(active));
   }
 
+  function setPickupAvailability(allowed, showMessage = false) {
+    pickupAllowedForAddress = Boolean(allowed);
+    const input = document.getElementById('shipping-pickup-input');
+    const label = document.getElementById('shipping-pickup-option');
+    const note = document.getElementById('shipping-pickup-availability');
+    if (input) input.disabled = !pickupAllowedForAddress;
+    if (label) label.classList.toggle('is-disabled', !pickupAllowedForAddress);
+    if (note) {
+      note.textContent = pickupAllowedForAddress
+        ? 'Disponível para o endereço selecionado em Porto Alegre/RS.'
+        : 'Disponível somente para endereços em Porto Alegre/RS.';
+    }
+    if (!pickupAllowedForAddress && pickupSelected()) {
+      clearSelection(showMessage ? 'A retirada na loja está disponível somente para endereços em Porto Alegre/RS.' : '');
+    }
+  }
+
   function selectPickup() {
+    if (!pickupAllowedForAddress) {
+      setPickupVisual(false);
+      return message('A retirada na loja está disponível somente para endereços em Porto Alegre/RS.', 'error');
+    }
     saveSelected({
       mode: 'pickup',
       service_id: PICKUP_SERVICE_ID,
@@ -95,13 +117,13 @@
     box.className = 'shipping-box';
     box.innerHTML = `
       <div class="shipping-box__head">
-        <div><strong>Entrega ou retirada</strong><div class="shipping-help">Escolha retirar na loja ou calcule uma entrega.</div></div>
+        <div><strong>Entrega ou retirada</strong><div class="shipping-help">Escolha como deseja receber seu pedido.</div></div>
         <span class="shipping-config-badge off" id="shipping-config-badge">Melhor Envio</span>
       </div>
       <div class="shipping-options shipping-pickup-options">
-        <label class="shipping-option" id="shipping-pickup-option">
-          <input type="radio" name="shipping_service" value="pickup" id="shipping-pickup-input">
-          <span class="shipping-option__name"><strong>Retirar na loja</strong><span>Av. Cristóvão Colombo, 545 · Porto Alegre</span></span>
+        <label class="shipping-option is-disabled" id="shipping-pickup-option">
+          <input type="radio" name="shipping_service" value="pickup" id="shipping-pickup-input" disabled>
+          <span class="shipping-option__name"><strong>Retirar na loja</strong><span>Av. Cristóvão Colombo, 545 · Porto Alegre</span><span id="shipping-pickup-availability">Disponível somente para endereços em Porto Alegre/RS.</span></span>
           <span class="shipping-option__price"><strong>Grátis</strong><span>R$ 0,00</span></span>
         </label>
       </div>
@@ -137,6 +159,7 @@
     });
     document.getElementById('shipping-quote-btn').addEventListener('click', quote);
     document.getElementById('payment-form')?.addEventListener('change', updateTotal);
+    setPickupAvailability(Boolean(window.__RELOJA_PICKUP_ALLOWED));
   }
 
   function prefillPostalCode() {
@@ -230,7 +253,14 @@
     const postal = digits(input?.value).slice(0, 8);
     if (postal.length !== 8) return message('Informe um CEP com 8 números.', 'error');
     if (!cart().length) return message('Seu carrinho está vazio.', 'error');
-    if (!config.configured) return message('O Melhor Envio ainda precisa ser configurado no servidor. Você ainda pode escolher Retirar na loja.', 'error');
+    if (!config.configured) {
+      return message(
+        pickupAllowedForAddress
+          ? 'O Melhor Envio ainda precisa ser configurado no servidor. Você pode escolher Retirar na loja.'
+          : 'O cálculo de entrega ainda não está disponível. A retirada na loja é exclusiva para endereços em Porto Alegre/RS.',
+        'error'
+      );
+    }
 
     button.disabled = true;
     button.textContent = 'Calculando...';
@@ -253,9 +283,11 @@
       if (!response.ok) throw new Error(data.error || 'Não foi possível calcular o frete.');
       lastQuotedCartSignature = cartSignature();
       renderQuotes(data.quotes, postal);
-      message(data.quotes?.length ? 'Escolha uma das opções de entrega abaixo ou Retirar na loja.' : 'Nenhum serviço encontrado. Você pode Retirar na loja.', data.quotes?.length ? 'info' : 'error');
+      const hasQuotes = Boolean(data.quotes?.length);
+      const suffix = pickupAllowedForAddress ? ' ou Retirar na loja.' : '.';
+      message(hasQuotes ? `Escolha uma das opções de entrega abaixo${suffix}` : (pickupAllowedForAddress ? 'Nenhum serviço encontrado. Você pode Retirar na loja.' : 'Nenhum serviço de entrega foi encontrado para este CEP.'), hasQuotes ? 'info' : 'error');
     } catch (error) {
-      message(`${error.message || 'Não foi possível calcular o frete.'} Você pode escolher Retirar na loja.`, 'error');
+      message(`${error.message || 'Não foi possível calcular o frete.'}${pickupAllowedForAddress ? ' Você pode escolher Retirar na loja.' : ''}`, 'error');
     } finally {
       button.disabled = false;
       button.textContent = 'Calcular entrega';
@@ -300,7 +332,13 @@
       try {
         const body = JSON.parse(init.body || '{}');
         if (pickupSelected()) {
-          body.shipping = { mode: 'pickup' };
+          if (!pickupAllowedForAddress) {
+            return new Response(JSON.stringify({ error: 'A retirada na loja está disponível somente para endereços em Porto Alegre/RS.' }), {
+              status: 409,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+          body.shipping = { mode: 'pickup', service_id: 'pickup' };
           init = { ...init, body: JSON.stringify(body) };
         } else if (config.configured) {
           if (!selected) return checkoutBlockedResponse();
@@ -309,6 +347,8 @@
             postal_code: selected.postal_code
           };
           init = { ...init, body: JSON.stringify(body) };
+        } else {
+          return checkoutBlockedResponse();
         }
       } catch {}
 
@@ -328,8 +368,19 @@
         ? `Melhor Envio · ${config.environment === 'production' ? 'produção' : 'teste'}`
         : 'Entrega aguardando configuração';
     }
-    if (!config.configured) message('O cálculo de entrega aparecerá quando o Melhor Envio estiver configurado. A retirada na loja já está disponível.', 'info');
+    if (!config.configured) {
+      message(
+        pickupAllowedForAddress
+          ? 'O cálculo de entrega aparecerá quando o Melhor Envio estiver configurado. A retirada na loja está disponível para este endereço.'
+          : 'O cálculo de entrega aparecerá quando o Melhor Envio estiver configurado. A retirada na loja é exclusiva para Porto Alegre/RS.',
+        'info'
+      );
+    }
   }
+
+  window.addEventListener('reloja:endereco-entrega', event => {
+    setPickupAvailability(Boolean(event.detail?.pickup_allowed), true);
+  });
 
   document.addEventListener('DOMContentLoaded', async () => {
     ensureUi();
@@ -338,8 +389,10 @@
     interceptCheckout();
     watchCartChanges();
     await loadConfig();
+    setPickupAvailability(Boolean(window.__RELOJA_PICKUP_ALLOWED));
     if (selected && selected.cart_signature === cartSignature()) {
-      if (pickupSelected()) setPickupVisual(true);
+      if (pickupSelected() && pickupAllowedForAddress) setPickupVisual(true);
+      else if (pickupSelected()) clearSelection();
       updateTotal();
     } else if (selected) {
       clearSelection();
