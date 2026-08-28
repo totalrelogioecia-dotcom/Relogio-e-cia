@@ -14,6 +14,19 @@
     return p?.foto?[p.foto]:[];
   }
 
+  function brandFlexible(p){
+    const brand=String(p?.marca||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/[_\s]+/g,'-');
+    return ['casio','g-shock','gshock'].includes(brand);
+  }
+
+  function availabilityInfo(p){
+    if(!brandFlexible(p))return{type:'pronta_entrega',days:0};
+    const d=p?.detalhes||{};
+    const raw=String(d.disponibilidade||'pronta_entrega').trim().toLowerCase();
+    const type=['sob_encomenda','mediante_confirmacao'].includes(raw)?raw:'pronta_entrega';
+    return{type,days:type==='sob_encomenda'?Math.max(15,Number(d.prazo_preparacao_dias_uteis)||15):0};
+  }
+
   function specList(p){
     const d=p?.detalhes||{};
     const specs=[
@@ -32,11 +45,21 @@
     const fotos=fotosDoProduto(p);
     const principal=fotos[0]||'';
     const stock=Number(p.estoque||0);
+    const availability=availabilityInfo(p);
+    const preorder=availability.type==='sob_encomenda';
+    const confirmation=availability.type==='mediante_confirmacao';
+    const canBuy=preorder||(!confirmation&&stock>0);
     const pix=p.preco*0.95;
     const minimumInstallment=50;
     const installmentCount=Math.max(1,Math.min(12,Math.floor(Math.round(Number(p.preco||0)*100)/(minimumInstallment*100))));
     const installmentValue=Number(p.preco||0)/installmentCount;
     const related=all.filter(x=>x.id!==p.id&&x.ativo!==false&&(x.marca===p.marca||x.categoria===p.categoria)).slice(0,4);
+    const whatsapp=`https://wa.me/555196311864?text=${encodeURIComponent((confirmation?'Olá! Quero confirmar a disponibilidade do ':'Olá! Tenho interesse no ')+p.nome+' (Ref. '+p.sku+').')}`;
+    const availabilityHtml=preorder
+      ? `<div class="product-availability-box preorder"><strong>Sob encomenda</strong><span>Prazo de preparação: ${availability.days} dias úteis. O prazo da transportadora começa depois da preparação.</span></div>`
+      : confirmation
+        ? `<div class="product-availability-box confirmation"><strong>Pedido mediante confirmação</strong><span>Consulte a loja para confirmarmos a disponibilidade com o fornecedor antes do pagamento.</span></div>`
+        : `<div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Esse produto encontra-se indisponível.'}</div>`;
     root.innerHTML=`
       <nav class="product-breadcrumb" aria-label="Navegação estrutural"><a href="index.html">Início</a><span>—</span><a href="produtos.html">Produtos</a><span>—</span><span>${esc(p.marca)}</span></nav>
       <section class="product-hero">
@@ -52,19 +75,21 @@
           <div class="product-pix">${money(pix)} no PIX com 5% de desconto</div>
           <div class="product-installments">ou em até <strong>${installmentCount}x de ${money(installmentValue)}</strong> no cartão</div>
           <div class="product-payment-note">Condições e eventuais juros são informados pelo Mercado Pago no checkout.</div>
-          <div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Esse produto encontra-se indisponível.'}</div>
-          ${stock<=0?`<form class="stock-alert-box" id="stock-alert-form">
+          ${availabilityHtml}
+          ${!preorder&&!confirmation&&stock<=0?`<form class="stock-alert-box" id="stock-alert-form">
             <label for="stock-alert-email"><strong>Deixe seu e-mail que avisaremos quando chegar.</strong></label>
             <div class="stock-alert-fields"><input id="stock-alert-email" name="email" type="email" autocomplete="email" maxlength="180" placeholder="seuemail@exemplo.com" required><button class="btn btn-primary" type="submit">Avise-me</button></div>
             <p class="stock-alert-privacy">Usaremos este e-mail somente para avisar sobre a reposição deste produto. O aviso não reserva a unidade.</p>
             <div class="stock-alert-message" id="stock-alert-message" aria-live="polite"></div>
           </form>`:''}
           <div class="product-actions-main">
-            <button class="btn btn-primary" type="button" id="product-add" ${stock<=0?'disabled':''}>${stock<=0?'Indisponível':'Adicionar ao carrinho'}</button>
-            <a class="btn btn-outline" href="https://wa.me/555196311864?text=${encodeURIComponent('Olá! Tenho interesse no '+p.nome+' (Ref. '+p.sku+').')}" target="_blank" rel="noopener">Falar com a loja</a>
+            ${confirmation
+              ? `<a class="btn btn-primary" href="${whatsapp}" target="_blank" rel="noopener">Confirmar disponibilidade</a>`
+              : `<button class="btn btn-primary" type="button" id="product-add" ${canBuy?'':'disabled'}>${canBuy?(preorder?'Adicionar sob encomenda':'Adicionar ao carrinho'):'Indisponível'}</button>`}
+            <a class="btn btn-outline" href="${whatsapp}" target="_blank" rel="noopener">Falar com a loja</a>
           </div>
-          ${stock>0?`<div class="product-shipping">
-            <h3>Calcule a entrega</h3><p>Veja preços e prazos para o seu CEP antes de adicionar o produto ao pedido.</p>
+          ${canBuy?`<div class="product-shipping">
+            <h3>Calcule a entrega</h3><p>${preorder?`O prazo abaixo considera a preparação de ${availability.days} dias úteis mais o transporte.`:'Veja preços e prazos para o seu CEP antes de adicionar o produto ao pedido.'}</p>
             <div class="product-shipping-form"><input id="product-cep" inputmode="numeric" maxlength="9" placeholder="00000-000" aria-label="CEP"><button class="btn btn-outline" id="product-calc-shipping" type="button">Calcular</button></div>
             <div class="product-shipping-result" id="product-shipping-result"></div>
           </div>`:''}
@@ -86,13 +111,13 @@
       root.querySelectorAll('.product-thumb').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
     }));
     const add=document.getElementById('product-add');
-    if(add&&stock>0)add.onclick=()=>{adicionarAoCarrinho(p.id);add.textContent='Adicionado ✓';setTimeout(()=>add.textContent='Adicionar ao carrinho',1300)};
+    if(add&&canBuy)add.onclick=()=>{adicionarAoCarrinho(p.id);const original=preorder?'Adicionar sob encomenda':'Adicionar ao carrinho';add.textContent='Adicionado ✓';setTimeout(()=>add.textContent=original,1300)};
     const alertForm=document.getElementById('stock-alert-form');
     if(alertForm)alertForm.addEventListener('submit',event=>cadastrarAviso(event,p));
     const cep=document.getElementById('product-cep');
     if(cep)cep.addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,8);e.target.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v});
     const calc=document.getElementById('product-calc-shipping');
-    if(calc)calc.onclick=()=>calcularFrete(p);
+    if(calc)calc.onclick=()=>calcularFrete(p,availability);
   }
 
   async function cadastrarAviso(event,p){
@@ -124,7 +149,7 @@
     }
   }
 
-  async function calcularFrete(p){
+  async function calcularFrete(p,availability){
     const cep=document.getElementById('product-cep').value.replace(/\D/g,'');
     const box=document.getElementById('product-shipping-result');
     if(cep.length!==8){box.innerHTML='<div class="form-error">Informe um CEP válido com 8 números.</div>';return}
@@ -133,7 +158,12 @@
       const response=await fetch('/api/shipping/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({postal_code:cep,items:[{id:p.id,qtd:1}]})});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||'Não foi possível calcular o frete.');
-      box.innerHTML=data.quotes.slice(0,4).map(q=>`<div class="shipping-option-detail"><div><strong>${esc((q.company_name+' '+q.service_name).trim())}</strong><br><span>${q.delivery_time!=null?q.delivery_time+' dias úteis':'Prazo a confirmar'}</span></div><strong>${money(q.price)}</strong></div>`).join('');
+      const preorder=availability?.type==='sob_encomenda';
+      box.innerHTML=data.quotes.slice(0,4).map(q=>{
+        const transport=q.delivery_time!=null?`${q.delivery_time} dias úteis de transporte`:'Prazo de transporte a confirmar';
+        const deadline=preorder?`${availability.days} dias úteis de preparação + ${transport}`:transport;
+        return `<div class="shipping-option-detail"><div><strong>${esc((q.company_name+' '+q.service_name).trim())}</strong><br><span>${deadline}</span></div><strong>${money(q.price)}</strong></div>`;
+      }).join('');
     }catch(e){box.innerHTML=`<div class="form-error">${esc(e.message)}</div>`}
   }
 
