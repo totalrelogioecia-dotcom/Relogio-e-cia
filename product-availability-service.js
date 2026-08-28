@@ -25,18 +25,8 @@ function normalizeAvailability(value) {
   return PRONTA_ENTREGA;
 }
 
-function normalizedBrand(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase()
-    .replace(/[_\s]+/g, '-');
-}
-
 function supportsFlexibleAvailability(product) {
-  const brand = normalizedBrand(product?.marca);
-  return brand === 'casio' || brand === 'g-shock' || brand === 'gshock';
+  return Boolean(product);
 }
 
 function preparationDays(value) {
