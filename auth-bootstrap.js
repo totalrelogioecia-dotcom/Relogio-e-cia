@@ -18,6 +18,7 @@ const { registerMercadoPagoOrdersPix } = require('./mercadopago-orders-pix');
 const { registerMercadoPagoClean } = require('./mercadopago-clean');
 const { registerReturnRequestRoutes } = require('./return-requests');
 const { queueOrderReceivedEmail } = require('./order-email');
+const { createCheckoutRateLimit } = require('./checkout-rate-limit');
 
 /*
  * Este bootstrap continua responsável por autenticar a conta do cliente e
@@ -96,6 +97,8 @@ if (!originalExpress.__relogioAuthPatched) {
       res.set('Cache-Control', 'no-store');
       res.json(storageStatus());
     });
+
+    app.use('/api/checkout', createCheckoutRateLimit(userFromRequest));
 
     app.use('/api/checkout', express.json({ limit: '1mb' }), (req, res, next) => {
       try {
