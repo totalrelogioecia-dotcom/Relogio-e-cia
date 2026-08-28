@@ -1,67 +1,124 @@
-# Relógio e Cia — loja com pagamentos e painel administrativo
+# Relógio e Cia — ecommerce Node.js
 
-Esta versão transforma o site estático em uma aplicação Node.js com:
-- catálogo carregado do servidor;
-- painel `/admin.html` para cadastrar, editar e ocultar produtos;
-- estoque por produto;
-- registro de pedidos;
-- Checkout Pro do Mercado Pago para cartão e PIX;
-- webhook com validação HMAC da assinatura do Mercado Pago;
-- baixa de estoque após pagamento aprovado.
-- desconto de 5% no Pix aplicado no valor enviado ao Mercado Pago.
+Aplicação da Relógio e Cia com catálogo, contas de clientes, painel administrativo, estoque, pedidos, frete, cupons e pagamentos.
 
-## Webhook
+## Stack
 
-Configure `MERCADOPAGO_WEBHOOK_SECRET` com a chave secreta gerada em Suas integrações > Webhooks. A loja valida `x-signature` antes de processar atualizações.
+- Node.js 18+
+- Express
+- PostgreSQL para persistência do estado da aplicação
+- Mercado Pago
+- Melhor Envio
+- Resend
+- Render
+
+## Mercado Pago
+
+### Cartão
+
+O cartão usa **Checkout Pro via Preferences API**.
+
+Fluxo principal:
+
+1. cliente autenticado inicia o checkout;
+2. servidor reconstrói os dados do comprador a partir da conta;
+3. servidor valida CPF, endereço, produtos, estoque, cupom e frete;
+4. servidor cria uma preferência Mercado Pago;
+5. frontend recebe `preference_id` e inicializa o Wallet Brick;
+6. Mercado Pago processa o pagamento;
+7. backend confirma o estado por Webhook/Payment API;
+8. estoque é baixado somente depois de `approved` e apenas uma vez.
+
+O projeto envia Device ID pelo mecanismo oficial do SDK (`meliSessionId` / `X-Meli-Session-Id`) quando disponível e envia os dados conhecidos do payer e dos produtos para melhorar a qualidade da análise de segurança.
+
+### PIX
+
+O PIX possui fluxo próprio e desconto de 5%. O estado do pedido e o estoque são atualizados no backend após a confirmação do pagamento.
+
+### Webhooks
+
+Configure `MERCADOPAGO_WEBHOOK_SECRET` com a chave secreta da aplicação. O endpoint `/api/mercadopago/webhook` usa `WebhookSignatureValidator.validate` do SDK oficial do Mercado Pago para validar notificações de pagamento.
+
+A URL de retorno do navegador nunca é usada como fonte de verdade para aprovação.
 
 ## Frete
 
-A cotação automática por CEP ainda não está integrada. Para isso é necessário escolher um provedor de frete e configurar suas credenciais (por exemplo, Melhor Envio ou uma transportadora).
+O site possui integração com Melhor Envio para cálculo e seleção do frete. O servidor revalida a opção escolhida antes de criar o pagamento. Também existe opção de retirada, que não adiciona custo de frete à preferência.
 
-## O que falta configurar
+## Cupons
 
-Você precisa criar uma aplicação no Mercado Pago e colocar o **Access Token** no `.env`. O Access Token fica somente no servidor — nunca coloque essa chave no HTML ou JavaScript do navegador.
+O checkout possui suporte a cupom de frete grátis, com validação no servidor antes da criação do pagamento.
 
-Crie `.env` a partir de `.env.example`:
+## Segurança
+
+- Access Token e Webhook Secret ficam somente no backend.
+- A Public Key pode ser entregue ao frontend.
+- preços e estoque são reconstruídos/validados no servidor;
+- checkout exige sessão de cliente válida;
+- CPF é validado antes do pagamento;
+- webhook assinado é validado pelo SDK oficial;
+- estoque possui proteção contra baixa duplicada;
+- endpoint de checkout possui rate limit;
+- logs de erro do Mercado Pago são sanitizados para não expor credenciais;
+- painel administrativo possui autenticação no servidor.
+
+## Variáveis de ambiente
+
+Use `.env.example` somente como referência e nunca versione valores reais.
+
+Principais variáveis Mercado Pago:
 
 ```env
-PORT=3000
-PUBLIC_URL=https://www.seudominio.com.br
-MERCADOPAGO_ACCESS_TOKEN=SEU_ACCESS_TOKEN
-ADMIN_EMAIL=seuemail@dominio.com
-ADMIN_PASSWORD=uma-senha-forte
-ADMIN_SESSION_SECRET=uma-chave-aleatoria-muito-grande
+PUBLIC_URL=https://seu-dominio.example
+MERCADOPAGO_ENV=test
+MERCADOPAGO_ACCESS_TOKEN=
+MERCADOPAGO_PUBLIC_KEY=
+MERCADOPAGO_WEBHOOK_SECRET=
+MERCADOPAGO_STATEMENT_DESCRIPTOR=RELOGIOECIA
 ```
 
-`PUBLIC_URL` precisa ser uma URL HTTPS pública. O Mercado Pago exige HTTPS para as URLs de retorno e para notificações.
+`PUBLIC_URL` deve ser uma URL HTTPS pública.
 
-## Rodar no computador
-
-Requer Node.js 18 ou superior.
+## Desenvolvimento
 
 ```bash
 npm install
 npm start
 ```
 
-Abra `http://localhost:3000`.
+Testes:
 
-O painel fica em:
+```bash
+npm test
+npm run test:payments
+```
 
-`http://localhost:3000/admin.html`
+## Docker
 
-Para pagamento real, o endereço publicado precisa ser HTTPS e o `.env` precisa usar as credenciais de produção.
+Existe um `Dockerfile` com Node 20 para reproduzir o ambiente da aplicação. O deploy atual do Render continua podendo usar o `render.yaml` e `npm start`.
 
-## Mercado Pago
+## Auditoria e testes Mercado Pago
 
-O site usa o Checkout Pro. O cliente é enviado para o checkout seguro do Mercado Pago, onde pode pagar com cartão e PIX. O servidor cria uma preferência por pedido e recebe atualizações por webhook.
+A documentação específica está em `docs/mercadopago/`:
 
-Documentação oficial:
+- `README.md` — arquitetura;
+- `AUDIT.md` — auditoria e decisões da refatoração;
+- `API.md` — endpoints internos;
+- `TESTING.md` — roteiro oficial de testes;
+- `TROUBLESHOOTING.md` — diagnóstico;
+- `DEPLOYMENT.md` — deploy e rollback;
+- `HUMAN-CHECKLIST.md` — etapas que dependem de validação humana.
+
+## Rollback da auditoria de 2026-08-28
+
+Estado preservado antes da refatoração Mercado Pago:
+
+- commit: `c82610ada89d12aa87101766b80727412ab2e15d`
+- branch: `backup-before-mp-audit-2026-08-28-c82610a`
+
+## Documentação oficial Mercado Pago
+
 - https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/create-payment-preference
+- https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/how-tos/improve-payment-approval/recommendations
 - https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/payment-notifications
-
-## Segurança
-
-O painel possui autenticação no servidor. Não use os valores padrão do `.env.example`.
-
-Para uma operação maior, recomendo trocar os arquivos JSON por PostgreSQL/MySQL, usar armazenamento de imagens (S3/Cloudinary etc.), implementar autenticação de clientes no servidor e adicionar proteção CSRF/rate limiting.
+- https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/integration-test
