@@ -24,6 +24,28 @@
     return n.length > 5 ? `${n.slice(0, 5)}-${n.slice(5)}` : n;
   }
 
+  function normalizePlace(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  function pickupAllowed(address) {
+    const city = normalizePlace(address?.city_name);
+    const state = normalizePlace(address?.state_code || address?.state_name);
+    return city === 'porto alegre' && (state === 'rs' || state === 'rio grande do sul');
+  }
+
+  function publishAddress(address) {
+    const allowed = pickupAllowed(address);
+    window.__RELOJA_PICKUP_ALLOWED = allowed;
+    window.dispatchEvent(new CustomEvent('reloja:endereco-entrega', {
+      detail: { address: address || null, pickup_allowed: allowed }
+    }));
+  }
+
   function formatAddress(address) {
     const line1 = `${address.street_name}, ${address.street_number}${address.complement ? ` — ${address.complement}` : ''}`;
     const line2 = `${address.neighborhood} — ${address.city_name}/${address.state_code}`;
@@ -68,7 +90,10 @@
 
   function selectAddress(id, userAction) {
     const next = addresses.find(address => address.id === id) || addresses.find(address => address.principal) || addresses[0] || null;
-    if (!next) return;
+    if (!next) {
+      publishAddress(null);
+      return;
+    }
     const changed = currentId && currentId !== next.id;
     currentId = next.id;
     sessionStorage.setItem(ADDRESS_KEY, currentId);
@@ -91,10 +116,14 @@
       note.style.display = 'block';
     }
 
+    publishAddress(next);
+
     if (userAction && changed) {
       const message = document.getElementById('shipping-message');
       if (message) {
-        message.textContent = 'Endereço alterado. Calcule o frete novamente para este CEP.';
+        message.textContent = pickupAllowed(next)
+          ? 'Endereço alterado. Escolha Retirar na loja ou calcule o frete novamente para este CEP.'
+          : 'Endereço alterado. Calcule o frete novamente para este CEP.';
         message.className = 'shipping-message info';
       }
       document.getElementById('shipping-options').innerHTML = '';
@@ -106,6 +135,7 @@
     const select = document.getElementById('shipping-address-select');
     if (!select) return;
     if (!addresses.length) {
+      publishAddress(null);
       document.getElementById('shipping-address-picker').innerHTML = '<p class="shipping-address-current">Cadastre um endereço de entrega na sua conta antes de finalizar a compra.</p><a href="conta.html" class="shipping-address-manage">Cadastrar endereço</a>';
       return;
     }
@@ -127,11 +157,16 @@
         credentials: 'same-origin',
         cache: 'no-store'
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        publishAddress(null);
+        return;
+      }
       const data = await response.json();
       addresses = Array.isArray(data.addresses) ? data.addresses : [];
       renderPicker();
-    } catch {}
+    } catch {
+      publishAddress(null);
+    }
   }
 
   function installCheckoutAddress() {
@@ -155,6 +190,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    window.__RELOJA_PICKUP_ALLOWED = false;
     installCheckoutAddress();
     setTimeout(loadAddresses, 0);
   });
