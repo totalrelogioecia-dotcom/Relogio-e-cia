@@ -14,13 +14,8 @@
     return p?.foto?[p.foto]:[];
   }
 
-  function brandFlexible(p){
-    const brand=String(p?.marca||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/[_\s]+/g,'-');
-    return ['casio','g-shock','gshock'].includes(brand);
-  }
-
   function availabilityInfo(p){
-    if(!brandFlexible(p))return{type:'pronta_entrega',days:0};
+    if(!p)return{type:'pronta_entrega',days:0};
     const d=p?.detalhes||{};
     const raw=String(d.disponibilidade||'pronta_entrega').trim().toLowerCase();
     const type=['sob_encomenda','mediante_confirmacao'].includes(raw)?raw:'pronta_entrega';
@@ -102,7 +97,7 @@
         </div>
       </section>
       <section class="product-content-section"><div class="product-section-label"><p class="eyebrow">Sobre o relógio</p><h2>Detalhes que importam.</h2></div><div class="product-section-body"><p class="product-description">${esc(p.desc||'Informações detalhadas deste produto serão adicionadas em breve.')}</p></div></section>
-      <section class="product-content-section"><div class="product-section-label"><p class="eyebrow">Ficha técnica</p><h2>Especificações</h2></div><div class="product-section-body"><dl class="spec-grid">${specList(p)}</dl></div></section>
+      <section class="product-content-section"><div class="product-section-label"><p class="eyebrow">Ficha técnica</p><h2>Especificações</h2></div><div class="product-section-body"><dl class="spec-grid">${specList(p)}</dl></section>
       <section class="product-content-section"><div class="product-section-label"><p class="eyebrow">Compra segura</p><h2>Originalidade e garantia</h2></div><div class="product-section-body"><div class="originality-strip"><div><strong>Original</strong><span>Produto vendido como original e com procedência.</span></div><div><strong>Nota fiscal</strong><span>Documento fiscal vinculado à venda.</span></div><div><strong>Atendimento</strong><span>Suporte da Relógio e Cia antes e depois da compra.</span></div></div></div></section>
       <section class="related-section"><div class="related-head"><div><p class="eyebrow">Seleção relacionada</p><h2>Você também pode gostar</h2></div><a href="produtos.html?marca=${encodeURIComponent(p.marca)}">Ver todos da marca →</a></div><div class="related-grid">${related.map(r=>{const f=fotosDoProduto(r)[0];return `<a class="related-card" href="produto.html?id=${r.id}"><div class="related-photo">${f?`<img src="${escAttr(f)}" alt="${escAttr(r.nome)}" onerror="tratarErroFoto(this)">`:'<span class="product-photo-empty">Foto em breve</span>'}</div><span class="brand-chip">${esc(r.marca)}</span><h3>${esc(r.nome)}</h3><span class="price">${money(r.preco)}</span></a>`}).join('')}</div></section>`;
 
