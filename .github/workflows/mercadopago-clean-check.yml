@@ -37,6 +37,7 @@ jobs:
           node --check mercadopago-orders-pix.js
           node --check mercadopago-checkout-client.js
           node --check coupon-checkout.js
+          node --check checkout-rate-limit.js
           node --check auth-bootstrap.js
           node --check customer-address-service.js
           node --check customer-address-routes.js
