@@ -2,10 +2,8 @@
 (function(){
   'use strict';
   let details={};
-  const normalizeBrand=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/[_\s]+/g,'-');
-  const flexible=p=>['casio','g-shock','gshock'].includes(normalizeBrand(p?.marca));
   function info(p){
-    if(!p||!flexible(p))return{type:'pronta_entrega',days:0};
+    if(!p)return{type:'pronta_entrega',days:0};
     const d=details[String(p.id)]||{};
     const raw=String(d.disponibilidade||'pronta_entrega').toLowerCase();
     const type=['sob_encomenda','mediante_confirmacao'].includes(raw)?raw:'pronta_entrega';
