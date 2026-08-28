@@ -65,3 +65,12 @@ test('auth bootstrap não modifica classes do SDK Mercado Pago', () => {
   assert.doesNotMatch(bootstrap, /WebhookSignatureValidator\.validate\s*=/);
   assert.doesNotMatch(bootstrap, /AsyncLocalStorage/);
 });
+
+test('página de retorno aceita external_reference e status oficiais do Checkout Pro', () => {
+  const paymentPage = read('pagamento.html');
+
+  assert.match(paymentPage, /q\.get\(['"]external_reference['"]\)/);
+  assert.match(paymentPage, /q\.get\(['"]collection_status['"]\)/);
+  assert.match(paymentPage, /retornoBruto\s*===\s*['"]approved['"]\s*\?\s*['"]success['"]/);
+  assert.match(paymentPage, /fetch\(['"]\/api\/order\//);
+});
