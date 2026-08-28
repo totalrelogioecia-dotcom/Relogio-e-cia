@@ -5,6 +5,12 @@ const express = require('express');
 const { maxInstallmentsForAmount } = require('./installment-policy');
 const { resolveSelectedShipping, isConfigured } = require('./shipping-service');
 const { flushPersistentStore } = require('./persistent-store');
+const { assertPickupAllowed } = require('./pickup-policy');
+const {
+  readDetails,
+  validateCheckoutAvailability,
+  shouldApplyPhysicalStock
+} = require('./product-availability-service');
 const {
   WebhookSignatureValidator,
   clients,
@@ -75,6 +81,7 @@ function normalizeCartItems(rawItems) {
   }
 
   const products = read(PRODUCTS, []);
+  const detailsMap = readDetails();
   return rawItems.map(raw => {
     const product = products.find(
       item => Number(item.id) === Number(raw.id) && item.ativo !== false
@@ -86,11 +93,7 @@ function normalizeCartItems(rawItems) {
     }
 
     const quantity = Math.max(1, Math.min(99, Number(raw.qtd) || 1));
-    if (Number(product.estoque) < quantity) {
-      const error = new Error(`Estoque insuficiente para ${product.nome}.`);
-      error.status = 409;
-      throw error;
-    }
+    const availability = validateCheckoutAvailability(product, quantity, detailsMap);
 
     const picture = Array.isArray(product.fotos)
       ? product.fotos.find(url => /^https:\/\//i.test(String(url || '')))
@@ -104,7 +107,9 @@ function normalizeCartItems(rawItems) {
       categoria_id: normalizeCategory(product),
       quantidade: quantity,
       unit_price: Number(Number(product.preco || 0).toFixed(2)),
-      foto: picture || null
+      foto: picture || null,
+      disponibilidade: availability.type,
+      prazo_preparacao_dias_uteis: availability.preparation_days || 0
     };
   });
 }
@@ -161,21 +166,28 @@ function orderStatus(paymentStatus) {
 }
 
 async function resolveShipping(body, payer) {
-  if (!isConfigured()) return null;
-
   const selected = body?.shipping;
-  if (!selected?.service_id) {
-    const error = new Error('Calcule e selecione uma opção de frete antes de finalizar o pedido.');
+  const serviceId = String(selected?.service_id || selected?.mode || '').trim().toLowerCase();
+
+  if (serviceId === 'pickup') {
+    assertPickupAllowed(payer);
+    return resolveSelectedShipping({
+      postalCode: digits(selected?.postal_code).slice(0, 8),
+      serviceId: 'pickup',
+      items: body.items
+    });
+  }
+
+  if (!isConfigured()) {
+    const error = new Error('A entrega ainda não está disponível. Se o endereço for em Porto Alegre/RS, selecione Retirar na loja.');
     error.status = 409;
     throw error;
   }
 
-  if (String(selected.service_id).trim().toLowerCase() === 'pickup') {
-    return resolveSelectedShipping({
-      postalCode: digits(selected.postal_code).slice(0, 8),
-      serviceId: 'pickup',
-      items: body.items
-    });
+  if (!selected?.service_id) {
+    const error = new Error('Calcule e selecione uma opção de frete antes de finalizar o pedido.');
+    error.status = 409;
+    throw error;
   }
 
   const selectedZip = digits(selected.postal_code).slice(0, 8);
@@ -217,6 +229,7 @@ async function applyPayment(payment) {
   if (payment?.status === 'approved' && !order.stock_applied) {
     const products = read(PRODUCTS, []);
     for (const item of order.items || []) {
+      if (!shouldApplyPhysicalStock(item)) continue;
       const productIndex = products.findIndex(
         product => Number(product.id) === Number(item.id)
       );
