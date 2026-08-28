@@ -54,8 +54,11 @@ function statementDescriptor() {
 }
 
 function deviceSessionId(value) {
-  const id = String(value || '').trim();
-  return /^[A-Za-z0-9_-]{8,256}$/.test(id) ? id : null;
+  const id = String(value ?? '').trim();
+  // O Mercado Pago documenta o Device ID como valor opaco e não publica um
+  // alfabeto/formato para ele. Preserve o valor recebido, limitando apenas o
+  // tamanho transportado pela aplicação.
+  return id ? id.slice(0, 1024) : null;
 }
 
 function splitName(fullName) {
