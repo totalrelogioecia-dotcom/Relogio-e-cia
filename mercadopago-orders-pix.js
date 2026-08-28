@@ -5,6 +5,12 @@ const express = require('express');
 const { WebhookSignatureValidator } = require('mercadopago');
 const { resolveSelectedShipping, isConfigured } = require('./shipping-service');
 const { flushPersistentStore } = require('./persistent-store');
+const { assertPickupAllowed } = require('./pickup-policy');
+const {
+  readDetails,
+  validateCheckoutAvailability,
+  shouldApplyPhysicalStock
+} = require('./product-availability-service');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
@@ -67,18 +73,43 @@ async function mpRequest(url, options = {}) {
 function normalizeItems(rawItems) {
   if (!Array.isArray(rawItems) || !rawItems.length) { const e = new Error('Carrinho vazio.'); e.status = 400; throw e; }
   const products = read(PRODUCTS, []);
+  const detailsMap = readDetails();
   return rawItems.map(raw => {
     const product = products.find(item => Number(item.id) === Number(raw.id) && item.ativo !== false);
     if (!product) { const e = new Error('Um produto do carrinho não foi encontrado.'); e.status = 400; throw e; }
     const quantidade = Math.max(1, Math.min(99, Number(raw.qtd) || 1));
-    if (Number(product.estoque) < quantidade) { const e = new Error(`Estoque insuficiente para ${product.nome}.`); e.status = 409; throw e; }
-    return { id: Number(product.id), sku: String(product.sku || ''), nome: String(product.nome || 'Produto'), quantidade, unit_price: money(product.preco) };
+    const availability = validateCheckoutAvailability(product, quantidade, detailsMap);
+    return {
+      id: Number(product.id),
+      sku: String(product.sku || ''),
+      nome: String(product.nome || 'Produto'),
+      quantidade,
+      unit_price: money(product.preco),
+      disponibilidade: availability.type,
+      prazo_preparacao_dias_uteis: availability.preparation_days || 0
+    };
   });
 }
 
 async function shippingFor(body, payer) {
-  if (!isConfigured()) return null;
   const selected = body?.shipping;
+  const serviceId = String(selected?.service_id || selected?.mode || '').trim().toLowerCase();
+
+  if (serviceId === 'pickup') {
+    assertPickupAllowed(payer);
+    return resolveSelectedShipping({
+      postalCode: digits(selected?.postal_code).slice(0, 8),
+      serviceId: 'pickup',
+      items: body.items
+    });
+  }
+
+  if (!isConfigured()) {
+    const e = new Error('A entrega ainda não está disponível. Se o endereço for em Porto Alegre/RS, selecione Retirar na loja.');
+    e.status = 409;
+    throw e;
+  }
+
   if (!selected?.service_id || !selected?.postal_code) { const e = new Error('Calcule e selecione uma opção de frete antes de finalizar o pedido.'); e.status = 409; throw e; }
   const accountZip = digits(payer?.endereco?.zip_code).slice(0, 8);
   const selectedZip = digits(selected.postal_code).slice(0, 8);
@@ -129,6 +160,7 @@ async function applyOrder(mpOrder) {
   if (order.status === 'paid' && !order.stock_applied) {
     const products = read(PRODUCTS, []);
     for (const item of order.items || []) {
+      if (!shouldApplyPhysicalStock(item)) continue;
       const p = products.find(product => Number(product.id) === Number(item.id));
       if (p) p.estoque = Math.max(0, Number(p.estoque || 0) - Number(item.quantidade || 0));
     }
@@ -203,11 +235,6 @@ function registerMercadoPagoOrdersPix(app) {
     }
   });
 
-  // A integração principal usa os eventos de pagamento para atualizar os pedidos.
-  // Eventos "order" não são necessários aqui. Respondemos 200 sem processá-los
-  // para que o Mercado Pago considere a entrega concluída e não faça retries.
-  // Como nenhum dado do evento é aplicado ao pedido, não há alteração de estado
-  // sem a validação do webhook de pagamento que continua no fluxo principal.
   app.post('/api/mercadopago/webhook', express.json({ limit: '1mb' }), (req, res, next) => {
     const type = String(req.body?.type || req.query?.type || '').trim().toLowerCase();
     if (type !== 'order' && type !== 'orders') return next();
