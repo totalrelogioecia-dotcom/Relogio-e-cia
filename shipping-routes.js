@@ -120,7 +120,8 @@ function registerShippingRoutes(app) {
       }
       res.status(Number(error.status) || 500).json({
         error: error.message || 'Não foi possível calcular o frete.',
-        code: error.code || null
+        code: error.code || null,
+        details: Array.isArray(error.provider_errors) ? error.provider_errors : undefined
       });
     }
   });
