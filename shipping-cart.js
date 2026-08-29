@@ -72,7 +72,13 @@
     pickupAllowedForAddress = Boolean(allowed);
     const input = document.getElementById('shipping-pickup-input');
     const label = document.getElementById('shipping-pickup-option');
+    const options = document.getElementById('shipping-pickup-options');
     const note = document.getElementById('shipping-pickup-availability');
+    if (options) {
+      options.hidden = !pickupAllowedForAddress;
+      options.style.display = pickupAllowedForAddress ? '' : 'none';
+      options.setAttribute('aria-hidden', String(!pickupAllowedForAddress));
+    }
     if (input) input.disabled = !pickupAllowedForAddress;
     if (label) label.classList.toggle('is-disabled', !pickupAllowedForAddress);
     if (note) {
@@ -120,7 +126,7 @@
         <div><strong>Entrega ou retirada</strong><div class="shipping-help">Escolha como deseja receber seu pedido.</div></div>
         <span class="shipping-config-badge off" id="shipping-config-badge">Melhor Envio</span>
       </div>
-      <div class="shipping-options shipping-pickup-options">
+      <div class="shipping-options shipping-pickup-options" id="shipping-pickup-options" hidden aria-hidden="true" style="display:none">
         <label class="shipping-option is-disabled" id="shipping-pickup-option">
           <input type="radio" name="shipping_service" value="pickup" id="shipping-pickup-input" disabled>
           <span class="shipping-option__name"><strong>Retirar na loja</strong><span>Av. Cristóvão Colombo, 545 · Porto Alegre</span><span id="shipping-pickup-availability">Disponível somente para endereços em Porto Alegre/RS.</span></span>
