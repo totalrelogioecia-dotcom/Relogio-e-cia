@@ -16,7 +16,7 @@ test('carrinho oferece retirada na loja grátis sem remover o Melhor Envio', () 
   assert.match(source, /Melhor Envio/);
 });
 
-test('retirada fica invisível fora de Porto Alegre e reaparece para endereço permitido', () => {
+test('retirada fica invisível fora de Porto Alegre e reaparece para endereço ou CEP permitido', () => {
   const source = read('shipping-cart.js');
   const addresses = read('shipping-addresses.js');
   const cart = read('carrinho.html');
@@ -24,9 +24,14 @@ test('retirada fica invisível fora de Porto Alegre e reaparece para endereço p
   assert.match(source, /id="shipping-pickup-options" hidden/);
   assert.match(source, /options\.hidden = !pickupAllowedForAddress/);
   assert.match(source, /options\.style\.display = pickupAllowedForAddress \? '' : 'none'/);
+  assert.match(source, /PORTO_ALEGRE_CEP_MIN = 90000000/);
+  assert.match(source, /PORTO_ALEGRE_CEP_MAX = 91999999/);
+  assert.match(source, /numericPostal >= PORTO_ALEGRE_CEP_MIN && numericPostal <= PORTO_ALEGRE_CEP_MAX/);
+  assert.match(source, /pickupAddressResolved\s*\?\s*Boolean\(window\.__RELOJA_PICKUP_ALLOWED\)\s*:\s*pickupAllowedByPostalCode\(postal\)/);
   assert.match(addresses, /publishAddress\(sessionAddress\(\)\)/);
-  assert.match(cart, /shipping-addresses\.js\?v=pickup-6/);
-  assert.match(cart, /shipping-cart\.js\?v=pickup-6/);
+  assert.match(addresses, /address_resolved: addressResolved/);
+  assert.match(cart, /shipping-addresses\.js\?v=pickup-7/);
+  assert.match(cart, /shipping-cart\.js\?v=pickup-7/);
 });
 
 test('checkout real do Render passa pelo Mercado Pago clean', () => {
