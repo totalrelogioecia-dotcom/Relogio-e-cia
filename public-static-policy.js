@@ -32,6 +32,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'conta.js',
   'enderecos.js',
   'home-enhancements.js',
+  'home-watch-selector.js',
   'image-proxy-client.js',
   'legal-footer.js',
   'mercadopago-checkout-client.js',
