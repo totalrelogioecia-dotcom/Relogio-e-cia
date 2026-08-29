@@ -172,7 +172,7 @@
 
       const c = cancellation(order);
       const canStart = paid(order) && !c;
-      const canRetry = paid(order) && ['refund_failed', 'refund_pending'].includes(String(c?.status || ''));
+      const canRetry = ['refund_failed', 'refund_pending'].includes(String(c?.status || ''));
       if (!canStart && !canRetry) return;
 
       const button = document.createElement('button');
