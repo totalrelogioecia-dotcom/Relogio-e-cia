@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - fix-admin-buttons-2026-08-28
   pull_request:
     branches:
       - main
@@ -46,6 +47,7 @@ jobs:
           node --check account-orders.js
           node --check availability-requests.js
           node --check admin-extra-tabs.js
+          node --check admin-extra-tabs-navigation-fix.js
           node --check catalog-availability.js
           node --check product-confirmation-request.js
           node --check customer-address-service.js
