@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { storageStatus } = require('./persistent-store');
-const { configStatus: shippingConfigStatus, getShippingData } = require('./shipping-service');
+const { configStatus: shippingConfigStatus, getEffectiveShippingData } = require('./shipping-service');
 const { boxSizeForProduct, dimensionsForBox, normalizeBoxSize } = require('./shipping-packaging');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
@@ -35,7 +35,8 @@ function buildProductShippingDiagnostic(product, shipping = {}) {
     width: Number(shipping.width ?? shipping.width_cm),
     height: Number(shipping.height ?? shipping.height_cm),
     length: Number(shipping.length ?? shipping.length_cm),
-    box_size: normalizeBoxSize(shipping.box_size)
+    box_size: normalizeBoxSize(shipping.box_size),
+    weight_source: String(shipping.weight_source || '')
   };
 
   const boxSize = boxSizeForProduct(product, normalizedShipping);
@@ -63,6 +64,7 @@ function buildProductShippingDiagnostic(product, shipping = {}) {
     box_size: boxSize || null,
     box_source: normalizedShipping.box_size ? 'manual' : (boxSize ? 'automática' : 'dimensões manuais'),
     weight_kg: positive(normalizedShipping.weight) ? normalizedShipping.weight : null,
+    weight_source: normalizedShipping.weight_source || 'manual',
     dimensions: box
       ? { width_cm: box.width, height_cm: box.height, length_cm: box.length }
       : {
@@ -102,7 +104,7 @@ function collectStoreHealth() {
   const list = Array.isArray(products) ? products : [];
   const visible = list.filter(product => product?.ativo !== false);
   const hidden = list.filter(product => product?.ativo === false);
-  const diagnostics = visible.map(product => buildProductShippingDiagnostic(product, getShippingData(product.id)));
+  const diagnostics = visible.map(product => buildProductShippingDiagnostic(product, getEffectiveShippingData(product)));
   const incomplete = diagnostics.filter(item => !item.ready);
   const blocking = incomplete.filter(item => item.stock > 0);
   const waiting = incomplete.filter(item => item.stock <= 0);
