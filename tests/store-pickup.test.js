@@ -16,6 +16,19 @@ test('carrinho oferece retirada na loja grátis sem remover o Melhor Envio', () 
   assert.match(source, /Melhor Envio/);
 });
 
+test('retirada fica invisível fora de Porto Alegre e reaparece para endereço permitido', () => {
+  const source = read('shipping-cart.js');
+  const addresses = read('shipping-addresses.js');
+  const cart = read('carrinho.html');
+
+  assert.match(source, /id="shipping-pickup-options" hidden/);
+  assert.match(source, /options\.hidden = !pickupAllowedForAddress/);
+  assert.match(source, /options\.style\.display = pickupAllowedForAddress \? '' : 'none'/);
+  assert.match(addresses, /publishAddress\(sessionAddress\(\)\)/);
+  assert.match(cart, /shipping-addresses\.js\?v=pickup-6/);
+  assert.match(cart, /shipping-cart\.js\?v=pickup-6/);
+});
+
 test('checkout real do Render passa pelo Mercado Pago clean', () => {
   const bootstrap = read('auth-bootstrap.js');
   assert.match(bootstrap, /registerMercadoPagoClean\(app\)/);
