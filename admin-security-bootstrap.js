@@ -116,6 +116,9 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
         if (!html.includes('admin-secure-client.js')) {
           html = html.replace('</body>', '<script src="admin-secure-client.js"></script></body>');
         }
+        if (!html.includes('admin-extra-tabs.js')) {
+          html = html.replace('</body>', '<script src="admin-extra-tabs.js?v=1"></script></body>');
+        }
         res.type('html').send(html);
       } catch (error) {
         next(error);
