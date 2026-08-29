@@ -50,8 +50,8 @@ if (!originalExpress.__relogioAuthPatched) {
         }
         if (!html.includes('cart-coupons.js')) {
           html = html.replace(
-            '<script src="mercadopago-checkout-client.js"></script>',
-            '<script src="cart-coupons.js"></script>\n<script src="mercadopago-checkout-client.js"></script>'
+            /(<script\s+src=["']mercadopago-checkout-client\.js(?:\?[^"']*)?["'][^>]*><\/script>)/i,
+            '<script src="cart-coupons.js"></script>\n$1'
           );
         }
         html = injectLegalFooterScript(html);
