@@ -32,6 +32,12 @@ function isPaidOrder(order) {
   return status === 'paid' || paymentStatus === 'approved' || paymentStatus === 'processed';
 }
 
+function isRefundedOrder(order) {
+  const status = String(order?.status || '').toLowerCase();
+  const paymentStatus = String(order?.payment_status || '').toLowerCase();
+  return status === 'refunded' || paymentStatus === 'refunded';
+}
+
 function refundTarget(order) {
   const method = String(order?.metodo || '').trim().toLowerCase();
   const mpOrderId = String(order?.mp_order_id || '').trim();
@@ -87,6 +93,7 @@ module.exports = {
   CANCELLATION_REASONS,
   normalizeCancellationReason,
   isPaidOrder,
+  isRefundedOrder,
   refundTarget,
   customerOrder
 };
