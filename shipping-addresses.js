@@ -48,9 +48,17 @@
 
   function publishAddress(address) {
     const allowed = pickupAllowed(address);
+    const addressResolved = Boolean(
+      normalizePlace(address?.city_name) &&
+      normalizePlace(address?.state_code || address?.state_name)
+    );
     window.__RELOJA_PICKUP_ALLOWED = allowed;
     window.dispatchEvent(new CustomEvent('reloja:endereco-entrega', {
-      detail: { address: address || null, pickup_allowed: allowed }
+      detail: {
+        address: address || null,
+        address_resolved: addressResolved,
+        pickup_allowed: allowed
+      }
     }));
   }
 
@@ -166,14 +174,14 @@
         cache: 'no-store'
       });
       if (!response.ok) {
-        publishAddress(null);
+        publishAddress(sessionAddress());
         return;
       }
       const data = await response.json();
       addresses = Array.isArray(data.addresses) ? data.addresses : [];
       renderPicker();
     } catch {
-      publishAddress(null);
+      publishAddress(sessionAddress());
     }
   }
 
