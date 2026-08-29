@@ -74,25 +74,16 @@
         <svg class="home-watch-svg" viewBox="0 0 320 320" role="img" aria-labelledby="digital-watch-title digital-watch-desc">
           <title id="digital-watch-title">Relógio digital Casio G-Shock</title>
           <desc id="digital-watch-desc">Relógio digital com dia em inglês, data e horário de Brasília.</desc>
-          <path class="digital-case" d="M91 42h138l8 19 18 10 12 37-7 20 7 64-12 37-18 10-8 39H91l-8-39-18-10-12-37 7-32-7-32 12-37 18-10z"></path>
-          <path class="digital-case-inset" d="M91 72h138l15 20 7 68-7 68-15 20H91l-15-20-7-68 7-68z"></path>
-          <text class="watch-brand watch-brand--light" x="160" y="96">CASIO</text>
-          <rect class="digital-accent" x="80" y="103" width="160" height="112" rx="15"></rect>
-          <rect class="digital-screen" x="88" y="111" width="144" height="96" rx="8"></rect>
+          <image class="watch-photo-base" href="assets/home-watch-gshock.svg?v=photo-1" x="0" y="0" width="320" height="320"></image>
           <g class="digital-info">
-            <path class="watch-alarm-icon" d="M101 128c0-4 2-7 6-8v-2h3v2c4 1 6 4 6 8v5l3 4h-21l3-4zm5 12h5c-1 3-4 3-5 0z"></path>
-            <text id="digital-weekday" x="123" y="135">SAT</text>
-            <text id="digital-date" x="184" y="135">08-29</text>
-            <text class="digital-small" x="101" y="157">ALM</text>
-            <text class="digital-small" x="130" y="157">24H</text>
-            <text id="digital-hour-minute" class="digital-main" x="99" y="190">15:42</text>
-            <text id="digital-second" class="digital-seconds" x="204" y="190">36</text>
+            <path class="watch-alarm-icon" d="M109 132c0-3 2-6 5-7v-2h3v2c3 1 5 4 5 7v4l3 4h-19l3-4zm5 11h4c-1 3-3 3-4 0z"></path>
+            <text id="digital-weekday" x="134" y="139">SAT</text>
+            <text id="digital-date" x="190" y="139">08-29</text>
+            <text class="digital-small" x="109" y="157">ALM</text>
+            <text class="digital-small" x="137" y="157">24H</text>
+            <text id="digital-hour-minute" class="digital-main" x="106" y="187">15:42</text>
+            <text id="digital-second" class="digital-seconds" x="215" y="187">36</text>
           </g>
-          <text class="watch-brand watch-brand--light watch-brand--lower" x="160" y="239">G-SHOCK</text>
-          <circle class="digital-screw" cx="93" cy="60" r="5"></circle>
-          <circle class="digital-screw" cx="227" cy="60" r="5"></circle>
-          <circle class="digital-screw" cx="93" cy="260" r="5"></circle>
-          <circle class="digital-screw" cx="227" cy="260" r="5"></circle>
         </svg>
       </div>`;
   }
@@ -103,32 +94,16 @@
         <svg class="home-watch-svg" viewBox="0 0 320 320" role="img" aria-labelledby="citizen-watch-title citizen-watch-desc">
           <title id="citizen-watch-title">Cronógrafo Citizen panda</title>
           <desc id="citizen-watch-desc">Cronógrafo quartz interativo com três submostradores e calendário inferior.</desc>
-          <path class="citizen-pusher" d="M104 53l-15-25 22-13 16 28z"></path>
-          <path class="citizen-pusher" d="M216 53l15-25-22-13-16 28z"></path>
-          <rect class="citizen-crown" x="147" y="18" width="26" height="29" rx="5"></rect>
-          <path class="citizen-case" d="M89 51q71-30 142 0l25 45 9 134-32 47q-73 25-146 0l-32-47 9-134z"></path>
-          <circle class="citizen-bezel" cx="160" cy="154" r="111"></circle>
-          <circle class="citizen-dial" cx="160" cy="154" r="101"></circle>
-          <g>${hourTicks()}</g>
-          <text class="watch-brand watch-brand--dark" x="160" y="105">CITIZEN</text>
-          <circle class="panda-subdial" cx="112" cy="157" r="30"></circle>
-          <circle class="panda-subdial" cx="208" cy="157" r="30"></circle>
-          <circle class="panda-subdial" cx="160" cy="218" r="28"></circle>
-          <g class="subdial-marks">
-            <line x1="112" y1="132" x2="112" y2="138"></line><line x1="112" y1="176" x2="112" y2="182"></line>
-            <line x1="87" y1="157" x2="93" y2="157"></line><line x1="131" y1="157" x2="137" y2="157"></line>
-            <line x1="208" y1="132" x2="208" y2="138"></line><line x1="208" y1="176" x2="208" y2="182"></line>
-            <line x1="183" y1="157" x2="189" y2="157"></line><line x1="227" y1="157" x2="233" y2="157"></line>
-          </g>
+          <image class="watch-photo-base" href="assets/home-watch-citizen.svg?v=photo-1" x="0" y="0" width="320" height="320"></image>
           <line id="citizen-running-seconds" class="subdial-hand" x1="112" y1="164" x2="112" y2="139"></line>
           <line id="citizen-chrono-minutes" class="subdial-hand" x1="208" y1="164" x2="208" y2="139"></line>
-          <text id="citizen-weekday" class="calendar-text" x="160" y="214">SÁB</text>
-          <text id="citizen-date" class="calendar-date" x="160" y="235">29</text>
-          <line id="citizen-hour" class="analog-hand analog-hour" x1="160" y1="162" x2="160" y2="112"></line>
-          <line id="citizen-minute" class="analog-hand analog-minute" x1="160" y1="164" x2="160" y2="91"></line>
-          <line id="citizen-chrono-seconds" class="analog-hand chrono-second" x1="160" y1="176" x2="160" y2="67"></line>
-          <circle class="analog-center" cx="160" cy="154" r="7"></circle>
-          <circle class="analog-center-dot" cx="160" cy="154" r="3"></circle>
+          <text id="citizen-weekday" class="calendar-text" x="160" y="195">SÁB</text>
+          <text id="citizen-date" class="calendar-date" x="160" y="218">29</text>
+          <line id="citizen-hour" class="analog-hand analog-hour" x1="160" y1="164" x2="160" y2="112"></line>
+          <line id="citizen-minute" class="analog-hand analog-minute" x1="160" y1="166" x2="160" y2="87"></line>
+          <line id="citizen-chrono-seconds" class="analog-hand chrono-second" x1="160" y1="180" x2="160" y2="66"></line>
+          <circle class="analog-center" cx="160" cy="157" r="7"></circle>
+          <circle class="analog-center-dot" cx="160" cy="157" r="3"></circle>
         </svg>
         <button class="watch-pusher-button watch-pusher-button--start" type="button" aria-label="Iniciar cronógrafo" title="Iniciar ou parar o cronógrafo"></button>
         <button class="watch-pusher-button watch-pusher-button--reset" type="button" aria-label="Zerar cronógrafo" title="Zerar o cronógrafo quando estiver parado"></button>
@@ -141,33 +116,14 @@
         <svg class="home-watch-svg" viewBox="0 0 320 320" role="img" aria-labelledby="orient-watch-title orient-watch-desc">
           <title id="orient-watch-title">Relógio automático Orient verde</title>
           <desc id="orient-watch-desc">Relógio automático com mostrador verde degradê, dia e data.</desc>
-          <defs>
-            <linearGradient id="orient-dial-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#06271d"></stop>
-              <stop offset="37%" stop-color="#0a563a"></stop>
-              <stop offset="50%" stop-color="#13965e"></stop>
-              <stop offset="63%" stop-color="#0a563a"></stop>
-              <stop offset="100%" stop-color="#041d16"></stop>
-            </linearGradient>
-          </defs>
-          <path class="orient-case" d="M105 34h110l8 28q35 21 45 65v61q-10 44-45 65l-8 33H105l-8-33q-35-21-45-65v-61q10-44 45-65z"></path>
-          <circle class="orient-bezel" cx="160" cy="160" r="112"></circle>
-          <circle class="orient-dial" cx="160" cy="160" r="101"></circle>
-          <g class="orient-indices">${hourTicks()}</g>
-          <g class="orient-mark" aria-hidden="true">
-            <circle cx="160" cy="92" r="7"></circle><path d="M148 92h24M160 80v24"></path>
-          </g>
-          <text class="watch-brand orient-brand" x="160" y="116">ORIENT</text>
-          <rect class="orient-calendar-frame" x="199" y="146" width="48" height="26" rx="2"></rect>
-          <rect class="orient-calendar-day" x="202" y="149" width="24" height="20"></rect>
-          <text id="orient-weekday" class="orient-calendar-text orient-calendar-weekday" x="214" y="164">SÁB</text>
-          <text id="orient-date" class="orient-calendar-text" x="236" y="164">29</text>
-          <line id="orient-hour" class="analog-hand orient-hour" x1="160" y1="168" x2="160" y2="111"></line>
-          <line id="orient-minute" class="analog-hand orient-minute" x1="160" y1="170" x2="160" y2="83"></line>
-          <line id="orient-second" class="analog-hand orient-second" x1="160" y1="181" x2="160" y2="69"></line>
+          <image class="watch-photo-base" href="assets/home-watch-orient.svg?v=photo-1" x="0" y="0" width="320" height="320"></image>
+          <text id="orient-weekday" class="orient-calendar-text orient-calendar-weekday" x="208" y="164">SÁB</text>
+          <text id="orient-date" class="orient-calendar-text" x="229" y="164">29</text>
+          <line id="orient-hour" class="analog-hand orient-hour" x1="160" y1="168" x2="160" y2="112"></line>
+          <line id="orient-minute" class="analog-hand orient-minute" x1="160" y1="170" x2="160" y2="82"></line>
+          <line id="orient-second" class="analog-hand orient-second" x1="160" y1="181" x2="160" y2="71"></line>
           <circle class="orient-center" cx="160" cy="160" r="7"></circle>
           <circle class="orient-center-dot" cx="160" cy="160" r="2.5"></circle>
-          <rect class="orient-crown" x="270" y="143" width="14" height="34" rx="4"></rect>
         </svg>
       </div>`;
   }
