@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="home-enhancements.css">
+<link rel="stylesheet" href="home-watch-selector.css?v=1">
 <link rel="stylesheet" href="home-showcase-v2.css">
 <link rel="stylesheet" href="site-search.css">
 </head>
@@ -60,23 +61,18 @@
           </div>
         </div>
 
-        <div class="clock-panel">
+        <div class="clock-panel home-watch-panel">
           <p class="stopwatch-label">Horário de Brasília</p>
-          <div class="clock-face-wrap">
-            <svg class="clock-svg" id="analog-clock-brasilia" viewBox="0 0 200 200" role="img" aria-label="Relógio analógico com o horário de Brasília">
-              <circle class="clock-ring" cx="100" cy="100" r="94"></circle>
-              <g id="clock-ticks"></g>
-              <line id="hand-hour" class="hand hand-hour" x1="100" y1="100" x2="100" y2="58"></line>
-              <line id="hand-minute" class="hand hand-minute" x1="100" y1="100" x2="100" y2="36"></line>
-              <g id="hand-second">
-                <line class="hand hand-second" x1="100" y1="122" x2="100" y2="22"></line>
-                <circle class="second-disc" cx="100" cy="78" r="6.5"></circle>
-              </g>
-              <circle class="clock-center-ring" cx="100" cy="100" r="7"></circle>
-              <circle class="clock-center" cx="100" cy="100" r="3.2"></circle>
-            </svg>
+          <div class="home-watch-selector" id="home-watch-selector" aria-label="Relógio 1 de 3">
+            <div class="home-watch-stage" id="home-watch-stage" tabindex="0" aria-describedby="home-watch-help home-watch-status"></div>
+            <div class="home-watch-nav" aria-label="Escolher relógio">
+              <button id="home-watch-previous" type="button" aria-label="Relógio anterior">←</button>
+              <span aria-hidden="true">relógio</span>
+              <button id="home-watch-next" type="button" aria-label="Próximo relógio">→</button>
+            </div>
+            <span class="sr-only" id="home-watch-help">Use as setas ou deslize horizontalmente para trocar de relógio. No cronógrafo, o botão esquerdo inicia ou para e o direito zera quando parado.</span>
+            <p class="stopwatch-caption" id="home-watch-status" aria-live="polite">Carregando horário de Brasília...</p>
           </div>
-          <p class="stopwatch-caption" id="stopwatch-data">Carregando horário de Brasília...</p>
         </div>
       </div>
     </div>
@@ -190,6 +186,7 @@
 <script src="script.js"></script>
 <script src="legal-footer.js"></script>
 <script src="home-enhancements.js"></script>
+<script src="home-watch-selector.js?v=1"></script>
 <script src="site-search.js"></script>
 </body>
 </html>
