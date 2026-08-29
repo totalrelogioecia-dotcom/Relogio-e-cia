@@ -13,6 +13,14 @@
   const digits = value => String(value || '').replace(/\D/g, '');
   const token = () => localStorage.getItem(TOKEN_KEY) || '';
 
+  function sessionAddress() {
+    try {
+      return JSON.parse(localStorage.getItem('reloja_sessao') || 'null')?.endereco || null;
+    } catch {
+      return null;
+    }
+  }
+
   function authHeaders() {
     const headers = { Accept: 'application/json' };
     if (token()) headers.Authorization = `Bearer ${token()}`;
@@ -190,7 +198,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    window.__RELOJA_PICKUP_ALLOWED = false;
+    // A sessão permite mostrar a opção imediatamente; a resposta autenticada
+    // da API continua sendo a fonte definitiva logo em seguida.
+    publishAddress(sessionAddress());
     installCheckoutAddress();
     setTimeout(loadAddresses, 0);
   });
