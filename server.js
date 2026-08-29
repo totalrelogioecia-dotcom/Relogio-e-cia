@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { registerStockAlertRoutes, queueStockAvailableEmails } = require('./stock-alerts');
+const { createPublicStaticGuard } = require('./public-static-policy');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ const getOrders = () => read(ORDERS, []);
 app.use(express.json({ limit: '10mb' }));
 app.use('/data/stock-alerts.json', (req, res) => res.status(404).end());
 registerStockAlertRoutes(app);
+app.use(createPublicStaticGuard());
 app.use(express.static(ROOT, { index: 'index.html' }));
 
 function safeEqual(a, b) {
