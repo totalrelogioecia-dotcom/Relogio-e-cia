@@ -200,6 +200,8 @@
   document.addEventListener('DOMContentLoaded', () => {
     ensureModal();
     const host = document.getElementById('orders-list');
-    if (host) new MutationObserver(() => setTimeout(decorateOrders, 0)).observe(host, { childList: true, subtree: true });
+    // Observa apenas quando a tabela inteira de pedidos é substituída.
+    // Assim, adicionar o próprio botão/modal não dispara uma nova decoração em loop.
+    if (host) new MutationObserver(() => setTimeout(decorateOrders, 0)).observe(host, { childList: true });
   });
 })();
