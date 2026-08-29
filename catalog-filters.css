@@ -3,6 +3,12 @@
    Mantém a lateral acessível sem exigir rolar até o fim da página.
    ========================================================= */
 
+.catalog-mobile-controls,
+.catalog-filter-panel-head,
+.catalog-filter-backdrop{
+  display:none;
+}
+
 @media (min-width: 861px){
   .products-layout .filters{
     position:sticky;
@@ -136,9 +142,106 @@
 }
 
 @media (max-width: 860px){
+  .catalog-mobile-controls{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    margin:-12px 0 18px;
+  }
+
+  .catalog-mobile-filter-trigger{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:44px;
+    min-width:132px;
+    padding:0 18px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--bg);
+    font-family:var(--font-mono);
+    font-size:.74rem;
+    font-weight:500;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+
+  .catalog-filter-backdrop{
+    position:fixed;
+    inset:0;
+    z-index:1090;
+    width:100%;
+    height:100%;
+    padding:0;
+    border:0;
+    background:rgba(13,13,13,.54);
+    backdrop-filter:blur(2px);
+    cursor:pointer;
+  }
+
+  body.catalog-filters-open{
+    overflow:hidden;
+  }
+
+  body.catalog-filters-open .catalog-filter-backdrop{
+    display:block;
+  }
+
   .products-layout .filters{
-    max-height:none;
-    overflow:visible;
+    position:fixed;
+    top:0;
+    right:0;
+    bottom:0;
+    left:auto;
+    z-index:1100;
+    width:min(380px,92vw);
+    max-height:100dvh;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    padding:0 20px 28px;
+    border:0;
+    border-left:1px solid var(--ink);
+    background:var(--bg);
+    box-shadow:-18px 0 50px rgba(0,0,0,.18);
+    transform:translateX(105%);
+    visibility:hidden;
+    transition:transform .24s ease,visibility 0s linear .24s;
+  }
+
+  body.catalog-filters-open .products-layout .filters{
+    transform:translateX(0);
+    visibility:visible;
+    transition:transform .24s ease,visibility 0s;
+  }
+
+  .catalog-filter-panel-head{
+    position:sticky;
+    top:0;
+    z-index:8;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    min-height:64px;
+    margin:0 -20px 18px;
+    padding:0 20px;
+    border-bottom:2px solid var(--ink);
+    background:var(--bg);
+  }
+
+  .catalog-filter-panel-head strong{
+    font:700 1rem var(--font-display);
+  }
+
+  .catalog-filter-close{
+    width:38px;
+    height:38px;
+    border:1px solid var(--ink);
+    background:var(--bg);
+    color:var(--ink);
+    font:500 1.25rem/1 var(--font-mono);
+    cursor:pointer;
   }
 
   .filters .filter-apply-bar{
@@ -146,5 +249,11 @@
     margin:0 0 18px;
     padding:0 0 16px;
     border-bottom:1px solid var(--line);
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .products-layout .filters{
+    transition:none!important;
   }
 }
