@@ -7,10 +7,13 @@
   const SESSION_KEY = 'reloja_sessao';
   const SHIPPING_KEY = 'reloja_frete_selecionado';
   const PICKUP_SERVICE_ID = 'pickup';
+  const PORTO_ALEGRE_CEP_MIN = 90000000;
+  const PORTO_ALEGRE_CEP_MAX = 91999999;
   let config = { configured: false };
   let selected = null;
   let lastQuotedCartSignature = '';
   let pickupAllowedForAddress = Boolean(window.__RELOJA_PICKUP_ALLOWED);
+  let pickupAddressResolved = false;
 
   const digits = value => String(value || '').replace(/\D/g, '');
   const brl = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -46,6 +49,21 @@
   function formatCep(value) {
     const n = digits(value).slice(0, 8);
     return n.length > 5 ? `${n.slice(0, 5)}-${n.slice(5)}` : n;
+  }
+
+  function pickupAllowedByPostalCode(value) {
+    const postal = digits(value).slice(0, 8);
+    if (postal.length !== 8) return false;
+    const numericPostal = Number(postal);
+    return numericPostal >= PORTO_ALEGRE_CEP_MIN && numericPostal <= PORTO_ALEGRE_CEP_MAX;
+  }
+
+  function refreshPickupAvailability(showMessage = false) {
+    const postal = document.getElementById('shipping-postal-code')?.value || '';
+    const allowed = pickupAddressResolved
+      ? Boolean(window.__RELOJA_PICKUP_ALLOWED)
+      : pickupAllowedByPostalCode(postal);
+    setPickupAvailability(allowed, showMessage);
   }
 
   function saveSelected(value) {
@@ -159,13 +177,14 @@
     const input = document.getElementById('shipping-postal-code');
     input.addEventListener('input', () => {
       input.value = formatCep(input.value);
+      if (!pickupAddressResolved) refreshPickupAvailability();
       if (selected && !pickupSelected() && digits(input.value) !== digits(selected.postal_code)) {
         clearSelection('O CEP mudou. Calcule o frete novamente.');
       }
     });
     document.getElementById('shipping-quote-btn').addEventListener('click', quote);
     document.getElementById('payment-form')?.addEventListener('change', updateTotal);
-    setPickupAvailability(Boolean(window.__RELOJA_PICKUP_ALLOWED));
+    refreshPickupAvailability();
   }
 
   function prefillPostalCode() {
@@ -385,17 +404,19 @@
   }
 
   window.addEventListener('reloja:endereco-entrega', event => {
-    setPickupAvailability(Boolean(event.detail?.pickup_allowed), true);
+    pickupAddressResolved = Boolean(event.detail?.address_resolved);
+    refreshPickupAvailability(true);
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
     ensureUi();
     loadSelected();
     prefillPostalCode();
+    refreshPickupAvailability();
     interceptCheckout();
     watchCartChanges();
     await loadConfig();
-    setPickupAvailability(Boolean(window.__RELOJA_PICKUP_ALLOWED));
+    refreshPickupAvailability();
     if (selected && selected.cart_signature === cartSignature()) {
       if (pickupSelected() && pickupAllowedForAddress) setPickupVisual(true);
       else if (pickupSelected()) clearSelection();
