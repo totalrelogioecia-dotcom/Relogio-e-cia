@@ -9,18 +9,20 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 test('home carrega três mostradores com somente setas laterais', () => {
   const html = read('index.html');
   assert.match(html, /home-watch-selector\.css\?v=4/);
+  assert.match(html, /home-digital-face-final\.css\?v=1/);
   assert.match(html, /id="home-watch-selector"/);
   assert.match(html, /id="home-watch-stage"/);
   assert.match(html, /id="home-watch-previous"/);
   assert.match(html, /id="home-watch-next"/);
   assert.match(html, /id="home-watch-status"/);
   assert.match(html, /home-watch-selector\.js\?v=4/);
+  assert.match(html, /home-digital-face-final\.js\?v=1/);
   assert.doesNotMatch(html, /home-gshock-live\.css/);
   assert.doesNotMatch(html, /home-gshock-live\.js/);
   assert.doesNotMatch(html, /id="gshock-live-clock"/);
 });
 
-test('mostrador digital usa segmentos SVG estreitos e caixa vertical', () => {
+test('mostrador digital base usa segmentos SVG estreitos e caixa vertical', () => {
   const script = read('home-watch-selector.js');
   const css = read('home-watch-selector.css');
   assert.match(script, /const SEGMENTS =/);
@@ -38,6 +40,38 @@ test('mostrador digital usa segmentos SVG estreitos e caixa vertical', () => {
   assert.match(css, /digital-lcd-segment\.is-off/);
   assert.match(css, /digital-lcd-gradient/);
   assert.match(css, /aspect-ratio:320\/340/);
+});
+
+test('acabamento final do digital segue layout aprovado e possui LIGHT funcional', () => {
+  const script = read('home-digital-face-final.js');
+  const css = read('home-digital-face-final.css');
+  const policy = read('public-static-policy.js');
+
+  assert.match(script, /America\/Sao_Paulo/);
+  assert.match(script, /ILLUMINATOR/);
+  assert.match(script, /LED BACKLIGHT/);
+  assert.match(script, /ADJUST/);
+  assert.match(script, /MODE/);
+  assert.match(script, /START\/STOP/);
+  assert.match(script, />LIGHT</);
+  assert.match(script, /digital-final-date-box/);
+  assert.match(script, /digital-final-date/);
+  assert.match(script, /digital-final-time/);
+  assert.match(script, /digital-final-seconds/);
+  assert.match(script, /digital-final-sound/);
+  assert.match(script, /digital-final-bell/);
+  assert.match(script, /digital-final-light-icon/);
+  assert.match(script, /digital-final-light-button/);
+  assert.match(script, /LIGHT_MS = 1800/);
+  assert.match(script, /classList\.add\('is-lit'\)/);
+  assert.match(script, /setTimeout\(\(\) => root\.classList\.remove\('is-lit'\), LIGHT_MS\)/);
+  assert.match(script, /width="240" height="151"/);
+  assert.match(script, /width="218" height="129"/);
+  assert.doesNotMatch(script, /CASIO|G-SHOCK|CITIZEN|ORIENT/);
+  assert.doesNotMatch(script, />ALM<|>24H</);
+  assert.match(css, /\.home-watch-art--digital-final\.is-lit \.digital-final-screen/);
+  assert.match(css, /#adddd1/);
+  assert.match(policy, /'home-digital-face-final\.js'/);
 });
 
 test('mostradores preservam horário de Brasília e movimentos diferentes', () => {
