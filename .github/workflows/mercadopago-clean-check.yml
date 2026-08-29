@@ -39,6 +39,11 @@ jobs:
           node --check coupon-checkout.js
           node --check checkout-rate-limit.js
           node --check auth-bootstrap.js
+          node --check order-cancellation-policy.js
+          node --check order-cancellation.js
+          node --check order-cancellation-email.js
+          node --check admin-order-cancellation.js
+          node --check account-orders.js
           node --check customer-address-service.js
           node --check customer-address-routes.js
           node --check customer-addresses.js
