@@ -40,4 +40,35 @@
   .footer-bottom{
     font-size:.7rem !important;
   }
+
+  /* Mostruário: permite gesto horizontal natural no celular sem criar
+     rolagem lateral na página inteira. */
+  #marcas .brand-showcase-viewport{
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-x;
+    overscroll-behavior-x:contain;
+  }
+
+  #marcas .brand-showcase-viewport::-webkit-scrollbar{
+    display:none;
+  }
+
+  #marcas .home-watch-card{
+    scroll-snap-align:start;
+    scroll-snap-stop:normal;
+  }
+
+  #marcas .home-watch-ref,
+  #marcas .brand-showcase-kicker{
+    font-size:.64rem !important;
+  }
+
+  #marcas .home-watch-actions .btn{
+    font-size:.68rem !important;
+    min-height:38px;
+  }
 }
