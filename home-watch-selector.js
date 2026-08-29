@@ -2,12 +2,28 @@
 (() => {
   'use strict';
 
+  const SVG_NS = 'http://www.w3.org/2000/svg';
   const TIME_ZONE = 'America/Sao_Paulo';
   const STORAGE_KEY = 'reloja_home_watch';
   const WATCH_COUNT = 3;
   const PT_WEEKDAYS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
   const EN_WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   const pad = value => String(value).padStart(2, '0');
+
+  const SEGMENTS = {
+    0: 'abcdef', 1: 'bc', 2: 'abdeg', 3: 'abcdg', 4: 'bcfg',
+    5: 'acdfg', 6: 'acdefg', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg'
+  };
+
+  const SEGMENT_SHAPES = {
+    a: '8,2 42,2 48,8 42,14 8,14 2,8',
+    b: '43,10 49,16 49,40 43,46 37,40 37,16',
+    c: '43,48 49,54 49,78 43,84 37,78 37,54',
+    d: '8,80 42,80 48,86 42,92 8,92 2,86',
+    e: '1,48 7,54 7,78 1,84 -5,78 -5,54',
+    f: '1,10 7,16 7,40 1,46 -5,40 -5,16',
+    g: '8,41 42,41 48,47 42,53 8,53 2,47'
+  };
 
   const time24Formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: TIME_ZONE,
@@ -67,6 +83,97 @@
     if (element) element.style.transform = `rotate(${degrees}deg)`;
   }
 
+  function svgElement(name, attributes) {
+    const node = document.createElementNS(SVG_NS, name);
+    Object.entries(attributes || {}).forEach(([key, value]) => node.setAttribute(key, value));
+    return node;
+  }
+
+  function clearNode(node) {
+    while (node?.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function drawSegmentDigit(group, digit, x, y, scale) {
+    const active = SEGMENTS[digit] || '';
+    const wrapper = svgElement('g', { transform: `translate(${x} ${y}) scale(${scale})` });
+    Object.entries(SEGMENT_SHAPES).forEach(([segment, points]) => {
+      wrapper.appendChild(svgElement('polygon', {
+        class: `digital-lcd-segment ${active.includes(segment) ? 'is-on' : 'is-off'}`,
+        points
+      }));
+    });
+    group.appendChild(wrapper);
+  }
+
+  function drawSegmentColon(group, x, y, scale) {
+    [31, 65].forEach(offset => {
+      group.appendChild(svgElement('circle', {
+        class: 'digital-lcd-segment is-on',
+        cx: x,
+        cy: y + (offset * scale),
+        r: 4.3 * scale
+      }));
+    });
+  }
+
+  function drawDigitalDate(group, month, day) {
+    clearNode(group);
+    const value = `${Number(month)}-${pad(day)}`;
+    const scale = .29;
+    const digitAdvance = 17;
+    const dashAdvance = 12;
+    const total = Array.from(value).reduce((width, char) => width + (char === '-' ? dashAdvance : digitAdvance), 0);
+    let x = 279 - total;
+    const y = 111;
+
+    Array.from(value).forEach(char => {
+      if (char === '-') {
+        group.appendChild(svgElement('rect', {
+          class: 'digital-lcd-segment is-on',
+          x: x + 1,
+          y: y + 13,
+          width: 9,
+          height: 2.4,
+          rx: 1
+        }));
+        x += dashAdvance;
+      } else {
+        drawSegmentDigit(group, char, x, y, scale);
+        x += digitAdvance;
+      }
+    });
+  }
+
+  function drawDigitalTime(group, hour12, minute, second) {
+    clearNode(group);
+    const hour = String(Number(hour12));
+    const minuteText = pad(minute);
+    const secondText = pad(second);
+    const mainScale = .68;
+    const secondScale = .37;
+    const y = 148;
+    const startX = hour.length === 1 ? 100 : 77;
+    const advance = 39;
+    let x = startX;
+
+    Array.from(hour).forEach(char => {
+      drawSegmentDigit(group, char, x, y, mainScale);
+      x += advance;
+    });
+
+    drawSegmentColon(group, x + 1, y, mainScale);
+    x += 16;
+
+    Array.from(minuteText).forEach(char => {
+      drawSegmentDigit(group, char, x, y, mainScale);
+      x += advance;
+    });
+
+    const secondsStart = hour.length === 1 ? 239 : 252;
+    drawSegmentDigit(group, secondText[0], secondsStart, 178, secondScale);
+    drawSegmentDigit(group, secondText[1], secondsStart + 21, 178, secondScale);
+  }
+
   function hourTicks(centerY = 160, inner = 82, outer = 94) {
     return Array.from({ length: 12 }, (_, index) => (
       `<line class="watch-hour-tick" x1="160" y1="${centerY - outer}" x2="160" y2="${centerY - inner}" transform="rotate(${index * 30} 160 ${centerY})"></line>`
@@ -83,27 +190,45 @@
   function digitalTemplate() {
     return `
       <div class="home-watch-art home-watch-art--digital" data-watch-kind="digital">
-        <svg class="home-watch-svg" viewBox="0 0 320 320" role="img" aria-labelledby="digital-watch-title digital-watch-desc">
+        <svg class="home-watch-svg home-watch-svg--digital" viewBox="0 0 360 320" role="img" aria-labelledby="digital-watch-title digital-watch-desc">
           <title id="digital-watch-title">Mostrador digital clássico</title>
-          <desc id="digital-watch-desc">Mostrador digital preto com dia, data, AM ou PM e horário real de Brasília.</desc>
-          <rect class="digital-dial-shell" x="52" y="52" width="216" height="216" rx="28"></rect>
-          <rect class="digital-dial-inset" x="66" y="68" width="188" height="184" rx="18"></rect>
-          <circle class="digital-screw" cx="72" cy="73" r="4"></circle>
-          <circle class="digital-screw" cx="248" cy="73" r="4"></circle>
-          <circle class="digital-screw" cx="72" cy="247" r="4"></circle>
-          <circle class="digital-screw" cx="248" cy="247" r="4"></circle>
-          <rect class="digital-accent" x="77" y="91" width="166" height="141" rx="12"></rect>
-          <rect class="digital-screen" x="88" y="104" width="144" height="115" rx="7"></rect>
+          <desc id="digital-watch-desc">Mostrador digital preto com LCD segmentado, dia, data, AM ou PM e horário real de Brasília.</desc>
+          <defs>
+            <linearGradient id="digital-lcd-gradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#d9dbd1"></stop>
+              <stop offset="48%" stop-color="#c7cabf"></stop>
+              <stop offset="100%" stop-color="#b9bdb2"></stop>
+            </linearGradient>
+            <pattern id="digital-lcd-lines" width="4" height="4" patternUnits="userSpaceOnUse">
+              <path d="M0 1H4" stroke="#111" stroke-opacity=".035" stroke-width="1"></path>
+            </pattern>
+          </defs>
+          <rect class="digital-dial-shell" x="24" y="31" width="312" height="258" rx="35"></rect>
+          <rect class="digital-dial-inset" x="38" y="47" width="284" height="226" rx="22"></rect>
+          <circle class="digital-screw" cx="48" cy="57" r="4"></circle>
+          <circle class="digital-screw" cx="312" cy="57" r="4"></circle>
+          <circle class="digital-screw" cx="48" cy="263" r="4"></circle>
+          <circle class="digital-screw" cx="312" cy="263" r="4"></circle>
+          <text class="digital-bezel-copy" x="180" y="72">PROTECTION</text>
+          <rect class="digital-accent digital-accent--red" x="56" y="83" width="248" height="176" rx="15"></rect>
+          <path class="digital-accent-line digital-accent-line--cyan" d="M76 92H284"></path>
+          <path class="digital-accent-line digital-accent-line--red" d="M76 98H284"></path>
+          <rect class="digital-screen" x="68" y="105" width="224" height="139" rx="7"></rect>
+          <rect class="digital-screen-texture" x="68" y="105" width="224" height="139" rx="7"></rect>
           <g class="digital-info">
-            <text class="digital-micro" x="101" y="126">SIG</text>
-            <text id="digital-weekday" x="136" y="126">SAT</text>
-            <text id="digital-date" x="194" y="126">08-29</text>
-            <text id="digital-period" class="digital-period" x="102" y="149">PM</text>
-            <text class="digital-micro" x="132" y="149">ALM</text>
-            <text id="digital-hour-minute" class="digital-main" x="101" y="190">03:42</text>
-            <text id="digital-second" class="digital-seconds" x="220" y="190">36</text>
+            <g class="digital-status-icons" aria-hidden="true">
+              <rect x="82" y="119" width="3" height="5" rx="1"></rect>
+              <rect x="87" y="116" width="3" height="8" rx="1"></rect>
+              <rect x="92" y="113" width="3" height="11" rx="1"></rect>
+            </g>
+            <text id="digital-weekday" class="digital-small-label digital-weekday" x="118" y="124">SAT</text>
+            <text id="digital-period" class="digital-small-label digital-period" x="82" y="146">PM</text>
+            <text class="digital-small-label digital-alarm" x="111" y="146">ALM</text>
+            <text class="digital-small-label digital-mode" x="145" y="146">24H</text>
+            <g id="digital-date-segments"></g>
+            <g id="digital-time-segments"></g>
           </g>
-          <path class="digital-bottom-mark" d="M117 238h86"></path>
+          <text class="digital-bezel-copy digital-bezel-copy--bottom" x="180" y="276">WATER RESIST</text>
         </svg>
       </div>`;
   }
@@ -224,10 +349,9 @@
       if (secondKey === lastDigitalSecond) return;
       lastDigitalSecond = secondKey;
       setText(stage, 'digital-weekday', EN_WEEKDAYS[now.weekday]);
-      setText(stage, 'digital-date', `${pad(now.month)}-${pad(now.day)}`);
       setText(stage, 'digital-period', now.dayPeriod);
-      setText(stage, 'digital-hour-minute', `${now.hour12}:${pad(now.minute)}`);
-      setText(stage, 'digital-second', pad(now.second));
+      drawDigitalDate(stage.querySelector('#digital-date-segments'), now.month, now.day);
+      drawDigitalTime(stage.querySelector('#digital-time-segments'), now.hour12, now.minute, now.second);
       status.textContent = `${EN_WEEKDAYS[now.weekday]} ${pad(now.day)}/${pad(now.month)} · ${now.hour12}:${pad(now.minute)}:${pad(now.second)} ${now.dayPeriod} · Brasília`;
     }
 
