@@ -14,6 +14,7 @@
     try{return typeof PRODUTOS!=='undefined'?PRODUTOS.find(p=>Number(p.id)===Number(id)):null}catch{return null}
   }
   function whatsapp(p){return`https://wa.me/555196311864?text=${encodeURIComponent('Olá! Quero confirmar a disponibilidade do '+p.nome+' (Ref. '+p.sku+').')}`}
+  function dialog(options){return window.relojaDialog?.open(options)||Promise.resolve('dismiss')}
   function ensureStyle(){
     if(document.getElementById('catalog-availability-style'))return;
     const s=document.createElement('style');s.id='catalog-availability-style';s.textContent=`
@@ -65,18 +66,40 @@
       });
       const data=await response.json().catch(()=>({}));
       if(response.status===401){
-        alert('Entre na sua conta para enviar a solicitação de disponibilidade. Depois, volte ao produto e solicite novamente.');
-        location.href='conta.html';
+        const action=await dialog({
+          kicker:'Confirmação de disponibilidade',
+          title:'Entre na sua conta',
+          message:'Para registrar a solicitação, precisamos vincular este produto à sua conta.',
+          detail:'Depois do acesso, volte ao produto e solicite a confirmação novamente.',
+          primaryLabel:'Entrar na conta',
+          secondaryLabel:'Continuar no catálogo'
+        });
+        if(action==='primary')location.href='conta.html';
         return;
       }
       if(!response.ok)throw new Error(data.error||'Não foi possível registrar a solicitação.');
       btn.dataset.confirmRequestSent='1';
       btn.disabled=false;
       btn.textContent='Enviado ✓ · WhatsApp';
-      alert(data.duplicate?'Sua solicitação já estava registrada no painel da loja.':'Solicitação enviada para a loja. Ela já aparece no painel administrativo. Se quiser, clique novamente para também falar pelo WhatsApp.');
+      const action=await dialog({
+        tone:'success',
+        kicker:data.duplicate?'Solicitação localizada':'Solicitação registrada',
+        title:data.duplicate?'Solicitação já registrada':'Solicitação enviada',
+        message:data.duplicate?'Este pedido de confirmação já está no painel da Relógio e Cia.':'A Relógio e Cia recebeu seu pedido de confirmação e ele já aparece no painel da loja.',
+        detail:'Se quiser agilizar o atendimento, você também pode falar conosco pelo WhatsApp.',
+        primaryLabel:'Abrir WhatsApp',
+        secondaryLabel:'Continuar no catálogo'
+      });
+      if(action==='primary')window.open(whatsapp(p),'_blank','noopener');
     }catch(error){
       btn.disabled=false;btn.textContent=original;
-      alert(error.message||'Não foi possível registrar a solicitação.');
+      await dialog({
+        kicker:'Não foi possível enviar',
+        title:'Tente novamente',
+        message:error.message||'Não foi possível registrar a solicitação.',
+        detail:'Se o problema continuar, fale com a loja pelo WhatsApp.',
+        primaryLabel:'Entendi'
+      });
     }
   }
   document.addEventListener('click',event=>{
