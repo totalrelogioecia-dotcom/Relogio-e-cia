@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { flushPersistentStore } = require('./persistent-store');
+const { queueOrderReceivedWhatsApp } = require('./whatsapp-notifications');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const ORDERS = path.join(DATA, 'orders.json');
@@ -98,6 +99,7 @@ async function sendOrderReceivedEmail(orderId) {
 }
 
 function queueOrderReceivedEmail(orderId) {
+  queueOrderReceivedWhatsApp(orderId);
   setImmediate(() => { sendOrderReceivedEmail(String(orderId || '')).catch(() => {}); });
 }
 
