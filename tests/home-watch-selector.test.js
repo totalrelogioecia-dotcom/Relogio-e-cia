@@ -8,19 +8,19 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 test('home carrega três mostradores com somente setas laterais', () => {
   const html = read('index.html');
-  assert.match(html, /home-watch-selector\.css\?v=3/);
+  assert.match(html, /home-watch-selector\.css\?v=4/);
   assert.match(html, /id="home-watch-selector"/);
   assert.match(html, /id="home-watch-stage"/);
   assert.match(html, /id="home-watch-previous"/);
   assert.match(html, /id="home-watch-next"/);
   assert.match(html, /id="home-watch-status"/);
-  assert.match(html, /home-watch-selector\.js\?v=3/);
+  assert.match(html, /home-watch-selector\.js\?v=4/);
   assert.doesNotMatch(html, /home-gshock-live\.css/);
   assert.doesNotMatch(html, /home-gshock-live\.js/);
   assert.doesNotMatch(html, /id="gshock-live-clock"/);
 });
 
-test('mostrador digital usa segmentos SVG em vez de fonte comum para os números', () => {
+test('mostrador digital usa segmentos SVG estreitos e caixa vertical', () => {
   const script = read('home-watch-selector.js');
   const css = read('home-watch-selector.css');
   assert.match(script, /const SEGMENTS =/);
@@ -29,9 +29,15 @@ test('mostrador digital usa segmentos SVG em vez de fonte comum para os números
   assert.match(script, /drawDigitalTime/);
   assert.match(script, /digital-date-segments/);
   assert.match(script, /digital-time-segments/);
+  assert.match(script, /viewBox="0 0 320 340"/);
+  assert.match(script, /digital-case-outline/);
+  assert.match(script, /digital-lcd-frame/);
+  assert.doesNotMatch(script, /digital-status-icons/);
+  assert.doesNotMatch(script, /rx="35"/);
   assert.match(css, /digital-lcd-segment\.is-on/);
   assert.match(css, /digital-lcd-segment\.is-off/);
   assert.match(css, /digital-lcd-gradient/);
+  assert.match(css, /aspect-ratio:320\/340/);
 });
 
 test('mostradores preservam horário de Brasília e movimentos diferentes', () => {
