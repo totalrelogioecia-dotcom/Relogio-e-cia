@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - final-digital-face-2026-08-29
   pull_request:
     branches:
       - main
@@ -33,6 +34,7 @@ jobs:
           node --check admin-store-health.js
           node --check home-enhancements.js
           node --check home-watch-selector.js
+          node --check home-digital-face-final.js
           node --check mercadopago-core.js
           node --check mercadopago-clean.js
           node --check mercadopago-orders-pix.js
