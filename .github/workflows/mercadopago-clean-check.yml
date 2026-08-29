@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - home-watch-carousel-2026-08-29
   pull_request:
     branches:
       - main
@@ -32,6 +33,7 @@ jobs:
           node --check store-health-bootstrap.js
           node --check admin-store-health.js
           node --check home-enhancements.js
+          node --check home-watch-selector.js
           node --check mercadopago-core.js
           node --check mercadopago-clean.js
           node --check mercadopago-orders-pix.js
