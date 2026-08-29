@@ -26,6 +26,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'cart-coupons.js',
   'cart-tools.js',
   'catalog-availability.js',
+  'catalog-mobile-filters.js',
   'catalog-product-links.js',
   'catalog-technical-filters.js',
   'conta.js',
