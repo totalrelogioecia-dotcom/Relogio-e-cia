@@ -119,6 +119,10 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
         if (!html.includes('admin-extra-tabs.js')) {
           html = html.replace('</body>', '<script src="admin-extra-tabs.js?v=1"></script></body>');
         }
+        if (!html.includes('admin-extra-tabs-navigation-fix.js')) {
+          html = html.replace('</body>', '<script src="admin-extra-tabs-navigation-fix.js?v=1"></script></body>');
+        }
+        html = html.replace('admin-order-cancellation.js?v=1', 'admin-order-cancellation.js?v=2');
         res.type('html').send(html);
       } catch (error) {
         next(error);
