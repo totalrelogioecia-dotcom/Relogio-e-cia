@@ -44,6 +44,10 @@ jobs:
           node --check order-cancellation-email.js
           node --check admin-order-cancellation.js
           node --check account-orders.js
+          node --check availability-requests.js
+          node --check admin-extra-tabs.js
+          node --check catalog-availability.js
+          node --check product-confirmation-request.js
           node --check customer-address-service.js
           node --check customer-address-routes.js
           node --check customer-addresses.js
