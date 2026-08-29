@@ -10,7 +10,8 @@ const {
 const {
   boxSizeForProduct,
   dimensionsForBox,
-  orderBoxSize
+  orderBoxSize,
+  defaultShippingWeightKg
 } = require('./shipping-packaging');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
@@ -67,6 +68,17 @@ function getShippingData(productId) {
   };
 }
 
+function getEffectiveShippingData(product) {
+  const data = getShippingData(product?.id);
+  const standardWeight = defaultShippingWeightKg(product);
+  const hasStandard = Number.isFinite(Number(standardWeight)) && Number(standardWeight) > 0;
+  return {
+    ...data,
+    weight: hasStandard ? Number(standardWeight) : data.weight,
+    weight_source: hasStandard ? 'brand_standard' : 'manual'
+  };
+}
+
 function validateShippingData(product, data, automaticBoxSize = '') {
   const fields = [['peso', data.weight]];
 
@@ -105,7 +117,7 @@ function normalizeItems(rawItems) {
     }
 
     const quantity = Math.max(1, Math.min(99, Number(raw.qtd) || 1));
-    const shipping = getShippingData(product.id);
+    const shipping = getEffectiveShippingData(product);
     const boxSize = boxSizeForProduct(product, shipping);
     return { product, quantity, shipping, boxSize };
   });
@@ -347,6 +359,7 @@ module.exports = {
   quoteShipping,
   resolveSelectedShipping,
   getShippingData,
+  getEffectiveShippingData,
   SHIPPING_PRODUCTS,
   buildShipment,
   rejectedQuoteDetails
