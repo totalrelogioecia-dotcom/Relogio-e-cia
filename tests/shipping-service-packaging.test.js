@@ -21,7 +21,7 @@ fs.writeFileSync(path.join(dataDir, 'shipping-products.json'), JSON.stringify({
   4: { weight_kg: 0.60, box_size: 'G' }
 }, null, 2));
 
-const { buildShipment } = require('../shipping-service');
+const { buildShipment, rejectedQuoteDetails } = require('../shipping-service');
 
 test.after(() => {
   fs.rmSync(dataDir, { recursive: true, force: true });
@@ -35,7 +35,7 @@ test('um Orient usa um único volume P', () => {
     height: 10,
     length: 12,
     weight: 0.35,
-    insurance: 500
+    insurance_value: 500
   }]);
 });
 
@@ -47,7 +47,7 @@ test('dois relógios são consolidados em um único volume G', () => {
     height: 24,
     length: 30,
     weight: 0.8,
-    insurance: 1200
+    insurance_value: 1200
   }]);
 });
 
@@ -59,7 +59,7 @@ test('duas unidades do mesmo relógio também viram um volume G', () => {
     height: 24,
     length: 30,
     weight: 0.7,
-    insurance: 1000
+    insurance_value: 1000
   }]);
 });
 
@@ -71,7 +71,7 @@ test('um Casio usa um único volume P automaticamente', () => {
     height: 10,
     length: 12,
     weight: 0.25,
-    insurance: 300
+    insurance_value: 300
   }]);
 });
 
@@ -83,6 +83,45 @@ test('override manual G vence a regra automática da marca', () => {
     height: 24,
     length: 30,
     weight: 0.6,
-    insurance: 900
+    insurance_value: 900
   }]);
+});
+
+test('preserva os motivos de recusa devolvidos pelas transportadoras', () => {
+  const details = rejectedQuoteDetails([
+    {
+      id: 1,
+      name: 'PAC',
+      company: { name: 'Correios' },
+      error: 'Serviço indisponível para o trecho informado'
+    },
+    {
+      id: 3,
+      name: '.Package',
+      company: { name: 'Jadlog' },
+      error: { message: 'Peso fora dos limites do serviço' }
+    },
+    {
+      id: 2,
+      name: 'SEDEX',
+      company: { name: 'Correios' },
+      price: '31.90',
+      delivery_time: 2
+    }
+  ]);
+
+  assert.deepEqual(details, [
+    {
+      service_id: '1',
+      service_name: 'PAC',
+      company_name: 'Correios',
+      reason: 'Serviço indisponível para o trecho informado'
+    },
+    {
+      service_id: '3',
+      service_name: '.Package',
+      company_name: 'Jadlog',
+      reason: 'Peso fora dos limites do serviço'
+    }
+  ]);
 });
