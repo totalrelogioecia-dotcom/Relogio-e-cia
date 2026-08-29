@@ -1,0 +1,43 @@
+/* =========================================================
+   RELÓGIO E CIA — acabamento visual P1
+   Ajustes de legibilidade sem mudar a identidade da loja.
+   ========================================================= */
+
+/* Rodapé: mantém a linguagem reta/técnica do restante do site. */
+.footer-contact-buttons a{
+  border-radius:0 !important;
+  min-height:36px;
+}
+
+/* Garante foco visível em controles adicionados dinamicamente. */
+.catalog-mobile-filter-trigger:focus-visible,
+.catalog-filter-close:focus-visible,
+.catalog-filter-backdrop:focus-visible{
+  outline:2px solid var(--red);
+  outline-offset:2px;
+}
+
+@media (max-width:640px){
+  /* Evita microtexto difícil de ler em telas pequenas. */
+  .brand-mark small{
+    font-size:.55rem !important;
+    line-height:1.25 !important;
+  }
+
+  .nav-toggle{
+    font-size:.72rem !important;
+  }
+
+  .hero-stats div span{
+    font-size:.62rem !important;
+    line-height:1.4 !important;
+  }
+
+  .eyebrow{
+    font-size:.7rem !important;
+  }
+
+  .footer-bottom{
+    font-size:.7rem !important;
+  }
+}
