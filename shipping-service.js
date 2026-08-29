@@ -169,7 +169,7 @@ function buildShipment(rawItems) {
         height: Number(box.height),
         length: Number(box.length),
         weight: Number(weight.toFixed(3)),
-        insurance: Number(insurance.toFixed(2))
+        insurance_value: Number(insurance.toFixed(2))
       }]
     },
     box_size: box.box_size
@@ -234,6 +234,40 @@ function normalizeQuote(entry) {
   };
 }
 
+function providerErrorText(value) {
+  if (typeof value === 'string') return value.trim().slice(0, 300);
+  if (value && typeof value === 'object') {
+    const direct = value.message || value.error || value.detail;
+    if (direct) return String(direct).trim().slice(0, 300);
+    try { return JSON.stringify(value).slice(0, 300); }
+    catch { return 'Serviço recusado pela transportadora.'; }
+  }
+  return String(value || '').trim().slice(0, 300);
+}
+
+function rejectedQuoteDetails(entries) {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .filter(entry => !normalizeQuote(entry))
+    .map(entry => ({
+      service_id: entry?.id == null ? null : String(entry.id),
+      service_name: String(entry?.name || 'Serviço').trim().slice(0, 120),
+      company_name: String(entry?.company?.name || '').trim().slice(0, 120),
+      reason: providerErrorText(entry?.error) || 'A transportadora não retornou um valor de frete.'
+    }))
+    .slice(0, 10);
+}
+
+function providerErrorSummary(details) {
+  return details
+    .slice(0, 5)
+    .map(item => {
+      const service = [item.company_name, item.service_name].filter(Boolean).join(' · ');
+      return `${service || 'Serviço'}: ${item.reason}`;
+    })
+    .join('; ');
+}
+
 async function quoteShipping({ postalCode, items }) {
   const destination = digits(postalCode).slice(0, 8);
   if (destination.length !== 8) {
@@ -251,15 +285,27 @@ async function quoteShipping({ postalCode, items }) {
   };
 
   const result = await callMelhorEnvio('/api/v2/me/shipment/calculate', payload);
-  const quotes = (Array.isArray(result) ? result : [])
+  const entries = Array.isArray(result) ? result : [];
+  const quotes = entries
     .map(normalizeQuote)
     .filter(Boolean)
     .sort((a, b) => a.price - b.price);
 
   if (!quotes.length) {
-    const error = new Error('Nenhuma opção de entrega ficou disponível para este CEP.');
+    const providerErrors = rejectedQuoteDetails(entries);
+    const summary = providerErrorSummary(providerErrors);
+    console.warn('Melhor Envio não retornou serviços disponíveis.', {
+      environment: envMode(),
+      destination: `${destination.slice(0, 5)}-***`,
+      box_size: shipment.box_size,
+      provider_errors: providerErrors
+    });
+    const error = new Error(summary
+      ? `Nenhuma opção de entrega ficou disponível. Motivos: ${summary}.`
+      : 'Nenhuma opção de entrega ficou disponível para este CEP.');
     error.status = 422;
     error.code = 'shipping_no_services';
+    error.provider_errors = providerErrors;
     throw error;
   }
 
@@ -302,5 +348,6 @@ module.exports = {
   resolveSelectedShipping,
   getShippingData,
   SHIPPING_PRODUCTS,
-  buildShipment
+  buildShipment,
+  rejectedQuoteDetails
 };
