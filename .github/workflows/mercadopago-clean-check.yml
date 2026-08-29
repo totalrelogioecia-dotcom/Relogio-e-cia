@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - admin-confirmations-cancellations-2026-08-29
   pull_request:
     branches:
       - main
