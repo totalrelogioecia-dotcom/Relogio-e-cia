@@ -31,6 +31,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'catalog-technical-filters.js',
   'conta.js',
   'enderecos.js',
+  'home-digital-face-final.js',
   'home-enhancements.js',
   'home-gshock-live.js',
   'home-watch-selector.js',
