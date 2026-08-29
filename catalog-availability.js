@@ -30,17 +30,20 @@
       const a=info(p);let note=card.querySelector('.catalog-availability');
       if(!note){note=document.createElement('div');note.className='catalog-availability';const actions=card.querySelector('.card-actions');if(actions)card.insertBefore(note,actions);else card.appendChild(note)}
       btn.removeAttribute('data-confirm-availability');
-      btn.removeAttribute('data-confirm-request-sent');
       if(a.type==='sob_encomenda'){
+        btn.removeAttribute('data-confirm-request-sent');
         note.style.display='block';note.className='catalog-availability preorder';note.innerHTML=`<strong>Sob encomenda</strong>Preparação de ${a.days} dias úteis antes do transporte.`;
         btn.disabled=false;btn.textContent='Encomendar';
       }else if(a.type==='mediante_confirmacao'){
         note.style.display='block';note.className='catalog-availability confirmation';note.innerHTML='<strong>Pedido mediante confirmação</strong>Envie a solicitação para a loja antes do pagamento.';
-        btn.disabled=false;btn.textContent='Solicitar confirmação';btn.dataset.confirmAvailability='1';
+        btn.disabled=false;btn.dataset.confirmAvailability='1';
+        btn.textContent=btn.dataset.confirmRequestSent==='1'?'Enviado ✓ · WhatsApp':'Solicitar confirmação';
       }else if(Number(p.estoque||0)<=0){
+        btn.removeAttribute('data-confirm-request-sent');
         note.style.display='block';note.className='catalog-availability';note.innerHTML='<strong>Indisponível</strong>Sem unidade disponível para compra agora.';
         btn.disabled=true;btn.textContent='Indisponível';
       }else{
+        btn.removeAttribute('data-confirm-request-sent');
         note.style.display='none';note.textContent='';btn.disabled=false;
         if(!/adicionado/i.test(btn.textContent||''))btn.textContent='Adicionar';
       }
