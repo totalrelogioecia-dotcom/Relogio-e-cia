@@ -1,4 +1,5 @@
 @import url('mobile-fixes-original.css');
+@import url('visual-polish.css');
 
 /* Tamanho fixo da marca no cabeçalho */
 .brand-mark .brand-symbol{
