@@ -1,4 +1,16 @@
 /* RELÓGIO E CIA — seletor de relógios da Home */
+.home-watch-panel .sr-only{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+
 .clock-panel.home-watch-panel{
   padding-top:28px;
   padding-bottom:28px;
@@ -63,6 +75,8 @@
   display:block;
   overflow:visible;
 }
+
+.watch-photo-base{ pointer-events:none; }
 
 .home-watch-nav{
   display:grid;
@@ -151,12 +165,12 @@
 .watch-hour-tick{ stroke:#171717; stroke-width:3; }
 .panda-subdial{ fill:#171717; stroke:#050505; stroke-width:1.5; }
 .subdial-marks line{ stroke:#f4f0e7; stroke-width:1.5; }
-.subdial-hand{ stroke:#e6c985; stroke-width:2; transform-box:view-box; }
+.subdial-hand{ stroke:#f58220; stroke-width:2; transform-box:view-box; }
 #citizen-running-seconds{ transform-origin:112px 157px; }
 #citizen-chrono-minutes{ transform-origin:208px 157px; }
 .calendar-text,
 .calendar-date{
-  fill:#fff;
+  fill:#171717;
   font-family:var(--font-mono);
   font-weight:700;
   text-anchor:middle;
@@ -166,7 +180,7 @@
 .analog-hand{ transform-box:view-box; stroke-linecap:round; }
 #citizen-hour,
 #citizen-minute,
-#citizen-chrono-seconds{ transform-origin:160px 154px; }
+#citizen-chrono-seconds{ transform-origin:160px 157px; }
 .analog-hour{ stroke:#171717; stroke-width:7; }
 .analog-minute{ stroke:#171717; stroke-width:4.5; }
 .chrono-second{ stroke:var(--red); stroke-width:2; }
