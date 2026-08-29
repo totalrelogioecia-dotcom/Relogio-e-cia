@@ -1,16 +1,27 @@
 /* =========================================================
-   RELÓGIO E CIA — perfis de caixas de envio
+   RELÓGIO E CIA — perfis de caixas e pesos de envio
 
    As dimensões abaixo são as caixas físicas definidas pela loja.
-   O peso das caixas NÃO é somado automaticamente ainda: o peso
-   continua vindo do cadastro de frete do produto até a loja pesar
-   caixa + proteção reais e validar a regra final.
+   Para Casio, G-Shock, Technos, Orient e Citizen, o peso usado no
+   frete é um padrão conservador já considerando relógio + estojo
+   original + manuais/garantia + margem para papelão, fita e duas
+   voltas de plástico-bolha. Esses valores devem ser revistos quando
+   as embalagens externas reais forem pesadas.
    ========================================================= */
 
 const BOX_PROFILES = Object.freeze({
   P: Object.freeze({ code: 'P', height: 10, width: 12, length: 12 }),
   M: Object.freeze({ code: 'M', height: 12, width: 15, length: 15 }),
   G: Object.freeze({ code: 'G', height: 24, width: 30, length: 30 })
+});
+
+const WATCH_WEIGHT_STANDARDS_KG = Object.freeze({
+  casio: 0.500,
+  gshock: 0.600,
+  technos: 0.600,
+  technos_titanium: 0.750,
+  orient: 0.500,
+  citizen: 0.800
 });
 
 function text(value) {
@@ -26,6 +37,37 @@ function isWatch(product) {
   return category.includes('relogio');
 }
 
+function normalizedBrand(product) {
+  return text(product?.marca).replace(/[^a-z0-9]/g, '');
+}
+
+function isTechnosTitanium(product) {
+  if (normalizedBrand(product) !== 'technos') return false;
+  const haystack = text([
+    product?.nome,
+    product?.sku,
+    product?.desc,
+    product?.descricao
+  ].filter(Boolean).join(' '));
+  return haystack.includes('titanium') || haystack.includes('titanio');
+}
+
+function defaultShippingWeightKg(product) {
+  if (!isWatch(product)) return null;
+
+  const brand = normalizedBrand(product);
+  if (brand === 'casio') return WATCH_WEIGHT_STANDARDS_KG.casio;
+  if (brand === 'gshock' || brand.includes('gshock')) return WATCH_WEIGHT_STANDARDS_KG.gshock;
+  if (brand === 'technos') {
+    return isTechnosTitanium(product)
+      ? WATCH_WEIGHT_STANDARDS_KG.technos_titanium
+      : WATCH_WEIGHT_STANDARDS_KG.technos;
+  }
+  if (brand === 'orient') return WATCH_WEIGHT_STANDARDS_KG.orient;
+  if (brand === 'citizen') return WATCH_WEIGHT_STANDARDS_KG.citizen;
+  return null;
+}
+
 function normalizeBoxSize(value) {
   const code = String(value || '').trim().toUpperCase();
   return BOX_PROFILES[code] ? code : '';
@@ -34,7 +76,7 @@ function normalizeBoxSize(value) {
 function defaultBoxSizeForProduct(product) {
   if (!isWatch(product)) return '';
 
-  const brand = text(product?.marca).replace(/[^a-z0-9]/g, '');
+  const brand = normalizedBrand(product);
 
   // Orient: estojo medido em 10 x 11 x 11 cm -> caixa P 10 x 12 x 12 cm.
   if (brand === 'orient') return 'P';
@@ -93,6 +135,8 @@ function orderBoxSize(items = []) {
 
 module.exports = {
   BOX_PROFILES,
+  WATCH_WEIGHT_STANDARDS_KG,
+  defaultShippingWeightKg,
   normalizeBoxSize,
   defaultBoxSizeForProduct,
   boxSizeForProduct,
