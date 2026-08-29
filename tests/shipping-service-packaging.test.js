@@ -27,55 +27,55 @@ test.after(() => {
   fs.rmSync(dataDir, { recursive: true, force: true });
 });
 
-test('um Orient usa um único volume P', () => {
+test('um Orient usa volume P e peso padrão de 0,50 kg', () => {
   const shipment = buildShipment([{ id: 1, qtd: 1 }]);
   assert.equal(shipment.box_size, 'P');
   assert.deepEqual(shipment.payload.volumes, [{
     width: 12,
     height: 10,
     length: 12,
-    weight: 0.35,
+    weight: 0.5,
     insurance_value: 500
   }]);
 });
 
-test('dois relógios são consolidados em um único volume G', () => {
+test('dois relógios somam os pesos padrão e usam um único volume G', () => {
   const shipment = buildShipment([{ id: 1, qtd: 1 }, { id: 2, qtd: 1 }]);
   assert.equal(shipment.box_size, 'G');
   assert.deepEqual(shipment.payload.volumes, [{
     width: 30,
     height: 24,
     length: 30,
-    weight: 0.8,
+    weight: 1.3,
     insurance_value: 1200
   }]);
 });
 
-test('duas unidades do mesmo relógio também viram um volume G', () => {
+test('duas unidades do mesmo relógio somam o peso padrão e usam G', () => {
   const shipment = buildShipment([{ id: 1, qtd: 2 }]);
   assert.equal(shipment.box_size, 'G');
   assert.deepEqual(shipment.payload.volumes, [{
     width: 30,
     height: 24,
     length: 30,
-    weight: 0.7,
+    weight: 1,
     insurance_value: 1000
   }]);
 });
 
-test('um Casio usa um único volume P automaticamente', () => {
+test('um Casio usa volume P e peso padrão de 0,50 kg', () => {
   const shipment = buildShipment([{ id: 3, qtd: 1 }]);
   assert.equal(shipment.box_size, 'P');
   assert.deepEqual(shipment.payload.volumes, [{
     width: 12,
     height: 10,
     length: 12,
-    weight: 0.25,
+    weight: 0.5,
     insurance_value: 300
   }]);
 });
 
-test('override manual G vence a regra automática da marca', () => {
+test('override manual G vence a regra automática da marca sem alterar o peso padrão', () => {
   const shipment = buildShipment([{ id: 4, qtd: 1 }]);
   assert.equal(shipment.box_size, 'G');
   assert.deepEqual(shipment.payload.volumes, [{
