@@ -76,8 +76,6 @@
   overflow:visible;
 }
 
-.watch-photo-base{ pointer-events:none; }
-
 .home-watch-nav{
   display:grid;
   grid-template-columns:44px auto 44px;
@@ -140,6 +138,8 @@
 .watch-brand--lower{ font-size:12px; letter-spacing:.07em; }
 
 /* Digital Casio/G-Shock */
+.digital-dial-shell{ fill:#111214; stroke:#050505; stroke-width:2.5; }
+.digital-dial-inset{ fill:#202224; stroke:#050505; stroke-width:2; }
 .digital-case{ fill:#151617; stroke:#050505; stroke-width:3; }
 .digital-case-inset{ fill:#202224; stroke:#050505; stroke-width:2; }
 .digital-accent{ fill:none; stroke:var(--red); stroke-width:4; }
@@ -157,6 +157,8 @@
 .watch-alarm-icon{ fill:#111; }
 
 /* Citizen panda */
+.citizen-pusher-flat,
+.citizen-crown-flat{ fill:#efeee9; stroke:#171717; stroke-width:2.2; }
 .citizen-pusher,
 .citizen-crown,
 .citizen-case{ fill:#d8d8d5; stroke:#171717; stroke-width:2; }
