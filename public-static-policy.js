@@ -43,6 +43,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'script.js',
   'shipping-addresses.js',
   'shipping-cart.js',
+  'site-dialog.js',
   'site-search.js'
 ]);
 
