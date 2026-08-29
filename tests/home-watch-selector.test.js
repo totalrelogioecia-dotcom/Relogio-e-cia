@@ -9,11 +9,11 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 test('home carrega o seletor leve de relógios', () => {
   const html = read('index.html');
   const css = read('home-watch-selector.css');
-  assert.match(html, /href="home-watch-selector\.css\?v=photo-2"/);
+  assert.match(html, /href="home-watch-selector\.css\?v=flat-3"/);
   assert.match(html, /id="home-watch-selector"/);
   assert.match(html, /id="home-watch-previous"/);
   assert.match(html, /id="home-watch-next"/);
-  assert.match(html, /src="home-watch-selector\.js\?v=photo-2"/);
+  assert.match(html, /src="home-watch-selector\.js\?v=flat-3"/);
   assert.doesNotMatch(html, /id="analog-clock-brasilia"/);
   assert.match(css, /\.home-watch-panel \.sr-only\{/);
   assert.match(css, /clip:rect\(0,0,0,0\)/);
@@ -24,14 +24,14 @@ test('Casio usa dia em inglês e apenas um sino', () => {
   const bellCount = (script.match(/class="watch-alarm-icon"/g) || []).length;
   assert.equal(bellCount, 1);
   assert.match(script, /EN_WEEKDAYS = \['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'\]/);
-  assert.match(script, /assets\/home-watch-gshock\.svg/);
+  assert.match(script, /digital-dial-shell/);
   assert.match(script, /digital-date/);
   assert.match(script, /digital-second/);
 });
 
 test('Citizen mantém panda, calendário inferior e cronógrafo por timestamp', () => {
   const script = read('home-watch-selector.js');
-  assert.match(script, /assets\/home-watch-citizen\.svg/);
+  assert.equal((script.match(/class="panda-subdial"/g) || []).length, 3);
   assert.match(script, /id="citizen-weekday"/);
   assert.match(script, /id="citizen-date"/);
   assert.match(script, /performance\.now\(\)/);
@@ -42,7 +42,8 @@ test('Citizen mantém panda, calendário inferior e cronógrafo por timestamp', 
 
 test('Orient usa degradê vertical e oito passos por segundo', () => {
   const script = read('home-watch-selector.js');
-  assert.match(script, /assets\/home-watch-orient\.svg/);
+  assert.match(script, /linearGradient id="orient-dial-gradient" x1="0" y1="0" x2="0" y2="1"/);
+  assert.match(script, /offset="50%" stop-color="#12a66b"/);
   assert.match(script, /delay = 125/);
 });
 
