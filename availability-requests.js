@@ -13,6 +13,7 @@ const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.jo
 const PRODUCTS = path.join(DATA, 'products.json');
 const REQUESTS = path.join(DATA, 'availability-requests.json');
 const ORDERS = path.join(DATA, 'orders.json');
+const ADMIN_HTML = path.join(__dirname, 'admin.html');
 
 const REQUEST_STATUSES = Object.freeze({
   pending: 'Nova solicitação',
@@ -138,7 +139,22 @@ function storeCancellationSnapshot(order) {
   };
 }
 
+function injectAdminExtraTabs(html) {
+  if (html.includes('admin-extra-tabs.js')) return html;
+  return html.replace('</body>', '<script src="admin-extra-tabs.js?v=1"></script>\n</body>');
+}
+
 function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
+  // O painel continua usando o HTML original; apenas carregamos o módulo das duas novas abas.
+  app.get('/admin.html', (req, res, next) => {
+    try {
+      const html = injectAdminExtraTabs(fs.readFileSync(ADMIN_HTML, 'utf8'));
+      res.type('html').send(html);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.use('/api/availability-requests', express.json({ limit: '32kb' }));
   app.use('/api/admin/availability-requests', express.json({ limit: '32kb' }));
 
@@ -291,5 +307,6 @@ module.exports = {
   normalizeRequestStatus,
   requestSnapshot,
   storeCancellationSnapshot,
+  injectAdminExtraTabs,
   registerAvailabilityRequestRoutes
 };
