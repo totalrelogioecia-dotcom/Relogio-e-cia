@@ -6,29 +6,51 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('home exibe somente o relógio G-Shock digital de Brasília', () => {
+test('home carrega três mostradores com somente setas laterais', () => {
   const html = read('index.html');
-  assert.match(html, /home-gshock-live\.css\?v=1/);
-  assert.match(html, /id="gshock-live-clock"/);
-  assert.match(html, /id="gshock-live-weekday"/);
-  assert.match(html, /id="gshock-live-period"/);
-  assert.match(html, /id="gshock-live-date"/);
-  assert.match(html, /id="gshock-live-time"/);
-  assert.match(html, /home-gshock-live\.js\?v=1/);
-  assert.doesNotMatch(html, /id="analog-clock-brasilia"/);
-  assert.doesNotMatch(html, /home-watch-selector/);
+  assert.match(html, /home-watch-selector\.css\?v=2/);
+  assert.match(html, /id="home-watch-selector"/);
+  assert.match(html, /id="home-watch-stage"/);
+  assert.match(html, /id="home-watch-previous"/);
+  assert.match(html, /id="home-watch-next"/);
+  assert.match(html, /id="home-watch-status"/);
+  assert.match(html, /home-watch-selector\.js\?v=2/);
+  assert.doesNotMatch(html, /home-gshock-live\.css/);
+  assert.doesNotMatch(html, /home-gshock-live\.js/);
+  assert.doesNotMatch(html, /id="gshock-live-clock"/);
 });
 
-test('LCD usa segmentos próprios e horário real de Brasília', () => {
-  const script = read('home-gshock-live.js');
-  const css = read('home-gshock-live.css');
+test('mostradores preservam horário de Brasília e movimentos diferentes', () => {
+  const script = read('home-watch-selector.js');
   assert.match(script, /America\/Sao_Paulo/);
-  assert.match(script, /Intl\.DateTimeFormat\('en-US'/);
-  assert.match(script, /SEGMENTS/);
-  assert.match(script, /drawTime/);
-  assert.match(script, /drawDate/);
-  assert.match(script, /dayPeriod/);
-  assert.match(script, /document\.hidden/);
-  assert.match(css, /data:image\/webp;base64,/);
-  assert.doesNotMatch(css, /__GSHOCK_WEBP_BASE64__/);
+  assert.match(script, /WATCH_COUNT = 3/);
+  assert.match(script, /digital-period/);
+  assert.match(script, /performance\.now\(\)/);
+  assert.match(script, /chronoRunning/);
+  assert.match(script, /delay = 125/);
+  assert.match(script, /Math\.floor\(now\.millisecond \/ 125\)/);
+  assert.match(script, /classic-second/);
+  assert.match(script, /pointerdown/);
+  assert.match(script, /localStorage/);
+});
+
+test('mostradores são genéricos, sem marcas visíveis, e clássico tem textura verde', () => {
+  const script = read('home-watch-selector.js');
+  const css = read('home-watch-selector.css');
+  assert.doesNotMatch(script, /CASIO|G-SHOCK|CITIZEN|ORIENT/);
+  assert.match(script, /classic-dial-gradient/);
+  assert.match(script, /classic-band-gradient/);
+  assert.match(script, /classic-texture/);
+  assert.match(script, /★ ★ ★/);
+  assert.match(css, /fill:url\(#classic-dial-gradient\)/);
+  assert.match(css, /fill:url\(#classic-texture\)/);
+});
+
+test('cronógrafo possui start stop e reset sem depender de biblioteca externa', () => {
+  const script = read('home-watch-selector.js');
+  assert.match(script, /watch-pusher-button--start/);
+  assert.match(script, /watch-pusher-button--reset/);
+  assert.match(script, /aria-pressed/);
+  assert.match(script, /elapsedChrono/);
+  assert.doesNotMatch(script, /gsap|anime\.js|jquery/i);
 });
