@@ -15,14 +15,15 @@
     5: 'acdfg', 6: 'acdefg', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg'
   };
 
+  // Segmentos estreitos para lembrar LCD de relógio de pulso, sem o aspecto largo de despertador.
   const SEGMENT_SHAPES = {
-    a: '8,2 42,2 48,8 42,14 8,14 2,8',
-    b: '43,10 49,16 49,40 43,46 37,40 37,16',
-    c: '43,48 49,54 49,78 43,84 37,78 37,54',
-    d: '8,80 42,80 48,86 42,92 8,92 2,86',
-    e: '1,48 7,54 7,78 1,84 -5,78 -5,54',
-    f: '1,10 7,16 7,40 1,46 -5,40 -5,16',
-    g: '8,41 42,41 48,47 42,53 8,53 2,47'
+    a: '5,1 29,1 33,4 29,7 5,7 1,4',
+    b: '30,6 33,9 33,32 30,35 27,32 27,9',
+    c: '30,39 33,42 33,65 30,68 27,65 27,42',
+    d: '5,67 29,67 33,70 29,73 5,73 1,70',
+    e: '0,39 3,42 3,65 0,68 -3,65 -3,42',
+    f: '0,6 3,9 3,32 0,35 -3,32 -3,9',
+    g: '5,34 29,34 33,37 29,40 5,40 1,37'
   };
 
   const time24Formatter = new Intl.DateTimeFormat('en-US', {
@@ -94,6 +95,7 @@
   }
 
   function drawSegmentDigit(group, digit, x, y, scale) {
+    if (!group) return;
     const active = SEGMENTS[digit] || '';
     const wrapper = svgElement('g', { transform: `translate(${x} ${y}) scale(${scale})` });
     Object.entries(SEGMENT_SHAPES).forEach(([segment, points]) => {
@@ -106,35 +108,41 @@
   }
 
   function drawSegmentColon(group, x, y, scale) {
-    [31, 65].forEach(offset => {
+    if (!group) return;
+    [25, 51].forEach(offset => {
       group.appendChild(svgElement('circle', {
         class: 'digital-lcd-segment is-on',
         cx: x,
         cy: y + (offset * scale),
-        r: 4.3 * scale
+        r: 2.3 * scale
       }));
     });
   }
 
   function drawDigitalDate(group, month, day) {
     clearNode(group);
+    if (!group) return;
+
     const value = `${Number(month)}-${pad(day)}`;
-    const scale = .29;
-    const digitAdvance = 17;
-    const dashAdvance = 12;
-    const total = Array.from(value).reduce((width, char) => width + (char === '-' ? dashAdvance : digitAdvance), 0);
-    let x = 279 - total;
-    const y = 111;
+    const scale = .22;
+    const digitAdvance = 9.4;
+    const dashAdvance = 7;
+    const total = Array.from(value).reduce(
+      (width, char) => width + (char === '-' ? dashAdvance : digitAdvance),
+      0
+    );
+    let x = 237 - total;
+    const y = 124;
 
     Array.from(value).forEach(char => {
       if (char === '-') {
         group.appendChild(svgElement('rect', {
           class: 'digital-lcd-segment is-on',
           x: x + 1,
-          y: y + 13,
-          width: 9,
-          height: 2.4,
-          rx: 1
+          y: y + 8,
+          width: 5,
+          height: 1.2,
+          rx: .5
         }));
         x += dashAdvance;
       } else {
@@ -146,14 +154,17 @@
 
   function drawDigitalTime(group, hour12, minute, second) {
     clearNode(group);
+    if (!group) return;
+
     const hour = String(Number(hour12));
     const minuteText = pad(minute);
     const secondText = pad(second);
-    const mainScale = .68;
-    const secondScale = .37;
-    const y = 148;
-    const startX = hour.length === 1 ? 100 : 77;
-    const advance = 39;
+    const mainScale = .63;
+    const secondScale = .34;
+    const y = 157;
+    const advance = 23;
+    const colonAdvance = 8;
+    const startX = hour.length === 1 ? 93 : 77;
     let x = startX;
 
     Array.from(hour).forEach(char => {
@@ -162,16 +173,16 @@
     });
 
     drawSegmentColon(group, x + 1, y, mainScale);
-    x += 16;
+    x += colonAdvance;
 
     Array.from(minuteText).forEach(char => {
       drawSegmentDigit(group, char, x, y, mainScale);
       x += advance;
     });
 
-    const secondsStart = hour.length === 1 ? 239 : 252;
-    drawSegmentDigit(group, secondText[0], secondsStart, 178, secondScale);
-    drawSegmentDigit(group, secondText[1], secondsStart + 21, 178, secondScale);
+    const secondsStart = 201;
+    drawSegmentDigit(group, secondText[0], secondsStart, 174, secondScale);
+    drawSegmentDigit(group, secondText[1], secondsStart + 13, 174, secondScale);
   }
 
   function hourTicks(centerY = 160, inner = 82, outer = 94) {
@@ -190,45 +201,55 @@
   function digitalTemplate() {
     return `
       <div class="home-watch-art home-watch-art--digital" data-watch-kind="digital">
-        <svg class="home-watch-svg home-watch-svg--digital" viewBox="0 0 360 320" role="img" aria-labelledby="digital-watch-title digital-watch-desc">
+        <svg class="home-watch-svg home-watch-svg--digital" viewBox="0 0 320 340" role="img" aria-labelledby="digital-watch-title digital-watch-desc">
           <title id="digital-watch-title">Mostrador digital clássico</title>
-          <desc id="digital-watch-desc">Mostrador digital preto com LCD segmentado, dia, data, AM ou PM e horário real de Brasília.</desc>
+          <desc id="digital-watch-desc">Mostrador digital preto vertical, com LCD segmentado estreito, dia, data, AM ou PM e horário real de Brasília.</desc>
           <defs>
             <linearGradient id="digital-lcd-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#d9dbd1"></stop>
-              <stop offset="48%" stop-color="#c7cabf"></stop>
-              <stop offset="100%" stop-color="#b9bdb2"></stop>
+              <stop offset="0%" stop-color="#d9ddd0"></stop>
+              <stop offset="48%" stop-color="#cbd0c2"></stop>
+              <stop offset="100%" stop-color="#b8beb0"></stop>
             </linearGradient>
-            <pattern id="digital-lcd-lines" width="4" height="4" patternUnits="userSpaceOnUse">
-              <path d="M0 1H4" stroke="#111" stroke-opacity=".035" stroke-width="1"></path>
+            <linearGradient id="digital-case-gradient" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#27292b"></stop>
+              <stop offset="45%" stop-color="#17191b"></stop>
+              <stop offset="100%" stop-color="#0c0d0e"></stop>
+            </linearGradient>
+            <pattern id="digital-lcd-lines" width="3" height="3" patternUnits="userSpaceOnUse">
+              <path d="M0 1H3" stroke="#111" stroke-opacity=".035" stroke-width=".7"></path>
             </pattern>
           </defs>
-          <rect class="digital-dial-shell" x="24" y="31" width="312" height="258" rx="35"></rect>
-          <rect class="digital-dial-inset" x="38" y="47" width="284" height="226" rx="22"></rect>
-          <circle class="digital-screw" cx="48" cy="57" r="4"></circle>
-          <circle class="digital-screw" cx="312" cy="57" r="4"></circle>
-          <circle class="digital-screw" cx="48" cy="263" r="4"></circle>
-          <circle class="digital-screw" cx="312" cy="263" r="4"></circle>
-          <text class="digital-bezel-copy" x="180" y="72">PROTECTION</text>
-          <rect class="digital-accent digital-accent--red" x="56" y="83" width="248" height="176" rx="15"></rect>
-          <path class="digital-accent-line digital-accent-line--cyan" d="M76 92H284"></path>
-          <path class="digital-accent-line digital-accent-line--red" d="M76 98H284"></path>
-          <rect class="digital-screen" x="68" y="105" width="224" height="139" rx="7"></rect>
-          <rect class="digital-screen-texture" x="68" y="105" width="224" height="139" rx="7"></rect>
+
+          <path class="digital-case-side digital-case-side--left" d="M56 89H45L39 99V129L46 136H55Z"></path>
+          <path class="digital-case-side digital-case-side--right" d="M264 89H275L281 99V129L274 136H265Z"></path>
+          <path class="digital-case-side digital-case-side--left digital-case-side--lower" d="M55 216H46L39 223V250L46 257H56Z"></path>
+          <path class="digital-case-side digital-case-side--right digital-case-side--lower" d="M265 216H274L281 223V250L274 257H264Z"></path>
+
+          <path class="digital-case-outline" d="M83 26H237L249 40L254 68L266 82L263 254L250 268L244 307H76L70 268L57 254L54 82L66 68L71 40Z"></path>
+          <path class="digital-case-inner" d="M82 51H238L247 62L249 88L256 98L253 241L244 252L240 282H80L76 252L67 241L64 98L71 88L73 62Z"></path>
+
+          <circle class="digital-case-screw" cx="80" cy="63" r="2.4"></circle>
+          <circle class="digital-case-screw" cx="240" cy="63" r="2.4"></circle>
+          <circle class="digital-case-screw" cx="80" cy="268" r="2.4"></circle>
+          <circle class="digital-case-screw" cx="240" cy="268" r="2.4"></circle>
+
+          <text class="digital-bezel-copy" x="160" y="79">PROTECTION</text>
+          <path class="digital-accent-line digital-accent-line--cyan" d="M89 96H231"></path>
+          <path class="digital-accent-line digital-accent-line--red" d="M89 101H231"></path>
+          <path class="digital-lcd-frame" d="M79 106H241L248 114V224L241 232H79L72 224V114Z"></path>
+          <rect class="digital-screen" x="78" y="113" width="164" height="112" rx="2"></rect>
+          <rect class="digital-screen-texture" x="78" y="113" width="164" height="112" rx="2"></rect>
+
           <g class="digital-info">
-            <g class="digital-status-icons" aria-hidden="true">
-              <rect x="82" y="119" width="3" height="5" rx="1"></rect>
-              <rect x="87" y="116" width="3" height="8" rx="1"></rect>
-              <rect x="92" y="113" width="3" height="11" rx="1"></rect>
-            </g>
-            <text id="digital-weekday" class="digital-small-label digital-weekday" x="118" y="124">SAT</text>
-            <text id="digital-period" class="digital-small-label digital-period" x="82" y="146">PM</text>
-            <text class="digital-small-label digital-alarm" x="111" y="146">ALM</text>
-            <text class="digital-small-label digital-mode" x="145" y="146">24H</text>
+            <text id="digital-weekday" class="digital-small-label digital-weekday" x="89" y="134">SAT</text>
+            <text id="digital-period" class="digital-small-label digital-period" x="89" y="153">PM</text>
+            <text class="digital-small-label digital-alarm" x="113" y="153">ALM</text>
+            <text class="digital-small-label digital-mode" x="145" y="153">24H</text>
             <g id="digital-date-segments"></g>
             <g id="digital-time-segments"></g>
           </g>
-          <text class="digital-bezel-copy digital-bezel-copy--bottom" x="180" y="276">WATER RESIST</text>
+
+          <text class="digital-bezel-copy digital-bezel-copy--bottom" x="160" y="296">WATER RESIST</text>
         </svg>
       </div>`;
   }
