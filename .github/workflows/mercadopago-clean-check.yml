@@ -5,7 +5,6 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
-      - final-digital-face-2026-08-29
   pull_request:
     branches:
       - main
