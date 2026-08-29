@@ -17,6 +17,7 @@ const { registerCouponCheckout } = require('./coupon-checkout');
 const { registerMercadoPagoOrdersPix } = require('./mercadopago-orders-pix');
 const { registerMercadoPagoClean } = require('./mercadopago-clean');
 const { registerReturnRequestRoutes } = require('./return-requests');
+const { registerOrderCancellationRoutes } = require('./order-cancellation');
 const { queueOrderReceivedEmail } = require('./order-email');
 const { createCheckoutRateLimit } = require('./checkout-rate-limit');
 
@@ -82,6 +83,7 @@ if (!originalExpress.__relogioAuthPatched) {
     }
 
     registerAuthRoutes(app);
+    registerOrderCancellationRoutes(app, { userFromRequest });
     registerCustomerAddressRoutes(app);
     registerCheckoutProfileRoutes(app);
     registerReturnRequestRoutes(app);
