@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const {
   normalizeCancellationReason,
   isPaidOrder,
+  isRefundedOrder,
   refundTarget,
   customerOrder
 } = require('../order-cancellation-policy');
@@ -27,6 +28,11 @@ test('somente pagamento efetivamente aprovado é tratado como pago', () => {
   assert.equal(isPaidOrder({ status: 'paid', payment_status: 'approved' }), true);
   assert.equal(isPaidOrder({ status: 'pending', payment_status: 'pending' }), false);
   assert.equal(isPaidOrder({ status: 'rejected', payment_status: 'rejected' }), false);
+});
+
+test('pagamento reembolsado é reconhecido mesmo após sincronização do provedor', () => {
+  assert.equal(isRefundedOrder({ status: 'pending', payment_status: 'refunded' }), true);
+  assert.equal(isRefundedOrder({ status: 'paid', payment_status: 'approved' }), false);
 });
 
 test('PIX criado pela Orders API usa reembolso da order', () => {
