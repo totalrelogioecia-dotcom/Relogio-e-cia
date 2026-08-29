@@ -34,15 +34,15 @@
 }
 
 .home-watch-selector{
-  width:min(440px, 100%);
+  width:min(500px, 100%);
   margin:0 auto;
 }
 
 .home-watch-carousel{
   display:grid;
-  grid-template-columns:46px minmax(0, 1fr) 46px;
+  grid-template-columns:48px minmax(0, 1fr) 48px;
   align-items:center;
-  gap:4px;
+  gap:2px;
 }
 
 .home-watch-stage{
@@ -62,11 +62,15 @@
 
 .home-watch-art{
   position:relative;
-  width:min(320px, 96%);
+  width:min(370px, 98%);
   aspect-ratio:1/1;
   display:grid;
   place-items:center;
   animation:home-watch-enter .24s ease-out both;
+}
+
+.home-watch-art--digital{
+  width:min(390px, 100%);
 }
 
 .home-watch-stage.is-leaving .home-watch-art{
@@ -84,9 +88,13 @@
   overflow:visible;
 }
 
+.home-watch-svg--digital{
+  aspect-ratio:360/320;
+}
+
 .home-watch-arrow{
-  width:42px;
-  height:42px;
+  width:44px;
+  height:44px;
   border:0;
   background:transparent;
   color:var(--ink-soft);
@@ -134,70 +142,101 @@
   stroke-linecap:round;
 }
 
-/* Digital — apenas o mostrador/face, sem marca. */
+/* Digital — face quadrada 2D e LCD por segmentos SVG, sem logotipo. */
 .digital-dial-shell{
-  fill:#111214;
+  fill:#101113;
   stroke:#050505;
-  stroke-width:3;
+  stroke-width:4;
 }
 
 .digital-dial-inset{
-  fill:#242628;
+  fill:#202225;
   stroke:#080808;
-  stroke-width:2;
+  stroke-width:2.4;
 }
 
 .digital-screw{
-  fill:#323538;
+  fill:#34373a;
   stroke:#050505;
   stroke-width:1.5;
 }
 
+.digital-bezel-copy{
+  fill:#d8d8d5;
+  font-family:Arial, sans-serif;
+  font-size:8px;
+  font-weight:700;
+  text-anchor:middle;
+  letter-spacing:.16em;
+}
+
+.digital-bezel-copy--bottom{
+  fill:#bdbfbe;
+  font-size:6.8px;
+  letter-spacing:.18em;
+}
+
 .digital-accent{
   fill:none;
-  stroke:#8e1d20;
+}
+
+.digital-accent--red{
+  stroke:#8d2025;
   stroke-width:3;
 }
 
+.digital-accent-line{
+  fill:none;
+  stroke-width:2.1;
+  stroke-linecap:round;
+}
+
+.digital-accent-line--cyan{ stroke:#2b8a88; }
+.digital-accent-line--red{ stroke:#8d2025; }
+
 .digital-screen{
-  fill:#d8d9d0;
+  fill:url(#digital-lcd-gradient);
   stroke:#080808;
   stroke-width:3;
 }
 
-.digital-bottom-mark{
-  fill:none;
-  stroke:#727477;
-  stroke-width:2;
+.digital-screen-texture{
+  fill:url(#digital-lcd-lines);
+  pointer-events:none;
 }
 
 .digital-info text{
-  fill:#111;
-  font-family:var(--font-mono);
+  fill:#151917;
+  font-family:"Arial Narrow", var(--font-mono);
   font-weight:700;
 }
 
-.digital-info > text:not(.digital-main):not(.digital-seconds){
+.digital-small-label{
   font-size:9px;
+  letter-spacing:.03em;
 }
 
-.digital-info .digital-micro{
-  font-size:7px;
-  letter-spacing:.04em;
+.digital-weekday{
+  font-size:10px;
 }
 
-.digital-period{
-  font-size:9px;
+.digital-period,
+.digital-alarm,
+.digital-mode{
+  font-size:8px;
 }
 
-.digital-main{
-  font-size:35px;
-  letter-spacing:-.08em;
+.digital-status-icons rect{
+  fill:#151917;
 }
 
-.digital-seconds{
-  font-size:19px;
-  text-anchor:end;
+.digital-lcd-segment.is-on{
+  fill:#111714;
+}
+
+.digital-lcd-segment.is-off{
+  fill:#111714;
+  opacity:.055;
 }
 
 /* Cronógrafo quartz — visual 2D, pushers clicáveis no topo. */
@@ -426,27 +465,27 @@
   }
 
   .home-watch-selector{
-    width:min(390px, 94vw);
+    width:min(440px, 94vw);
   }
 }
 
 @media (max-width:430px){
   .home-watch-selector{
-    width:min(350px, 96vw);
+    width:min(370px, 97vw);
   }
 
   .home-watch-carousel{
-    grid-template-columns:38px minmax(0, 1fr) 38px;
+    grid-template-columns:36px minmax(0, 1fr) 36px;
   }
 
   .home-watch-arrow{
-    width:38px;
-    height:38px;
+    width:36px;
+    height:36px;
     font-size:1.35rem;
   }
 
   .home-watch-art{
-    width:94%;
+    width:96%;
   }
 }
 
