@@ -1,0 +1,264 @@
+/* RELÓGIO E CIA — seletor de relógios da Home */
+.clock-panel.home-watch-panel{
+  padding-top:28px;
+  padding-bottom:28px;
+  min-width:0;
+}
+
+.home-watch-panel .stopwatch-label{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:var(--ink);
+  margin-bottom:10px;
+}
+
+.home-watch-panel .stopwatch-label::after{
+  content:"";
+  width:36px;
+  height:1px;
+  background:var(--red);
+}
+
+.home-watch-selector{
+  width:min(360px, 100%);
+  --watch-index:0;
+}
+
+.home-watch-stage{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  touch-action:pan-y;
+  outline:none;
+}
+
+.home-watch-stage:focus-visible{
+  box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--red);
+}
+
+.home-watch-art{
+  position:relative;
+  width:min(310px, 91%);
+  aspect-ratio:1/1;
+  display:grid;
+  place-items:center;
+  animation:home-watch-enter .24s ease-out both;
+}
+
+.home-watch-stage.is-leaving .home-watch-art{
+  animation:home-watch-leave .12s ease-in both;
+}
+
+.home-watch-stage.is-entering-back .home-watch-art{
+  animation-name:home-watch-enter-back;
+}
+
+.home-watch-svg{
+  width:100%;
+  height:100%;
+  display:block;
+  overflow:visible;
+}
+
+.home-watch-nav{
+  display:grid;
+  grid-template-columns:44px auto 44px;
+  justify-content:center;
+  align-items:center;
+  gap:17px;
+  padding-top:2px;
+}
+
+.home-watch-nav span{
+  font-family:var(--font-mono);
+  font-size:.75rem;
+  letter-spacing:.12em;
+  text-transform:lowercase;
+  color:var(--ink);
+}
+
+.home-watch-nav button{
+  width:44px;
+  height:38px;
+  border:0;
+  background:transparent;
+  color:var(--ink-soft);
+  display:grid;
+  place-items:center;
+  font-family:var(--font-mono);
+  font-size:1.35rem;
+  line-height:1;
+  cursor:pointer;
+  transition:color .18s ease, transform .18s ease;
+}
+
+.home-watch-nav button:hover,
+.home-watch-nav button:focus-visible{
+  color:var(--red);
+  outline:none;
+}
+
+.home-watch-nav button:hover:first-child{ transform:translateX(-3px); }
+.home-watch-nav button:hover:last-child{ transform:translateX(3px); }
+
+.home-watch-panel .stopwatch-caption{
+  min-height:1.35em;
+  margin:14px 0 0;
+  font-family:var(--font-mono);
+  font-size:.67rem;
+  letter-spacing:.04em;
+  color:var(--muted);
+}
+
+.watch-brand{
+  font-family:Arial, sans-serif;
+  font-size:10px;
+  font-weight:700;
+  text-anchor:middle;
+  letter-spacing:.04em;
+}
+.watch-brand--light{ fill:#f5f3ef; }
+.watch-brand--dark{ fill:#171717; }
+.watch-brand--lower{ font-size:12px; letter-spacing:.07em; }
+
+/* Digital Casio/G-Shock */
+.digital-case{ fill:#151617; stroke:#050505; stroke-width:3; }
+.digital-case-inset{ fill:#202224; stroke:#050505; stroke-width:2; }
+.digital-accent{ fill:none; stroke:var(--red); stroke-width:4; }
+.digital-screen{ fill:#d8d9d0; stroke:#070707; stroke-width:3; }
+.digital-screw{ fill:#27292a; stroke:#070707; stroke-width:2; }
+.digital-info text{
+  fill:#111;
+  font-family:var(--font-mono);
+  font-weight:700;
+}
+.digital-info > text:not(.digital-main):not(.digital-seconds){ font-size:9px; }
+.digital-info .digital-small{ font-size:7px; letter-spacing:.04em; }
+.digital-main{ font-size:35px; letter-spacing:-.08em; }
+.digital-seconds{ font-size:19px; text-anchor:end; }
+.watch-alarm-icon{ fill:#111; }
+
+/* Citizen panda */
+.citizen-pusher,
+.citizen-crown,
+.citizen-case{ fill:#d8d8d5; stroke:#171717; stroke-width:2; }
+.citizen-bezel{ fill:#eeeeeb; stroke:#171717; stroke-width:2; }
+.citizen-dial{ fill:#f4f0e7; stroke:#aaa8a1; stroke-width:1.5; }
+.watch-hour-tick{ stroke:#171717; stroke-width:3; }
+.panda-subdial{ fill:#171717; stroke:#050505; stroke-width:1.5; }
+.subdial-marks line{ stroke:#f4f0e7; stroke-width:1.5; }
+.subdial-hand{ stroke:#e6c985; stroke-width:2; transform-box:view-box; }
+#citizen-running-seconds{ transform-origin:112px 157px; }
+#citizen-chrono-minutes{ transform-origin:208px 157px; }
+.calendar-text,
+.calendar-date{
+  fill:#fff;
+  font-family:var(--font-mono);
+  font-weight:700;
+  text-anchor:middle;
+}
+.calendar-text{ font-size:11px; }
+.calendar-date{ font-size:14px; }
+.analog-hand{ transform-box:view-box; stroke-linecap:round; }
+#citizen-hour,
+#citizen-minute,
+#citizen-chrono-seconds{ transform-origin:160px 154px; }
+.analog-hour{ stroke:#171717; stroke-width:7; }
+.analog-minute{ stroke:#171717; stroke-width:4.5; }
+.chrono-second{ stroke:var(--red); stroke-width:2; }
+.analog-center{ fill:#e3cf99; stroke:#171717; stroke-width:1.5; }
+.analog-center-dot{ fill:var(--red); }
+.watch-pusher-button{
+  position:absolute;
+  top:5%;
+  width:18%;
+  height:17%;
+  border:0;
+  border-radius:6px;
+  background:transparent;
+  cursor:pointer;
+}
+.watch-pusher-button--start{ left:20%; transform:rotate(-27deg); }
+.watch-pusher-button--reset{ right:20%; transform:rotate(27deg); }
+.watch-pusher-button:hover,
+.watch-pusher-button:focus-visible{
+  outline:2px solid var(--red);
+  outline-offset:2px;
+}
+
+/* Orient automático */
+.orient-case{ fill:#dededb; stroke:#171717; stroke-width:2.2; }
+.orient-bezel{ fill:#f2f1ed; stroke:#171717; stroke-width:2; }
+.orient-dial{ fill:url(#orient-dial-gradient); stroke:#092b20; stroke-width:2; }
+.orient-indices .watch-hour-tick{ stroke:#e5c873; stroke-width:5; }
+.orient-mark circle{ fill:none; stroke:#e5c873; stroke-width:2; }
+.orient-mark path{ fill:none; stroke:#e5c873; stroke-width:1.5; }
+.orient-brand{ fill:#e5c873; font-size:11px; }
+.orient-calendar-frame{ fill:#e5c873; }
+.orient-calendar-day{ fill:#fff; }
+.orient-calendar-text{
+  fill:#171717;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:700;
+  text-anchor:middle;
+}
+.orient-calendar-weekday{ fill:var(--red); }
+#orient-hour,
+#orient-minute,
+#orient-second{ transform-origin:160px 160px; }
+.orient-hour{ stroke:#e5c873; stroke-width:8; }
+.orient-minute{ stroke:#e5c873; stroke-width:5; }
+.orient-second{ stroke:#f1dc9a; stroke-width:1.6; }
+.orient-center{ fill:#e5c873; stroke:#4e3e13; stroke-width:1.5; }
+.orient-center-dot{ fill:#4e3e13; }
+.orient-crown{ fill:#dededb; stroke:#171717; stroke-width:2; }
+
+@keyframes home-watch-enter{
+  from{ opacity:0; transform:translateX(12px); }
+  to{ opacity:1; transform:translateX(0); }
+}
+@keyframes home-watch-enter-back{
+  from{ opacity:0; transform:translateX(-12px); }
+  to{ opacity:1; transform:translateX(0); }
+}
+@keyframes home-watch-leave{
+  from{ opacity:1; transform:translateX(0); }
+  to{ opacity:0; transform:translateX(-8px); }
+}
+
+@media (max-width:860px){
+  .clock-panel.home-watch-panel{
+    padding:24px 0 30px;
+    text-align:center;
+  }
+  .home-watch-panel .stopwatch-label{
+    justify-content:center;
+  }
+  .home-watch-selector{
+    width:min(350px, 88vw);
+    margin:0 auto;
+  }
+  .home-watch-panel .stopwatch-caption{
+    margin-left:auto;
+    margin-right:auto;
+  }
+}
+
+@media (max-width:420px){
+  .home-watch-selector{ width:min(320px, 92vw); }
+  .home-watch-nav{ gap:12px; }
+  .home-watch-art{ width:88%; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .home-watch-art,
+  .home-watch-stage.is-leaving .home-watch-art{
+    animation:none;
+  }
+  .home-watch-nav button{ transition:none; }
+}
