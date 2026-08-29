@@ -12,6 +12,7 @@ const {
   CANCELLATION_REASONS,
   normalizeCancellationReason,
   isPaidOrder,
+  isRefundedOrder,
   refundTarget,
   customerOrder
 } = require('./order-cancellation-policy');
@@ -148,6 +149,34 @@ function registerOrderCancellationRoutes(app, { userFromRequest } = {}) {
     const order = orders[index];
     const existingCancellation = order.store_cancellation || null;
     if (existingCancellation?.status === 'refunded') {
+      return res.json({ ok: true, already_refunded: true, order: customerOrder(order) });
+    }
+
+    if (existingCancellation?.requested_at && isRefundedOrder(order)) {
+      const completedAt = new Date().toISOString();
+      order.status = 'cancelled_by_store';
+      order.payment_status = 'refunded';
+      order.updated_at = completedAt;
+      order.store_cancellation = {
+        ...existingCancellation,
+        status: 'refunded',
+        provider_status: existingCancellation.provider_status || 'refunded',
+        already_refunded_at_provider: true,
+        refunded_at: existingCancellation.refunded_at || completedAt,
+        completed_at: completedAt,
+        updated_at: completedAt,
+        last_error: null
+      };
+      orders[index] = order;
+      try {
+        await persistOrders(orders);
+      } catch (error) {
+        return res.status(500).json({
+          error: 'O Mercado Pago já indica o pagamento como reembolsado, mas não foi possível salvar o status final do cancelamento no site.',
+          code: 'refund_confirmed_persist_failed'
+        });
+      }
+      queueOrderCancellationEmail(orderId);
       return res.json({ ok: true, already_refunded: true, order: customerOrder(order) });
     }
 
@@ -304,6 +333,7 @@ module.exports = {
   CANCELLATION_REASONS,
   normalizeCancellationReason,
   isPaidOrder,
+  isRefundedOrder,
   refundTarget,
   customerOrder,
   registerOrderCancellationRoutes
