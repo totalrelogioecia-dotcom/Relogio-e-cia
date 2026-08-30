@@ -132,12 +132,12 @@
 }
 
 .digital-final-period{
-  font-size:11px;
+  font-size:9.5px;
 }
 
 .digital-final-weekday{
-  font-size:17px;
-  letter-spacing:-.04em;
+  font-size:14px;
+  letter-spacing:-.02em;
 }
 
 .digital-final-date-box{
@@ -153,6 +153,56 @@
 .digital-final-segment.is-off{
   fill:#0c100d;
   opacity:.035;
+}
+
+/* Organização fina do LCD: ícones e textos separados por função. */
+.digital-final-sound{
+  transform-box:fill-box;
+  transform-origin:left top;
+  transform:translate(1px, -1px) scale(.66);
+}
+
+.digital-final-bell{
+  transform-box:fill-box;
+  transform-origin:center;
+  transform:translate(15px, -9px) scale(.62);
+}
+
+.digital-final-weekday{
+  transform:translate(24px, -5px);
+}
+
+.digital-final-period{
+  transform:translate(-1px, -15px);
+}
+
+.digital-final-date-box{
+  transform-box:fill-box;
+  transform-origin:left top;
+  transform:translate(18px, 3px) scale(.79, .74);
+}
+
+#digital-final-date{
+  transform-box:fill-box;
+  transform-origin:center;
+  transform:translate(9px, 0) scale(.78);
+}
+
+#digital-final-time{
+  transform:translate(-1px, -2px);
+}
+
+#digital-final-seconds{
+  transform-box:fill-box;
+  transform-origin:center;
+  transform:translate(2px, 8px) scale(.94);
+}
+
+.digital-final-light-icon,
+.digital-final-light-icon-center{
+  transform-box:fill-box;
+  transform-origin:center;
+  transform:translate(7px, -7px) scale(.64);
 }
 
 .digital-final-light-button{
