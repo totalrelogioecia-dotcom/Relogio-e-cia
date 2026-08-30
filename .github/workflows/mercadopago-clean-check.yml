@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - final-lcd-tuning-2026-08-30
   pull_request:
     branches:
       - main
