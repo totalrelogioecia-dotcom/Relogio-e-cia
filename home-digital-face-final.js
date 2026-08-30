@@ -93,17 +93,17 @@
     if (!group) return;
     const text = `${month}-${day}`;
     const scale = .43;
-    const digitAdvance = 14.2;
-    const dashAdvance = 8;
+    const digitAdvance = 15;
+    const dashAdvance = 13;
     const total = Array.from(text).reduce((width, char) => width + (char === '-' ? dashAdvance : digitAdvance), 0);
     let x = 286 - total;
     const y = 120;
     Array.from(text).forEach(char => {
       if (char === '-') {
         group.appendChild(svg('rect', {
-          x: x + 1,
+          x: x + 3,
           y: y + 13,
-          width: 6,
+          width: 7,
           height: 2,
           rx: 1,
           class: 'digital-final-segment is-on'
@@ -124,20 +124,21 @@
     if (!main || !seconds) return;
 
     const mainScale = .84;
-    const advance = 27;
-    const colonAdvance = 11;
-    const y = 166;
+    const hourAdvance = 27;
+    const minuteAdvance = 32;
+    const colonAdvance = 12;
+    const y = 169;
     let x = hour.length === 1 ? 116 : 91;
 
     Array.from(hour).forEach(char => {
       digit(main, char, x, y, mainScale);
-      x += advance;
+      x += hourAdvance;
     });
     colon(main, x + 2, y, mainScale);
     x += colonAdvance;
     Array.from(minute).forEach(char => {
       digit(main, char, x, y, mainScale);
-      x += advance;
+      x += minuteAdvance;
     });
 
     const secondScale = .49;
@@ -191,13 +192,13 @@
           <text class="digital-final-led" x="190" y="251">LED BACKLIGHT</text>
 
           <circle class="digital-final-dot" cx="48" cy="105" r="4.5"/>
-          <circle class="digital-final-dot" cx="48" cy="225" r="4.5"/>
+          <circle class="digital-final-dot" cx="48" cy="242" r="4.5"/>
           <circle class="digital-final-dot" cx="332" cy="105" r="4.5"/>
-          <circle class="digital-final-dot" cx="332" cy="225" r="4.5"/>
-          <text class="digital-final-side-label" x="52" y="155" transform="rotate(-90 52 155)">ADJUST</text>
-          <text class="digital-final-side-label" x="52" y="237" transform="rotate(-90 52 237)">MODE</text>
-          <text class="digital-final-side-label" x="328" y="155" transform="rotate(90 328 155)">START/STOP</text>
-          <text class="digital-final-side-label" x="328" y="237" transform="rotate(90 328 237)">LIGHT</text>
+          <circle class="digital-final-dot" cx="332" cy="242" r="4.5"/>
+          <text class="digital-final-side-label" x="52" y="153" transform="rotate(-90 52 153)">ADJUST</text>
+          <text class="digital-final-side-label" x="52" y="207" transform="rotate(-90 52 207)">MODE</text>
+          <text class="digital-final-side-label" x="328" y="153" transform="rotate(90 328 153)">START/STOP</text>
+          <text class="digital-final-side-label" x="328" y="207" transform="rotate(90 328 207)">LIGHT</text>
 
           <rect class="digital-final-lcd-frame" x="70" y="101" width="240" height="151" rx="16"/>
           <rect class="digital-final-lcd-ring" x="77" y="108" width="226" height="137" rx="11"/>
@@ -208,7 +209,7 @@
             <g class="digital-final-sound" aria-hidden="true">
               <path d="M91 124q3 4 0 8"/><path d="M95 122q4 6 0 12"/><path d="M99 120q5 8 0 16"/><path d="M103 119q5 9 0 18"/><path d="M107 118q6 10 0 20"/>
             </g>
-            <path class="digital-final-bell" d="M94 145c0-6 3-10 8-11v-2c0-2 1-3 3-3s3 1 3 3v2c5 1 8 5 8 11v7l4 5H90l4-5zM101 160h8c-1 3-3 4-4 4s-3-1-4-4z"/>
+            <path class="digital-final-bell" d="M95 151c0-3.8 2-6.5 6-7.5V142c0-1.3.9-2.3 2.2-2.3s2.2 1 2.2 2.3v1.5c4 1 6 3.7 6 7.5v4l3 3.5H92l3-3.5zM100 161h6c-.8 2-2 3-3 3s-2.2-1-3-3z"/>
             <text id="digital-final-period" class="digital-final-period" x="92" y="178">PM</text>
             <text id="digital-final-weekday" class="digital-final-weekday" x="122" y="137">SU</text>
             <rect class="digital-final-date-box" x="198" y="115" width="94" height="43" rx="5"/>
