@@ -9,7 +9,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 test('home carrega três mostradores com somente setas laterais', () => {
   const html = read('index.html');
   assert.match(html, /home-watch-selector\.css\?v=4/);
-  assert.match(html, /home-digital-face-final\.css\?v=1/);
+  assert.match(html, /home-digital-face-final\.css\?v=2/);
   assert.match(html, /id="home-watch-selector"/);
   assert.match(html, /id="home-watch-stage"/);
   assert.match(html, /id="home-watch-previous"/);
