@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - restore-single-home-watch-2026-08-31
   pull_request:
     branches:
       - main
@@ -32,6 +33,7 @@ jobs:
           node --check store-health-bootstrap.js
           node --check admin-store-health.js
           node --check home-enhancements.js
+          node --check home-gshock-live.js
           node --check home-watch-selector.js
           node --check home-digital-face-final.js
           node --check mercadopago-core.js
