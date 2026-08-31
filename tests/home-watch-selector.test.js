@@ -6,29 +6,31 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('home exibe somente o relógio G-Shock digital de Brasília', () => {
+test('home exibe somente o relógio analógico de Brasília', () => {
   const html = read('index.html');
-  assert.match(html, /home-gshock-live\.css\?v=1/);
-  assert.match(html, /id="gshock-live-clock"/);
-  assert.match(html, /id="gshock-live-weekday"/);
-  assert.match(html, /id="gshock-live-period"/);
-  assert.match(html, /id="gshock-live-date"/);
-  assert.match(html, /id="gshock-live-time"/);
-  assert.match(html, /home-gshock-live\.js\?v=1/);
-  assert.doesNotMatch(html, /id="analog-clock-brasilia"/);
+  assert.match(html, /id="analog-clock-brasilia"/);
+  assert.match(html, /id="clock-ticks"/);
+  assert.match(html, /id="hand-hour"/);
+  assert.match(html, /id="hand-minute"/);
+  assert.match(html, /id="hand-second"/);
+  assert.match(html, /id="stopwatch-data"/);
+  assert.doesNotMatch(html, /home-gshock-live\.css/);
+  assert.doesNotMatch(html, /home-gshock-live\.js/);
+  assert.doesNotMatch(html, /id="gshock-live-clock"/);
   assert.doesNotMatch(html, /home-watch-selector/);
 });
 
-test('LCD usa segmentos próprios e horário real de Brasília', () => {
-  const script = read('home-gshock-live.js');
-  const css = read('home-gshock-live.css');
+test('relógio analógico usa horário real de Brasília e ponteiros dinâmicos', () => {
+  const script = read('home-enhancements.js');
+  const css = read('home-enhancements.css');
   assert.match(script, /America\/Sao_Paulo/);
-  assert.match(script, /Intl\.DateTimeFormat\('en-US'/);
-  assert.match(script, /SEGMENTS/);
-  assert.match(script, /drawTime/);
-  assert.match(script, /drawDate/);
-  assert.match(script, /dayPeriod/);
-  assert.match(script, /document\.hidden/);
-  assert.match(css, /data:image\/webp;base64,/);
-  assert.doesNotMatch(css, /__GSHOCK_WEBP_BASE64__/);
+  assert.match(script, /Intl\.DateTimeFormat\('pt-BR'/);
+  assert.match(script, /analog-clock-brasilia/);
+  assert.match(script, /clock-ticks/);
+  assert.match(script, /hand-hour/);
+  assert.match(script, /hand-minute/);
+  assert.match(script, /hand-second/);
+  assert.match(script, /requestAnimationFrame/);
+  assert.match(script, /rotate\(/);
+  assert.match(css, /#analog-clock-brasilia/);
 });
