@@ -10,8 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="home-enhancements.css">
-<link rel="stylesheet" href="home-watch-selector.css?v=4">
-<link rel="stylesheet" href="home-digital-face-final.css?v=3">
+<link rel="stylesheet" href="home-gshock-live.css?v=1">
 <link rel="stylesheet" href="home-showcase-v2.css">
 <link rel="stylesheet" href="site-search.css">
 </head>
@@ -62,16 +61,19 @@
           </div>
         </div>
 
-        <div class="clock-panel home-watch-panel">
+        <div class="clock-panel gshock-clock-panel">
           <p class="stopwatch-label">Horário de Brasília</p>
-          <div class="home-watch-selector" id="home-watch-selector" aria-label="Mostradores de relógio">
-            <div class="home-watch-carousel">
-              <button class="home-watch-arrow home-watch-arrow--previous" id="home-watch-previous" type="button" aria-label="Mostrador anterior">←</button>
-              <div class="home-watch-stage" id="home-watch-stage" tabindex="0" aria-live="polite"></div>
-              <button class="home-watch-arrow home-watch-arrow--next" id="home-watch-next" type="button" aria-label="Próximo mostrador">→</button>
-            </div>
+          <div class="gshock-clock" id="gshock-live-clock" role="img" aria-label="Relógio digital com o horário de Brasília">
+            <span class="sr-only">Relógio G-Shock digital com dia, data, AM ou PM, horas, minutos e segundos.</span>
+            <div class="gshock-clock__body" aria-hidden="true"></div>
+            <svg class="gshock-clock__display" viewBox="0 0 1312 1199" aria-hidden="true">
+              <text class="gshock-lcd-label" id="gshock-live-weekday" x="392" y="482" font-size="54">SAT</text>
+              <text class="gshock-lcd-label" id="gshock-live-period" x="395" y="532" font-size="34">PM</text>
+              <g id="gshock-live-date"></g>
+              <g id="gshock-live-time"></g>
+            </svg>
           </div>
-          <p class="stopwatch-caption" id="home-watch-status" aria-live="off">Carregando horário de Brasília...</p>
+          <p class="stopwatch-caption" id="gshock-live-caption" aria-live="off">Carregando horário de Brasília...</p>
         </div>
       </div>
     </div>
@@ -185,8 +187,7 @@
 <script src="script.js"></script>
 <script src="legal-footer.js"></script>
 <script src="home-enhancements.js"></script>
-<script src="home-watch-selector.js?v=4"></script>
-<script src="home-digital-face-final.js?v=2"></script>
+<script src="home-gshock-live.js?v=1"></script>
 <script src="site-search.js"></script>
 </body>
 </html>
