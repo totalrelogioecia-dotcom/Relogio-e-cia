@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - accessibility-rail-2026-09-02
   pull_request:
     branches:
       - main
@@ -31,6 +32,7 @@ jobs:
           node --check store-health.js
           node --check store-health-bootstrap.js
           node --check admin-store-health.js
+          node --check script.js
           node --check home-enhancements.js
           node --check home-gshock-live.js
           node --check home-watch-selector.js
