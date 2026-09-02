@@ -39,7 +39,7 @@
       .reloja-accessibility-header{display:none!important}
       html.reloja-large-text{font-size:112.5%}
 
-      html.reloja-dark{color-scheme:dark;--bg:#111214;--bg-soft:#1A1C20;--bg-black:#050506;--bg-black-2:#0B0C0E;--ink:#F5F5F2;--ink-soft:#D7D9DE;--muted:#A7AAB1;--paper:#202226;--line:rgba(255,255,255,.14);--line-strong:rgba(255,255,255,.32);--line-inverse:rgba(255,255,255,.25)}
+      html.reloja-dark{color-scheme:dark;--bg:#111214;--bg-soft:#1A1C20;--bg-black:#050506;--bg-black-2:#0B0C0E;--ink:#F5F5F2;--ink-soft:#D7D9DE;--muted:#A7AAB1;--paper:#202226;--red:#FF4D53;--red-dark:#FF6A6F;--line:rgba(255,255,255,.14);--line-strong:rgba(255,255,255,.32);--line-inverse:rgba(255,255,255,.25)}
       html.reloja-dark body,html.reloja-dark .site-header,html.reloja-dark main,html.reloja-dark .hero,html.reloja-dark .section,html.reloja-dark .policy-main{background:var(--bg);color:var(--ink)}
       html.reloja-dark h1,html.reloja-dark h2,html.reloja-dark h3,html.reloja-dark h4,html.reloja-dark h5,html.reloja-dark h6,html.reloja-dark strong,html.reloja-dark label{color:var(--ink)}
       html.reloja-dark input,html.reloja-dark select,html.reloja-dark textarea{background:var(--bg)!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
@@ -60,6 +60,8 @@
       html.reloja-dark footer a{color:#e4e5e8!important}
       html.reloja-dark footer a:hover{color:#ff5358!important}
       html.reloja-dark .site-search-toggle,html.reloja-dark .site-search-close,html.reloja-dark .forgot-password-button,html.reloja-dark [data-forgot-password]{color:var(--ink)!important;border-color:var(--line-strong)!important;background:transparent!important}
+      html.reloja-dark .site-header .nav-links a,html.reloja-dark .site-header .nav-icon-link,html.reloja-dark .site-header .brand-mark{color:var(--ink)!important}
+      html.reloja-dark .nav-cta{color:#fff!important}
       html.reloja-dark .btn-outline,html.reloja-dark .admin-actions button{background:transparent!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
       html.reloja-dark .shipping-message.info,html.reloja-dark .cart-legal-summary{background:#202328!important;color:var(--ink-soft)!important;border-color:var(--line-strong)!important}
       html.reloja-dark .shipping-message.error,html.reloja-dark .form-error{background:#2a1719!important;color:#ffb5b8!important;border-color:#a93a3f!important}
@@ -69,9 +71,11 @@
       html.reloja-dark .admin-tabs button{color:var(--ink)!important}
       html.reloja-dark .admin-tabs button.active{background:var(--ink)!important;color:var(--bg)!important}
       html.reloja-dark .admin-page [class*="help"],html.reloja-dark .admin-page [class*="muted"],html.reloja-dark .admin-page small{color:var(--ink-soft)!important}
+      html.reloja-dark .return-field small{color:var(--ink-soft)!important}
       html.reloja-dark img{filter:none}
       html.reloja-dark .reloja-accessibility-controls{background:#17191c;border-color:rgba(255,255,255,.18);box-shadow:none}
       html.reloja-dark .reloja-accessibility-button{color:#e7e8ea}
+      html.reloja-dark .reloja-accessibility-button[aria-pressed="true"]{background:#B9131A;color:#fff}
       html.reloja-dark .reloja-accessibility-button:hover{background:#22252a;color:var(--red)}
       html.reloja-dark .reloja-accessibility-button+.reloja-accessibility-button{border-color:rgba(255,255,255,.13)}
 
