@@ -4,6 +4,7 @@ const path = require('path');
 // Os demais arquivos JavaScript da raiz pertencem ao backend e nunca devem
 // ficar disponíveis como arquivos estáticos.
 const PUBLIC_BROWSER_SCRIPTS = new Set([
+  'accessibility-controls.js',
   'account-orders.js',
   'admin-coupons.js',
   'admin-customer-documents.js',
