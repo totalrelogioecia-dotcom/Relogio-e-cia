@@ -180,8 +180,8 @@ function garantirEstilosAcessibilidade() {
     html.reloja-dark .section-black,html.reloja-dark footer{background:#050506}
     html.reloja-dark img{filter:none}
     @media(min-width:901px){body.reloja-home-accessibility-rail .reloja-accessibility-header{display:none}}
-    @media(max-width:900px){.reloja-accessibility-rail{display:none}.reloja-accessibility-header{display:flex;margin-left:auto;margin-right:8px}.reloja-accessibility-button{width:28px;height:28px;font-size:.62rem}}
-    @media(max-width:640px){.reloja-accessibility-header{gap:3px}.reloja-accessibility-button{width:27px;height:27px}}
+    @media(max-width:900px){.reloja-accessibility-rail{display:none}.reloja-accessibility-header{display:flex;margin-left:auto;margin-right:8px}}
+    @media(max-width:640px){.reloja-accessibility-header{gap:3px}}
   `;
   document.head.appendChild(style);
 }
@@ -252,6 +252,10 @@ function criarGrupoAcessibilidade(classeExtra) {
     button.className = `reloja-accessibility-button ${item.classe}`.trim();
     button.dataset.relojaAccessibility = item.tipo;
     button.textContent = item.simbolo;
+    button.style.width = '30px';
+    button.style.height = '30px';
+    button.style.minHeight = '30px';
+    button.style.padding = '0';
     button.setAttribute('aria-label', item.rotulo);
     button.setAttribute('aria-pressed', 'false');
     button.title = item.rotulo;
