@@ -136,19 +136,32 @@
     document.querySelectorAll('.reloja-contrast-toggle').forEach(button => button.remove());
   }
 
-  function watchLegacyContrastButton(nav) {
-    if (!nav || nav.dataset.relojaLegacyContrastWatch === '1') return;
-    nav.dataset.relojaLegacyContrastWatch = '1';
-    new MutationObserver(removeLegacyContrastButton).observe(nav, { childList: true, subtree: true });
+  function removeRedundantStoreNav() {
+    document.querySelectorAll('.site-header .nav-links a[href$="sobre.html#loja"]').forEach(link => {
+      const item = link.closest('li');
+      if (item) item.remove();
+      else link.remove();
+    });
+  }
+
+  function cleanLegacyHeaderItems() {
+    removeLegacyContrastButton();
+    removeRedundantStoreNav();
+  }
+
+  function watchLegacyHeader(nav) {
+    if (!nav || nav.dataset.relojaLegacyHeaderWatch === '1') return;
+    nav.dataset.relojaLegacyHeaderWatch = '1';
+    new MutationObserver(cleanLegacyHeaderItems).observe(nav, { childList: true, subtree: true });
   }
 
   function install() {
     applySavedPreferences();
     ensureStyles();
-    removeLegacyContrastButton();
+    cleanLegacyHeaderItems();
 
     const nav = document.querySelector('.site-header .nav');
-    watchLegacyContrastButton(nav);
+    watchLegacyHeader(nav);
     if (nav && !nav.querySelector('.reloja-accessibility-header')) {
       const group = createGroup('reloja-accessibility-header');
       const cta = nav.querySelector('.nav-cta');
@@ -161,7 +174,7 @@
       document.body.appendChild(createGroup('reloja-accessibility-global-rail'));
     }
 
-    removeLegacyContrastButton();
+    cleanLegacyHeaderItems();
     syncButtons();
   }
 
