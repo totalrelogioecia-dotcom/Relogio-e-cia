@@ -12,7 +12,7 @@ test('Home recebe barra lateral compacta de acessibilidade', () => {
 });
 
 test('controles oferecem contraste, texto maior e modo escuro', () => {
-  assert.match(source, /data-reloja-accessibility/);
+  assert.match(source, /dataset\.relojaAccessibility/);
   assert.match(source, /tipo: 'contrast'/);
   assert.match(source, /tipo: 'text'/);
   assert.match(source, /tipo: 'theme'/);
