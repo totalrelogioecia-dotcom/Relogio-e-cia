@@ -8,6 +8,7 @@
   const WHATSAPP_LABEL = '(51) 9631-1864';
   const LANDLINE_HREF = 'tel:+555137377267';
   const LANDLINE_LABEL = '(51) 3737-7267';
+  const CONTRAST_STORAGE_KEY = 'reloja_high_contrast';
 
   function ensureMobileStyles() {
     if (document.querySelector('link[data-relogio-mobile-fixes]')) return;
@@ -16,6 +17,64 @@
     link.href = 'mobile-fixes.css';
     link.setAttribute('data-relogio-mobile-fixes', '1');
     document.head.appendChild(link);
+  }
+
+  function ensureAccessibilityStyles() {
+    if (document.getElementById('reloja-accessibility-style')) return;
+    const style = document.createElement('style');
+    style.id = 'reloja-accessibility-style';
+    style.textContent = `
+      .reloja-contrast-toggle{appearance:none;border:1px solid var(--line-strong);background:var(--bg);color:var(--ink);min-height:38px;padding:8px 11px;font:600 .7rem/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
+      .reloja-contrast-toggle:hover{border-color:var(--ink)}
+      .reloja-contrast-toggle[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+      .reloja-contrast-toggle:focus-visible,html.reloja-high-contrast :focus-visible{outline:3px solid currentColor;outline-offset:3px}
+      html.reloja-high-contrast{--bg:#fff;--bg-soft:#fff;--ink:#000;--ink-soft:#000;--muted:#111;--paper:#fff;--line:rgba(0,0,0,.55);--line-strong:#000;--line-inverse:rgba(255,255,255,.65)}
+      html.reloja-high-contrast body{background:#fff;color:#000}
+      html.reloja-high-contrast .site-header{border-bottom-color:#000}
+      html.reloja-high-contrast main a:not(.btn):not(.btn-light):not(.btn-dark-outline),html.reloja-high-contrast .policy-main a{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+      html.reloja-high-contrast input,html.reloja-high-contrast select,html.reloja-high-contrast textarea{border-color:#000!important;color:#000!important;background:#fff!important}
+      html.reloja-high-contrast .form-note,html.reloja-high-contrast .policy-small,html.reloja-high-contrast .account-order-meta,html.reloja-high-contrast .account-order-items{color:#000!important}
+      .cart-legal-summary{margin:16px 0;padding:13px 14px;border:1px solid var(--line-strong);background:var(--bg-soft);font-size:.78rem;line-height:1.5;color:var(--ink-soft)}
+      .cart-legal-summary strong{display:block;color:var(--ink);margin-bottom:3px}
+      .cart-legal-summary a{font-weight:600;text-underline-offset:2px}
+      @media(max-width:1100px){.reloja-contrast-toggle .reloja-contrast-label{display:none}.reloja-contrast-toggle{width:38px;padding:8px}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function readContrastPreference() {
+    try { return localStorage.getItem(CONTRAST_STORAGE_KEY) === '1'; }
+    catch { return false; }
+  }
+
+  function syncContrastButton(button) {
+    if (!button) return;
+    const enabled = document.documentElement.classList.contains('reloja-high-contrast');
+    button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    button.setAttribute('aria-label', enabled ? 'Desativar alto contraste' : 'Ativar alto contraste');
+    button.title = enabled ? 'Desativar alto contraste' : 'Ativar alto contraste';
+  }
+
+  function setContrast(enabled) {
+    document.documentElement.classList.toggle('reloja-high-contrast', Boolean(enabled));
+    try { localStorage.setItem(CONTRAST_STORAGE_KEY, enabled ? '1' : '0'); } catch (_) {}
+    document.querySelectorAll('.reloja-contrast-toggle').forEach(syncContrastButton);
+  }
+
+  function ensureContrastToggle() {
+    const nav = document.querySelector('.site-header .nav');
+    if (!nav || nav.querySelector('.reloja-contrast-toggle')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'reloja-contrast-toggle';
+    button.innerHTML = '<span aria-hidden="true">◐</span><span class="reloja-contrast-label">Contraste</span>';
+    syncContrastButton(button);
+    button.addEventListener('click', () => {
+      setContrast(!document.documentElement.classList.contains('reloja-high-contrast'));
+    });
+    const cta = nav.querySelector('.nav-cta');
+    const toggle = nav.querySelector('.nav-toggle');
+    nav.insertBefore(button, cta || toggle || null);
   }
 
   function ensureLink(list, href, label) {
@@ -141,10 +200,31 @@
     });
     if (!attendance) return;
 
-    const phoneLink = attendance.querySelector('a[href^="tel:"]');
-    if (!phoneLink) return;
-    phoneLink.href = LANDLINE_HREF;
-    phoneLink.textContent = LANDLINE_LABEL;
+    const list = attendance.querySelector('ul');
+    const phoneLink = list?.querySelector('a[href^="tel:"]');
+    if (phoneLink) {
+      phoneLink.href = LANDLINE_HREF;
+      phoneLink.textContent = `Telefone: ${LANDLINE_LABEL}`;
+    }
+    ensureLink(list, `https://wa.me/${WHATSAPP_NUMBER}`, `WhatsApp: ${WHATSAPP_LABEL}`);
+  }
+
+  function normalizeTelephoneLinks() {
+    document.querySelectorAll('a[href^="tel:"]').forEach(link => {
+      if (String(link.getAttribute('href') || '') === 'tel:+555196311864') {
+        link.href = LANDLINE_HREF;
+        if (String(link.textContent || '').includes('9631-1864')) link.textContent = LANDLINE_LABEL;
+      }
+    });
+  }
+
+  function enhanceHomepageContact() {
+    const cells = Array.from(document.querySelectorAll('.store-cell'));
+    const attendance = cells.find(cell => /atendimento/i.test(cell.querySelector('h4')?.textContent || ''));
+    const paragraph = attendance?.querySelector('p');
+    if (!paragraph || paragraph.dataset.contactChannels === '1') return;
+    paragraph.dataset.contactChannels = '1';
+    paragraph.innerHTML = `<a href="${LANDLINE_HREF}">Telefone: ${LANDLINE_LABEL}</a><br><a href="https://wa.me/${WHATSAPP_NUMBER}" target="_blank" rel="noopener noreferrer">WhatsApp: ${WHATSAPP_LABEL}</a><br><a href="mailto:totalrelogioecia@gmail.com">totalrelogioecia@gmail.com</a>`;
   }
 
   function clarifyLegalPageIdentity() {
@@ -156,9 +236,96 @@
     });
   }
 
+  function enhancePolicyContacts() {
+    document.querySelectorAll('.policy-contact').forEach(card => {
+      const list = card.querySelector('ul');
+      if (list) {
+        const phoneLi = Array.from(list.children).find(li => /telefone/i.test(li.querySelector('strong')?.textContent || ''));
+        if (phoneLi) {
+          const strong = phoneLi.querySelector('strong');
+          if (strong) strong.textContent = 'Telefone fixo:';
+          const link = phoneLi.querySelector('a[href^="tel:"]');
+          if (link) {
+            link.href = LANDLINE_HREF;
+            link.textContent = LANDLINE_LABEL;
+          }
+        }
+        if (!list.querySelector(`a[href="https://wa.me/${WHATSAPP_NUMBER}"]`)) {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>WhatsApp:</strong><br><a href="https://wa.me/${WHATSAPP_NUMBER}" target="_blank" rel="noopener noreferrer">${WHATSAPP_LABEL}</a>`;
+          if (phoneLi?.nextSibling) list.insertBefore(li, phoneLi.nextSibling);
+          else list.appendChild(li);
+        }
+      }
+
+      const actions = card.querySelector('.policy-actions');
+      if (actions && !actions.querySelector(`a[href="https://wa.me/${WHATSAPP_NUMBER}"]`)) {
+        const link = document.createElement('a');
+        link.className = 'btn-dark-outline';
+        link.href = `https://wa.me/${WHATSAPP_NUMBER}`;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Falar pelo WhatsApp';
+        actions.appendChild(link);
+      }
+    });
+
+    const contactParagraph = Array.from(document.querySelectorAll('.policy-card p')).find(p => /^Contato:/i.test(String(p.textContent || '').trim()));
+    if (contactParagraph && !contactParagraph.querySelector(`a[href="https://wa.me/${WHATSAPP_NUMBER}"]`)) {
+      contactParagraph.appendChild(document.createTextNode(' · WhatsApp '));
+      const wa = document.createElement('a');
+      wa.href = `https://wa.me/${WHATSAPP_NUMBER}`;
+      wa.target = '_blank';
+      wa.rel = 'noopener noreferrer';
+      wa.textContent = WHATSAPP_LABEL;
+      contactParagraph.appendChild(wa);
+    }
+  }
+
+  function enhanceWarrantyInformation() {
+    const termsHeading = Array.from(document.querySelectorAll('.policy-card h2')).find(h => /^8\.\s*Garantia/i.test(String(h.textContent || '').trim()));
+    const termsSection = termsHeading?.closest('.policy-card');
+    if (termsSection && termsSection.dataset.warrantyUpdated !== '1') {
+      termsSection.dataset.warrantyUpdated = '1';
+      termsSection.innerHTML = `
+        <h2>8. Garantia e assistência</h2>
+        <p>Todos os relógios comercializados pela Relógio e Cia contam com <strong>garantia contratual de 1 ano</strong>, conforme o termo ou certificado de garantia que acompanha o produto, sem prejuízo da garantia legal prevista no Código de Defesa do Consumidor.</p>
+        <p>Para os demais produtos duráveis, o prazo legal para reclamar de vícios aparentes ou de fácil constatação é de <strong>90 dias</strong>, contado da entrega efetiva. Em caso de vício oculto, esse prazo começa quando o defeito ficar evidenciado.</p>
+        <p>Em caso de defeito ou dúvida sobre assistência, entre em contato conosco. A garantia contratual é complementar à garantia legal e não reduz os direitos assegurados ao consumidor.</p>`;
+    }
+
+    const rulesHeading = Array.from(document.querySelectorAll('.policy-card h2')).find(h => /^Regras principais$/i.test(String(h.textContent || '').trim()));
+    const rules = rulesHeading?.closest('.policy-card');
+    if (rules && rules.dataset.warrantyUpdated !== '1') {
+      const defectHeading = Array.from(rules.querySelectorAll('h3')).find(h => /Produto com defeito/i.test(String(h.textContent || '')));
+      const paragraph = defectHeading?.nextElementSibling;
+      if (paragraph?.tagName === 'P') {
+        paragraph.innerHTML = 'Todos os relógios comercializados pela Relógio e Cia contam com <strong>garantia contratual de 1 ano</strong>, conforme o termo ou certificado que acompanha o produto, sem prejuízo da garantia legal. Para os demais produtos duráveis, o prazo legal para reclamar de vícios aparentes ou de fácil constatação é de <strong>90 dias</strong>, contado da entrega efetiva; em caso de vício oculto, a contagem começa quando o defeito ficar evidenciado.';
+        rules.dataset.warrantyUpdated = '1';
+      }
+    }
+  }
+
+  function ensureCartLegalSummary() {
+    const checkoutButton = document.getElementById('btn-finalizar');
+    if (!checkoutButton || document.getElementById('cart-legal-summary')) return;
+    const summary = document.createElement('div');
+    summary.id = 'cart-legal-summary';
+    summary.className = 'cart-legal-summary';
+    summary.innerHTML = '<strong>Antes de finalizar</strong>Revise os itens, a forma de entrega e o valor total. Consulte os <a href="termos-de-uso.html">Termos de Uso e Compra</a>, a <a href="politica-de-privacidade.html">Política de Privacidade</a> e as regras de <a href="trocas-estornos.html">Trocas, Devoluções e Estornos</a>. Essas informações não limitam os direitos garantidos pela legislação ao consumidor.';
+    checkoutButton.parentNode.insertBefore(summary, checkoutButton);
+  }
+
   function enhanceFooter() {
     ensureMobileStyles();
+    ensureAccessibilityStyles();
+    normalizeTelephoneLinks();
     clarifyLegalPageIdentity();
+    enhanceHomepageContact();
+    enhancePolicyContacts();
+    enhanceWarrantyInformation();
+    ensureCartLegalSummary();
+    ensureContrastToggle();
 
     document.querySelectorAll('footer .footer-grid').forEach(grid => {
       ensureCompanyIdentity(grid);
@@ -182,6 +349,7 @@
     });
   }
 
+  if (readContrastPreference()) document.documentElement.classList.add('reloja-high-contrast');
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', enhanceFooter);
   else enhanceFooter();
 })();
