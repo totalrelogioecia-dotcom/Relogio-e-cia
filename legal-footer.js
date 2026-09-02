@@ -204,7 +204,8 @@
     const phoneLink = list?.querySelector('a[href^="tel:"]');
     if (phoneLink) {
       phoneLink.href = LANDLINE_HREF;
-      phoneLink.textContent = `Telefone: ${LANDLINE_LABEL}`;
+      phoneLink.textContent = LANDLINE_LABEL;
+      phoneLink.setAttribute('aria-label', `Telefone fixo para ligações: ${LANDLINE_LABEL}`);
     }
     ensureLink(list, `https://wa.me/${WHATSAPP_NUMBER}`, `WhatsApp: ${WHATSAPP_LABEL}`);
   }
