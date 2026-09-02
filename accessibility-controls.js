@@ -23,27 +23,37 @@
   }
 
   function ensureStyles() {
-    if (document.getElementById('reloja-accessibility-controls-v2-style')) return;
+    if (document.getElementById('reloja-accessibility-controls-v3-style')) return;
     const style = document.createElement('style');
-    style.id = 'reloja-accessibility-controls-v2-style';
+    style.id = 'reloja-accessibility-controls-v3-style';
     style.textContent = `
-      .reloja-accessibility-controls{display:flex;align-items:center;gap:5px;z-index:8}
-      .reloja-accessibility-button{appearance:none;width:30px;height:30px;min-height:30px;padding:0;border:1px solid var(--line-strong);background:var(--bg);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;font:700 .66rem/1 var(--font-mono);letter-spacing:-.02em;cursor:pointer;transition:background .16s,color .16s,border-color .16s,transform .16s}
-      .reloja-accessibility-button:hover{border-color:var(--red);color:var(--red);transform:translateY(-1px)}
-      .reloja-accessibility-button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-      .reloja-accessibility-button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
-      .reloja-accessibility-rail{position:absolute;top:48px;left:50%;transform:translateX(-50%);flex-direction:column}
+      .reloja-contrast-toggle{display:none!important}
+      .reloja-accessibility-controls{display:flex;align-items:stretch;gap:0;z-index:12;border:1px solid var(--line-strong);background:var(--bg);box-shadow:0 1px 0 rgba(0,0,0,.03)}
+      .reloja-accessibility-button{appearance:none;width:29px;height:29px;min-width:29px;min-height:29px;padding:0;border:0;background:transparent;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;font:700 .64rem/1 var(--font-mono);letter-spacing:-.02em;cursor:pointer;transition:background .16s,color .16s}
+      .reloja-accessibility-button+.reloja-accessibility-button{border-left:1px solid var(--line)}
+      .reloja-accessibility-button:hover{background:var(--bg-soft);color:var(--red)}
+      .reloja-accessibility-button[aria-pressed="true"]{background:var(--red);color:#fff}
+      .reloja-accessibility-button:focus-visible{position:relative;z-index:2;outline:2px solid var(--red);outline-offset:2px}
+      .reloja-accessibility-rail{position:absolute;top:64px;left:50%;transform:translateX(-50%);flex-direction:column;border-color:var(--line);background:var(--bg)}
+      .reloja-accessibility-rail .reloja-accessibility-button+.reloja-accessibility-button{border-left:0;border-top:1px solid var(--line)}
       .reloja-accessibility-header{margin-left:8px;margin-right:10px;flex-shrink:0}
       html.reloja-large-text{font-size:112.5%}
-      html.reloja-dark{color-scheme:dark;--bg:#111214;--bg-soft:#1A1C20;--bg-black:#050506;--bg-black-2:#0B0C0E;--ink:#F5F5F2;--ink-soft:#D7D9DE;--muted:#A7AAB1;--paper:#17191C;--line:rgba(255,255,255,.16);--line-strong:rgba(255,255,255,.42);--line-inverse:rgba(255,255,255,.25)}
+      html.reloja-dark{color-scheme:dark;--bg:#111214;--bg-soft:#1A1C20;--bg-black:#050506;--bg-black-2:#0B0C0E;--ink:#F5F5F2;--ink-soft:#D7D9DE;--muted:#A7AAB1;--paper:#17191C;--line:rgba(255,255,255,.14);--line-strong:rgba(255,255,255,.28);--line-inverse:rgba(255,255,255,.25)}
       html.reloja-dark body,html.reloja-dark .site-header{background:var(--bg);color:var(--ink)}
       html.reloja-dark input,html.reloja-dark select,html.reloja-dark textarea{background:var(--bg)!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
       html.reloja-dark .policy-card,html.reloja-dark .cart-panel,html.reloja-dark .account-card,html.reloja-dark .product-card,html.reloja-dark .cart-summary{background:var(--bg-soft);color:var(--ink)}
       html.reloja-dark .section-black,html.reloja-dark footer{background:#050506}
       html.reloja-dark img{filter:none}
+      html.reloja-dark .reloja-accessibility-controls{background:#17191c;border-color:rgba(255,255,255,.18);box-shadow:none}
+      html.reloja-dark .reloja-accessibility-button{color:#e7e8ea}
+      html.reloja-dark .reloja-accessibility-button:hover{background:#22252a;color:var(--red)}
+      html.reloja-dark .reloja-accessibility-button+.reloja-accessibility-button{border-color:rgba(255,255,255,.13)}
+      html.reloja-high-contrast .reloja-accessibility-controls{border-color:#000;background:#fff}
+      html.reloja-high-contrast .reloja-accessibility-button{color:#000}
+      html.reloja-high-contrast .reloja-accessibility-button+.reloja-accessibility-button{border-color:#000}
       @media(min-width:901px){body.reloja-home-accessibility-rail .reloja-accessibility-header{display:none}}
       @media(max-width:900px){.reloja-accessibility-rail{display:none}.reloja-accessibility-header{display:flex;margin-left:auto;margin-right:8px}}
-      @media(max-width:640px){.reloja-accessibility-header{gap:3px}}
+      @media(max-width:640px){.reloja-accessibility-header{margin-right:5px}.reloja-accessibility-button{width:27px;height:27px;min-width:27px;min-height:27px;font-size:.61rem}}
     `;
     document.head.appendChild(style);
   }
@@ -123,7 +133,13 @@
   }
 
   function removeLegacyContrastButton() {
-    document.querySelectorAll('.site-header .reloja-contrast-toggle').forEach(button => button.remove());
+    document.querySelectorAll('.reloja-contrast-toggle').forEach(button => button.remove());
+  }
+
+  function watchLegacyContrastButton(nav) {
+    if (!nav || nav.dataset.relojaLegacyContrastWatch === '1') return;
+    nav.dataset.relojaLegacyContrastWatch = '1';
+    new MutationObserver(removeLegacyContrastButton).observe(nav, { childList: true, subtree: true });
   }
 
   function install() {
@@ -132,6 +148,7 @@
     removeLegacyContrastButton();
 
     const nav = document.querySelector('.site-header .nav');
+    watchLegacyContrastButton(nav);
     if (nav && !nav.querySelector('.reloja-accessibility-header')) {
       const group = createGroup('reloja-accessibility-header');
       const cta = nav.querySelector('.nav-cta');
@@ -146,6 +163,7 @@
       document.body.classList.add('reloja-home-accessibility-rail');
     }
 
+    removeLegacyContrastButton();
     syncButtons();
   }
 
