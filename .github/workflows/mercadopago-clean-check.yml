@@ -5,7 +5,6 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
-      - global-left-accessibility-2026-09-02
   pull_request:
     branches:
       - main
