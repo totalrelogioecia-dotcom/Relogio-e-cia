@@ -61,11 +61,14 @@
       html.reloja-dark footer a:hover{color:#ff5358!important}
       html.reloja-dark .site-search-toggle,html.reloja-dark .site-search-close,html.reloja-dark .forgot-password-button,html.reloja-dark [data-forgot-password]{color:var(--ink)!important;border-color:var(--line-strong)!important;background:transparent!important}
       html.reloja-dark .site-header .nav-links a,html.reloja-dark .site-header .nav-icon-link,html.reloja-dark .site-header .brand-mark{color:var(--ink)!important}
-      html.reloja-dark .site-header .nav-links a[aria-current="page"]{background:var(--ink)!important;color:var(--bg)!important}
+      html.reloja-dark .site-header .nav-links a:hover,html.reloja-dark .site-header .nav-links a[aria-current="page"]{background:var(--ink)!important;color:var(--bg)!important}
       html.reloja-dark .nav-cta{background:#B9131A!important;color:#fff!important}
       html.reloja-dark .nav-cta:hover{background:#971016!important}
       html.reloja-dark .btn-outline,html.reloja-dark .admin-actions button{background:transparent!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
       html.reloja-dark .shipping-message.info,html.reloja-dark .cart-legal-summary{background:#202328!important;color:var(--ink-soft)!important;border-color:var(--line-strong)!important}
+      html.reloja-dark .shipping-address-picker{background:var(--bg-soft)!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
+      html.reloja-dark .shipping-address-picker .shipping-address-current{color:var(--ink-soft)!important}
+      html.reloja-dark .shipping-address-picker .shipping-address-manage{color:var(--red)!important}
       html.reloja-dark .shipping-message.error,html.reloja-dark .form-error{background:#2a1719!important;color:#ffb5b8!important;border-color:#a93a3f!important}
       html.reloja-dark .form-success{background:#13271b!important;color:#a8e5bc!important;border-color:#34794d!important}
       html.reloja-dark .admin-card,html.reloja-dark .admin-table-wrap,html.reloja-dark .admin-modal,html.reloja-dark .photo-card,html.reloja-dark .photo-dropzone{background:var(--bg-soft)!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
@@ -86,6 +89,8 @@
       html.reloja-high-contrast h1,html.reloja-high-contrast h2,html.reloja-high-contrast h3,html.reloja-high-contrast h4,html.reloja-high-contrast h5,html.reloja-high-contrast h6,html.reloja-high-contrast p,html.reloja-high-contrast li,html.reloja-high-contrast strong,html.reloja-high-contrast label,html.reloja-high-contrast small{color:#000!important}
       html.reloja-high-contrast input,html.reloja-high-contrast select,html.reloja-high-contrast textarea{background:#fff!important;color:#000!important;border:2px solid #000!important}
       html.reloja-high-contrast .policy-card,html.reloja-high-contrast .account-box,html.reloja-high-contrast .account-card,html.reloja-high-contrast .cart-summary,html.reloja-high-contrast .product-card,html.reloja-high-contrast .modal,html.reloja-high-contrast .admin-card,html.reloja-high-contrast .admin-table-wrap,html.reloja-high-contrast .admin-modal,html.reloja-high-contrast .shipping-option,html.reloja-high-contrast .coupon-box{background:#fff!important;color:#000!important;border:2px solid #000!important}
+      html.reloja-high-contrast .shipping-address-picker{background:#fff!important;color:#000!important;border:2px solid #000!important}
+      html.reloja-high-contrast .shipping-address-picker .shipping-address-current,html.reloja-high-contrast .shipping-address-picker .shipping-address-manage{color:#000!important}
       html.reloja-high-contrast .section-black,html.reloja-high-contrast footer,html.reloja-high-contrast .policy-contact{background:#000!important;color:#fff!important}
       html.reloja-high-contrast .section-black h1,html.reloja-high-contrast .section-black h2,html.reloja-high-contrast .section-black h3,html.reloja-high-contrast .section-black h4,html.reloja-high-contrast .section-black p,html.reloja-high-contrast .section-black strong,html.reloja-high-contrast footer h5,html.reloja-high-contrast footer p,html.reloja-high-contrast footer a,html.reloja-high-contrast footer span,html.reloja-high-contrast .policy-contact h2,html.reloja-high-contrast .policy-contact h3,html.reloja-high-contrast .policy-contact p,html.reloja-high-contrast .policy-contact li,html.reloja-high-contrast .policy-contact strong,html.reloja-high-contrast .policy-contact a{color:#fff!important}
       html.reloja-high-contrast a:not(.btn):not(.btn-light):not(.btn-dark-outline){text-decoration:underline!important;text-decoration-thickness:2px!important;text-underline-offset:3px!important}
