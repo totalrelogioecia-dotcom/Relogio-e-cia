@@ -61,7 +61,9 @@
       html.reloja-dark footer a:hover{color:#ff5358!important}
       html.reloja-dark .site-search-toggle,html.reloja-dark .site-search-close,html.reloja-dark .forgot-password-button,html.reloja-dark [data-forgot-password]{color:var(--ink)!important;border-color:var(--line-strong)!important;background:transparent!important}
       html.reloja-dark .site-header .nav-links a,html.reloja-dark .site-header .nav-icon-link,html.reloja-dark .site-header .brand-mark{color:var(--ink)!important}
-      html.reloja-dark .nav-cta{color:#fff!important}
+      html.reloja-dark .site-header .nav-links a[aria-current="page"]{background:var(--ink)!important;color:var(--bg)!important}
+      html.reloja-dark .nav-cta{background:#B9131A!important;color:#fff!important}
+      html.reloja-dark .nav-cta:hover{background:#971016!important}
       html.reloja-dark .btn-outline,html.reloja-dark .admin-actions button{background:transparent!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
       html.reloja-dark .shipping-message.info,html.reloja-dark .cart-legal-summary{background:#202328!important;color:var(--ink-soft)!important;border-color:var(--line-strong)!important}
       html.reloja-dark .shipping-message.error,html.reloja-dark .form-error{background:#2a1719!important;color:#ffb5b8!important;border-color:#a93a3f!important}
