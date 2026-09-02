@@ -20,9 +20,9 @@
   }
 
   function ensureAccessibilityControlsScript() {
-    if (document.querySelector('script[data-reloja-accessibility-controls]')) return;
+    if (document.querySelector('script[src*="accessibility-controls.js"]')) return;
     const script = document.createElement('script');
-    script.src = 'accessibility-controls.js?v=1';
+    script.src = 'accessibility-controls.js?v=5';
     script.async = false;
     script.setAttribute('data-reloja-accessibility-controls', '1');
     document.head.appendChild(script);
@@ -33,20 +33,9 @@
     const style = document.createElement('style');
     style.id = 'reloja-accessibility-style';
     style.textContent = `
-      .reloja-contrast-toggle{appearance:none;border:1px solid var(--line-strong);background:var(--bg);color:var(--ink);min-height:38px;padding:8px 11px;font:600 .7rem/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
-      .reloja-contrast-toggle:hover{border-color:var(--ink)}
-      .reloja-contrast-toggle[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-      .reloja-contrast-toggle:focus-visible,html.reloja-high-contrast :focus-visible{outline:3px solid currentColor;outline-offset:3px}
-      html.reloja-high-contrast{--bg:#fff;--bg-soft:#fff;--ink:#000;--ink-soft:#000;--muted:#111;--paper:#fff;--line:rgba(0,0,0,.55);--line-strong:#000;--line-inverse:rgba(255,255,255,.65)}
-      html.reloja-high-contrast body{background:#fff;color:#000}
-      html.reloja-high-contrast .site-header{border-bottom-color:#000}
-      html.reloja-high-contrast main a:not(.btn):not(.btn-light):not(.btn-dark-outline),html.reloja-high-contrast .policy-main a{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
-      html.reloja-high-contrast input,html.reloja-high-contrast select,html.reloja-high-contrast textarea{border-color:#000!important;color:#000!important;background:#fff!important}
-      html.reloja-high-contrast .form-note,html.reloja-high-contrast .policy-small,html.reloja-high-contrast .account-order-meta,html.reloja-high-contrast .account-order-items{color:#000!important}
       .cart-legal-summary{margin:16px 0;padding:13px 14px;border:1px solid var(--line-strong);background:var(--bg-soft);font-size:.78rem;line-height:1.5;color:var(--ink-soft)}
       .cart-legal-summary strong{display:block;color:var(--ink);margin-bottom:3px}
       .cart-legal-summary a{font-weight:600;text-underline-offset:2px}
-      @media(max-width:1100px){.reloja-contrast-toggle .reloja-contrast-label{display:none}.reloja-contrast-toggle{width:38px;padding:8px}}
     `;
     document.head.appendChild(style);
   }
@@ -336,7 +325,6 @@
     enhancePolicyContacts();
     enhanceWarrantyInformation();
     ensureCartLegalSummary();
-    ensureContrastToggle();
 
     document.querySelectorAll('footer .footer-grid').forEach(grid => {
       ensureCompanyIdentity(grid);
