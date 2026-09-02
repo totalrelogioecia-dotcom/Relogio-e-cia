@@ -22,7 +22,7 @@
   function ensureAccessibilityControlsScript() {
     if (document.querySelector('script[src*="accessibility-controls.js"]')) return;
     const script = document.createElement('script');
-    script.src = 'accessibility-controls.js?v=6';
+    script.src = 'accessibility-controls.js?v=7';
     script.async = false;
     script.setAttribute('data-reloja-accessibility-controls', '1');
     document.head.appendChild(script);
