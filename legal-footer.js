@@ -19,6 +19,15 @@
     document.head.appendChild(link);
   }
 
+  function ensureAccessibilityControlsScript() {
+    if (document.querySelector('script[data-reloja-accessibility-controls]')) return;
+    const script = document.createElement('script');
+    script.src = 'accessibility-controls.js?v=1';
+    script.async = false;
+    script.setAttribute('data-reloja-accessibility-controls', '1');
+    document.head.appendChild(script);
+  }
+
   function ensureAccessibilityStyles() {
     if (document.getElementById('reloja-accessibility-style')) return;
     const style = document.createElement('style');
@@ -320,6 +329,7 @@
   function enhanceFooter() {
     ensureMobileStyles();
     ensureAccessibilityStyles();
+    ensureAccessibilityControlsScript();
     normalizeTelephoneLinks();
     clarifyLegalPageIdentity();
     enhanceHomepageContact();
