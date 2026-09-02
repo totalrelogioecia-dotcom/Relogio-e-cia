@@ -12,10 +12,10 @@ test('legal-footer carrega os controles de acessibilidade', () => {
   assert.match(footer, /ensureAccessibilityControlsScript/);
 });
 
-test('Home posiciona os controles na régua perto do marcador vermelho', () => {
-  assert.match(controls, /\.hero \.frame > \.rail/);
-  assert.match(controls, /railMark\.insertAdjacentElement\('afterend'/);
-  assert.match(controls, /reloja-accessibility-rail/);
+test('desktop padroniza os controles em uma barra global fixa à esquerda', () => {
+  assert.match(controls, /reloja-accessibility-global-rail/);
+  assert.match(controls, /position:fixed;left:18px;top:42vh/);
+  assert.match(controls, /document\.body\.appendChild\(createGroup\('reloja-accessibility-global-rail'\)\)/);
 });
 
 test('controles oferecem contraste, texto maior e modo escuro', () => {
