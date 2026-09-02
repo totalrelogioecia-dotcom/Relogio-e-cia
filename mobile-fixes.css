@@ -1,6 +1,16 @@
 @import url('mobile-fixes-original.css');
 @import url('visual-polish.css');
 
+/* Evita flashes de elementos legados antes dos scripts terminarem de carregar. */
+.reloja-contrast-toggle{
+  display:none !important;
+}
+
+/* "Nossa loja" continua dentro da página Sobre e no rodapé, mas sai do menu principal. */
+.site-header .nav-links li:has(> a[href$="sobre.html#loja"]){
+  display:none !important;
+}
+
 /* Tamanho fixo da marca no cabeçalho */
 .brand-mark .brand-symbol{
   width:38px !important;
