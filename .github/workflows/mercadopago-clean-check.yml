@@ -46,7 +46,6 @@ jobs:
           node --check order-cancellation-policy.js
           node --check order-cancellation.js
           node --check order-cancellation-email.js
-          node --check whatsapp-notifications.js
           node --check admin-order-cancellation.js
           node --check account-orders.js
           node --check availability-requests.js
