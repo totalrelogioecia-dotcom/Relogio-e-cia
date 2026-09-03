@@ -8,14 +8,14 @@ const controls = fs.readFileSync(path.join(root, 'accessibility-controls.js'), '
 const footer = fs.readFileSync(path.join(root, 'legal-footer.js'), 'utf8');
 const mobileFixes = fs.readFileSync(path.join(root, 'mobile-fixes.css'), 'utf8');
 
-test('legal-footer carrega os controles de acessibilidade', () => {
-  assert.match(footer, /accessibility-controls\.js\?v=1/);
+test('legal-footer carrega a versão atual dos controles de acessibilidade', () => {
+  assert.match(footer, /accessibility-controls\.js\?v=9/);
   assert.match(footer, /ensureAccessibilityControlsScript/);
 });
 
-test('desktop padroniza os controles em uma barra global fixa à esquerda', () => {
+test('desktop mantém os controles em uma barra global fixa no canto inferior esquerdo', () => {
   assert.match(controls, /reloja-accessibility-global-rail/);
-  assert.match(controls, /position:fixed;left:18px;top:42vh/);
+  assert.match(controls, /position:fixed;left:max\(12px,env\(safe-area-inset-left\)\);bottom:max\(12px,env\(safe-area-inset-bottom\)\);top:auto/);
   assert.match(controls, /document\.body\.appendChild\(createGroup\('reloja-accessibility-global-rail'\)\)/);
 });
 
@@ -43,7 +43,8 @@ test('preferências visuais são persistidas sem filtrar fotos', () => {
   assert.match(controls, /html\.reloja-dark img\{filter:none\}/);
 });
 
-test('em telas menores os controles migram para o cabeçalho', () => {
-  assert.match(controls, /@media\(max-width:900px\)/);
-  assert.match(controls, /reloja-accessibility-header/);
+test('em telas menores a barra global permanece acessível e mais compacta', () => {
+  assert.match(controls, /@media\(max-width:640px\)/);
+  assert.match(controls, /reloja-accessibility-global-rail/);
+  assert.match(controls, /width:32px;height:32px/);
 });
