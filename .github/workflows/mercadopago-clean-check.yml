@@ -47,6 +47,8 @@ jobs:
           node --check operational-email-watcher.js
           node --check order-email.js
           node --check invoice-email.js
+          node --check invoice-files.js
+          node --check admin-invoice-files.js
           node --check shipping-email.js
           node --check order-shipping.js
           node --check admin-order-shipping.js
