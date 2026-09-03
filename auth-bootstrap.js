@@ -19,6 +19,7 @@ const { registerMercadoPagoClean } = require('./mercadopago-clean');
 const { registerReturnRequestRoutes } = require('./return-requests');
 const { registerOrderCancellationRoutes } = require('./order-cancellation');
 const { registerOrderShippingRoutes } = require('./order-shipping');
+const { registerInvoiceFileRoutes } = require('./invoice-files');
 const { registerAvailabilityRequestRoutes } = require('./availability-requests');
 const { queueOrderReceivedEmail } = require('./order-email');
 const { startOperationalEmailWatcher } = require('./operational-email-watcher');
@@ -88,6 +89,7 @@ if (!originalExpress.__relogioAuthPatched) {
     }
 
     registerAuthRoutes(app);
+    registerInvoiceFileRoutes(app);
     registerOrderCancellationRoutes(app, { userFromRequest });
     registerOrderShippingRoutes(app);
     registerAvailabilityRequestRoutes(app, { userFromRequest });
