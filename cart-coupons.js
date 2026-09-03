@@ -25,17 +25,21 @@
   function ensureUi() {
     const form = document.getElementById('payment-form');
     if (!form || document.getElementById('coupon-box')) return;
-    const box = document.createElement('div');
+    const box = document.createElement('details');
     box.id = 'coupon-box';
     box.className = 'coupon-box';
     box.innerHTML = `
-      <div class="coupon-box__title">Cupom de frete grátis</div>
-      <div class="coupon-form">
-        <input id="coupon-code" maxlength="32" autocomplete="off" placeholder="Digite seu cupom" aria-label="Cupom de frete grátis">
-        <button id="coupon-apply" type="button">Aplicar</button>
-      </div>
-      <div id="coupon-message" class="coupon-message"></div>`;
-    form.parentNode.insertBefore(box, form);
+      <summary class="coupon-box__summary"><span id="coupon-summary-label">Tenho um cupom</span><span class="coupon-box__toggle" aria-hidden="true"></span></summary>
+      <div class="coupon-box__content">
+        <div class="coupon-box__title">Cupom de frete grátis</div>
+        <div class="coupon-form">
+          <input id="coupon-code" maxlength="32" autocomplete="off" placeholder="Digite seu cupom" aria-label="Cupom de frete grátis">
+          <button id="coupon-apply" type="button">Aplicar</button>
+        </div>
+        <div id="coupon-message" class="coupon-message" aria-live="polite"></div>
+      </div>`;
+    const paymentTitle = document.getElementById('payment-title');
+    form.parentNode.insertBefore(box, paymentTitle || form);
     document.getElementById('coupon-code').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/\s+/g, ''); });
     document.getElementById('coupon-code').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } });
     document.getElementById('coupon-apply').addEventListener('click', applyCoupon);
@@ -53,6 +57,10 @@
     applied = value || null;
     if (applied) sessionStorage.setItem(COUPON_KEY, JSON.stringify(applied));
     else sessionStorage.removeItem(COUPON_KEY);
+    const box = document.getElementById('coupon-box');
+    const label = document.getElementById('coupon-summary-label');
+    if (box) box.classList.toggle('has-coupon', Boolean(applied));
+    if (label) label.textContent = applied ? `Cupom ${applied.code} aplicado` : 'Tenho um cupom';
   }
 
   function invalidate(reason) {
@@ -82,6 +90,8 @@
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.valid) throw new Error(data.error || 'Cupom inválido.');
       saveApplied({ code: data.coupon.code, context: currentContext(), discount: Number(data.shipping_discount || s.price || 0) });
+      const box = document.getElementById('coupon-box');
+      if (box) box.open = true;
       input.value = data.coupon.code;
       setMessage(`Cupom ${data.coupon.code} aplicado. Seu frete ficou grátis!`, 'success');
       updateSummary();
@@ -113,8 +123,11 @@
     const saved = readStorage(sessionStorage, COUPON_KEY, null);
     if (saved?.code && saved?.context === currentContext()) {
       applied = saved;
+      saveApplied(saved);
       const input = document.getElementById('coupon-code');
       if (input) input.value = saved.code;
+      const box = document.getElementById('coupon-box');
+      if (box) box.open = true;
       setMessage(`Cupom ${saved.code} aplicado. Seu frete está grátis!`, 'success');
       updateSummary();
     } else {
