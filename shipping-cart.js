@@ -134,31 +134,48 @@
   function ensureUi() {
     const form = document.getElementById('payment-form');
     const summary = document.getElementById('cart-summary-box');
+    const deliveryHost = document.getElementById('shipping-box-host');
     if (!form || !summary || document.getElementById('shipping-box')) return;
 
-    const box = document.createElement('div');
+    const box = document.createElement('section');
     box.id = 'shipping-box';
     box.className = 'shipping-box';
+    box.setAttribute('aria-labelledby', 'shipping-box-title');
     box.innerHTML = `
       <div class="shipping-box__head">
-        <div><strong>Entrega ou retirada</strong><div class="shipping-help">Escolha como deseja receber seu pedido.</div></div>
+        <div><h2 id="shipping-box-title">Entrega ou retirada</h2><div class="shipping-help">Escolha o endereço, calcule o frete ou retire gratuitamente na loja.</div></div>
         <span class="shipping-config-badge off" id="shipping-config-badge">Melhor Envio</span>
       </div>
-      <div class="shipping-options shipping-pickup-options" id="shipping-pickup-options" hidden aria-hidden="true" style="display:none">
-        <label class="shipping-option is-disabled" id="shipping-pickup-option">
-          <input type="radio" name="shipping_service" value="pickup" id="shipping-pickup-input" disabled>
-          <span class="shipping-option__name"><strong>Retirar na loja</strong><span>Av. Cristóvão Colombo, 545 · Porto Alegre</span><span id="shipping-pickup-availability">Disponível somente para endereços em Porto Alegre/RS.</span></span>
-          <span class="shipping-option__price"><strong>Grátis</strong><span>R$ 0,00</span></span>
-        </label>
+      <div class="shipping-workspace">
+        <div class="shipping-destination-column">
+          <p class="shipping-column-title">Endereço e retirada</p>
+          <div id="shipping-address-slot"></div>
+          <div class="shipping-options shipping-pickup-options" id="shipping-pickup-options" hidden aria-hidden="true" style="display:none">
+            <label class="shipping-option is-disabled" id="shipping-pickup-option">
+              <input type="radio" name="shipping_service" value="pickup" id="shipping-pickup-input" disabled>
+              <span class="shipping-option__name"><strong>Retirar na loja</strong><span>Av. Cristóvão Colombo, 545 · Porto Alegre</span><span id="shipping-pickup-availability">Disponível somente para endereços em Porto Alegre/RS.</span></span>
+              <span class="shipping-option__price"><strong>Grátis</strong><span>R$ 0,00</span></span>
+            </label>
+          </div>
+        </div>
+        <div class="shipping-quote-column">
+          <p class="shipping-column-title">Calcular entrega</p>
+          <div class="shipping-form">
+            <input id="shipping-postal-code" inputmode="numeric" maxlength="9" placeholder="CEP de entrega" aria-label="CEP de entrega">
+            <button id="shipping-quote-btn" type="button">Calcular entrega</button>
+          </div>
+          <div id="shipping-lock-note" class="shipping-lock" style="display:none"></div>
+          <div id="shipping-message" class="shipping-message"></div>
+          <div id="shipping-options" class="shipping-options"></div>
+        </div>
       </div>
-      <div class="shipping-form">
-        <input id="shipping-postal-code" inputmode="numeric" maxlength="9" placeholder="CEP de entrega" aria-label="CEP de entrega">
-        <button id="shipping-quote-btn" type="button">Calcular entrega</button>
-      </div>
-      <div id="shipping-lock-note" class="shipping-lock" style="display:none"></div>
-      <div id="shipping-message" class="shipping-message"></div>
-      <div id="shipping-options" class="shipping-options"></div>`;
-    summary.insertBefore(box, form);
+    `;
+    if (deliveryHost) {
+      deliveryHost.appendChild(box);
+      deliveryHost.hidden = !cart().length;
+    } else {
+      summary.insertBefore(box, form);
+    }
 
     const totalRow = document.querySelector('.cart-summary-row.total');
     if (totalRow) {
@@ -325,6 +342,8 @@
     let last = cartSignature();
     new MutationObserver(() => {
       const now = cartSignature();
+      const deliveryHost = document.getElementById('shipping-box-host');
+      if (deliveryHost) deliveryHost.hidden = !cart().length;
       if (now !== last) {
         last = now;
         if (selected || lastQuotedCartSignature) {
