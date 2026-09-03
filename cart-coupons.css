@@ -1,1 +1,89 @@
-.coupon-box{margin:18px 0;padding:14px;border:1px solid #d9d9d9;background:#fafafa}.coupon-box__title{font-weight:700;margin-bottom:9px}.coupon-form{display:flex;gap:8px}.coupon-form input{flex:1;min-width:0;padding:11px 12px;border:1px solid #bbb;background:#fff;font:inherit;text-transform:uppercase}.coupon-form button{padding:0 15px;border:1px solid #111;background:#111;color:#fff;font-family:var(--font-mono,monospace);font-size:.75rem;font-weight:700;text-transform:uppercase;cursor:pointer}.coupon-form button:disabled{opacity:.55;cursor:wait}.coupon-message{display:none;margin-top:9px;font-size:.82rem;line-height:1.4}.coupon-message.success{color:#14763d}.coupon-message.error{color:#b42318}.coupon-message.info{color:#666}.coupon-old-freight{text-decoration:line-through;color:#888;margin-right:5px}#cart-shipping strong{color:#14763d}@media(max-width:520px){.coupon-form{flex-direction:column}.coupon-form button{min-height:42px}}
+.coupon-box {
+  margin:18px 0 0;
+  border:1px solid var(--line);
+  background:var(--bg-soft);
+}
+
+.coupon-box__summary {
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:0 14px;
+  cursor:pointer;
+  list-style:none;
+  color:var(--ink);
+  font-family:var(--font-mono, monospace);
+  font-size:.72rem;
+  font-weight:600;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.coupon-box__summary::-webkit-details-marker { display:none; }
+.coupon-box__summary:hover { color:var(--red); }
+.coupon-box__summary:focus-visible { outline:2px solid var(--red); outline-offset:-3px; }
+
+.coupon-box__toggle::before {
+  content:'＋';
+  display:block;
+  font:400 1rem/1 var(--font-mono, monospace);
+}
+
+.coupon-box[open] .coupon-box__toggle::before { content:'−'; }
+.coupon-box.has-coupon .coupon-box__summary { color:#14763d; }
+html.reloja-dark .coupon-box.has-coupon .coupon-box__summary,
+html.reloja-dark .coupon-message.success { color:#8fe0ae; }
+html.reloja-dark .coupon-message.error { color:#ffb5b8; }
+html.reloja-high-contrast .coupon-box.has-coupon .coupon-box__summary,
+html.reloja-high-contrast .coupon-message.success,
+html.reloja-high-contrast .coupon-message.error { color:#000; }
+
+.coupon-box__content {
+  padding:14px;
+  border-top:1px solid var(--line);
+}
+
+.coupon-box__title {
+  margin-bottom:9px;
+  color:var(--ink-soft);
+  font-size:.78rem;
+}
+
+.coupon-form { display:flex; gap:8px; }
+.coupon-form input {
+  flex:1;
+  min-width:0;
+  padding:11px 12px;
+  border:1px solid var(--line-strong);
+  background:var(--bg);
+  color:var(--ink);
+  font:inherit;
+  text-transform:uppercase;
+}
+
+.coupon-form button {
+  padding:0 15px;
+  border:1px solid var(--ink);
+  background:var(--ink);
+  color:var(--bg);
+  font-family:var(--font-mono, monospace);
+  font-size:.75rem;
+  font-weight:700;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
+.coupon-form button:disabled { opacity:.55; cursor:wait; }
+.coupon-message { display:none; margin-top:9px; font-size:.82rem; line-height:1.4; }
+.coupon-message.success { color:#14763d; }
+.coupon-message.error { color:#b42318; }
+.coupon-message.info { color:var(--muted); }
+.coupon-old-freight { text-decoration:line-through; color:var(--muted); margin-right:5px; }
+#cart-shipping strong { color:#14763d; }
+
+@media(max-width:520px) {
+  .coupon-form { flex-direction:column; }
+  .coupon-form button { min-height:42px; }
+}
