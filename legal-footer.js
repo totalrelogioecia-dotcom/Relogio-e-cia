@@ -33,9 +33,10 @@
     const style = document.createElement('style');
     style.id = 'reloja-accessibility-style';
     style.textContent = `
-      .cart-legal-summary{margin:16px 0;padding:13px 14px;border:1px solid var(--line-strong);background:var(--bg-soft);font-size:.78rem;line-height:1.5;color:var(--ink-soft)}
-      .cart-legal-summary strong{display:block;color:var(--ink);margin-bottom:3px}
+      .cart-legal-summary{margin:10px 0 0;padding:0;border:0;background:transparent;font-size:.69rem;line-height:1.5;color:var(--muted)}
       .cart-legal-summary a{font-weight:600;text-underline-offset:2px}
+      html.reloja-dark .cart-summary .cart-legal-summary{background:transparent!important;color:var(--muted)!important;border:0!important}
+      html.reloja-high-contrast .cart-summary .cart-legal-summary{background:#fff!important;color:#000!important;border:0!important}
     `;
     document.head.appendChild(style);
   }
@@ -311,8 +312,8 @@
     const summary = document.createElement('div');
     summary.id = 'cart-legal-summary';
     summary.className = 'cart-legal-summary';
-    summary.innerHTML = '<strong>Antes de finalizar</strong>Revise os itens, a forma de entrega e o valor total. Consulte os <a href="termos-de-uso.html">Termos de Uso e Compra</a>, a <a href="politica-de-privacidade.html">Política de Privacidade</a> e as regras de <a href="trocas-estornos.html">Trocas, Devoluções e Estornos</a>. Essas informações não limitam os direitos garantidos pela legislação ao consumidor.';
-    checkoutButton.parentNode.insertBefore(summary, checkoutButton);
+    summary.innerHTML = 'Ao finalizar, você confirma os <a href="termos-de-uso.html">Termos de Compra</a>, a <a href="politica-de-privacidade.html">Política de Privacidade</a> e as regras de <a href="trocas-estornos.html">trocas e devoluções</a>.';
+    checkoutButton.parentNode.insertBefore(summary, checkoutButton.nextSibling);
   }
 
   function enhanceFooter() {
