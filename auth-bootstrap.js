@@ -18,9 +18,13 @@ const { registerMercadoPagoOrdersPix } = require('./mercadopago-orders-pix');
 const { registerMercadoPagoClean } = require('./mercadopago-clean');
 const { registerReturnRequestRoutes } = require('./return-requests');
 const { registerOrderCancellationRoutes } = require('./order-cancellation');
+const { registerOrderShippingRoutes } = require('./order-shipping');
 const { registerAvailabilityRequestRoutes } = require('./availability-requests');
 const { queueOrderReceivedEmail } = require('./order-email');
+const { startOperationalEmailWatcher } = require('./operational-email-watcher');
 const { createCheckoutRateLimit } = require('./checkout-rate-limit');
+
+startOperationalEmailWatcher();
 
 /*
  * Este bootstrap continua responsável por autenticar a conta do cliente e
@@ -85,6 +89,7 @@ if (!originalExpress.__relogioAuthPatched) {
 
     registerAuthRoutes(app);
     registerOrderCancellationRoutes(app, { userFromRequest });
+    registerOrderShippingRoutes(app);
     registerAvailabilityRequestRoutes(app, { userFromRequest });
     registerCustomerAddressRoutes(app);
     registerCheckoutProfileRoutes(app);
@@ -164,6 +169,7 @@ if (!originalExpress.__relogioAuthPatched) {
       res.json = payload => {
         const response = originalJson(payload);
         if (payload && typeof payload === 'object' && payload.order_id) {
+          // Compatibilidade: a fila antiga agora só envia quando o pagamento está aprovado.
           queueOrderReceivedEmail(payload.order_id);
         }
         return response;
