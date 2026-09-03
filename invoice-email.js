@@ -1,9 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const { flushPersistentStore } = require('./persistent-store');
 const { sendResendEmail } = require('./resend-client');
-const { getInvoiceEmailAttachments } = require('./invoice-files');
+const { getInvoiceEmailAttachments, invoiceEmailSignature } = require('./invoice-files');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const ORDERS = path.join(DATA, 'orders.json');
@@ -16,15 +15,6 @@ function read(file, fallback) {
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[c]));
-}
-
-function signature(invoice, files = []) {
-  const filePart = files.length
-    ? `|${files.map(item => `${item.kind}:${item.sha256 || ''}`).sort().join('|')}`
-    : '';
-  return crypto.createHash('sha256')
-    .update(`${invoice?.status || ''}|${invoice?.number || ''}|${invoice?.access_key || ''}${filePart}`)
-    .digest('hex');
 }
 
 function invoiceHtml(order, files = []) {
@@ -49,7 +39,7 @@ async function sendInvoiceEmail(orderId) {
     if (!invoice.number || String(invoice.access_key || '').replace(/\D/g, '').length !== 44) return;
 
     const fiscalFiles = getInvoiceEmailAttachments(key);
-    const currentSignature = signature(invoice, fiscalFiles);
+    const currentSignature = invoiceEmailSignature(invoice, fiscalFiles);
     if (order?.notifications?.invoice_email_signature === currentSignature) return;
 
     const result = await sendResendEmail({
