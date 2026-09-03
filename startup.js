@@ -7,6 +7,10 @@ const {
   flushPersistentStore,
   closePersistentStore
 } = require('./persistent-store');
+const {
+  startAccessTokenMaintenance,
+  stopAccessTokenMaintenance
+} = require('./melhorenvio-auth');
 const { runProductDataMigrations } = require('./product-data-migrations');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
@@ -276,6 +280,7 @@ let shuttingDown = false;
 async function shutdown(signal) {
   if (shuttingDown) return;
   shuttingDown = true;
+  stopAccessTokenMaintenance();
   console.log(`Encerrando aplicação (${signal}) e sincronizando dados persistentes...`);
 
   const force = setTimeout(() => process.exit(1), 9000);
@@ -308,6 +313,7 @@ process.on('SIGINT', () => shutdown('SIGINT'));
     await zeroAllProductStockOnce();
     await clearTestAccountsOnce();
     await flushPersistentStore();
+    startAccessTokenMaintenance();
     // Instala a proteção do painel antes do bootstrap de autenticação e antes
     // das rotas administrativas do servidor.
     require('./admin-security-bootstrap');
