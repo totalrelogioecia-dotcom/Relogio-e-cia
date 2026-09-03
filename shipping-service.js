@@ -43,6 +43,7 @@ function configStatus() {
     environment: envMode(),
     connected: auth.connected,
     auth_mode: auth.auth_mode,
+    automatic_refresh_enabled: auth.automatic_refresh_enabled,
     token_configured: auth.access_token_available,
     oauth_configured: auth.oauth_configured,
     origin_postal_code_configured: originPostalCode().length === 8,
