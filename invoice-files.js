@@ -252,7 +252,8 @@ function registerInvoiceFileRoutes(app) {
       if (Object.keys(current).length) store[orderId] = current;
       else delete store[orderId];
       await writeJson(INVOICE_FILES, store);
-      await touchOrder(orderId);
+      // Remover um arquivo não dispara novo e-mail: mensagens já enviadas não podem ser recolhidas.
+      // Ao enviar um arquivo substituto, o PUT toca o pedido e gera a versão atualizada.
       return res.json({ ok: true, order_id: orderId, files: listInvoiceFiles(orderId) });
     } catch (error) {
       console.error('Erro ao remover arquivo da NF-e:', { message: error.message });
