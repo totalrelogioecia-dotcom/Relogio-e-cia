@@ -17,7 +17,8 @@ const FILES = new Map([
   [path.resolve(path.join(DATA, 'account-reset.json')), 'account_reset'],
   [path.resolve(path.join(DATA, 'return-requests.json')), 'return_requests'],
   [path.resolve(path.join(DATA, 'stock-alerts.json')), 'stock_alerts'],
-  [path.resolve(path.join(DATA, 'availability-requests.json')), 'availability_requests']
+  [path.resolve(path.join(DATA, 'availability-requests.json')), 'availability_requests'],
+  [path.resolve(path.join(DATA, 'invoice-files.json')), 'invoice_files']
 ]);
 
 const PRODUCT_RESTORE_MARKER = 'products_restored_from_commit_1055198_2026_08_25';
@@ -195,7 +196,7 @@ async function initPersistentStore() {
       continue;
     }
 
-    const seedFallback = ['shipping_products', 'product_details', 'melhorenvio_auth', 'account_reset'].includes(key) ? {} : [];
+    const seedFallback = ['shipping_products', 'product_details', 'melhorenvio_auth', 'account_reset', 'invoice_files'].includes(key) ? {} : [];
     const seed = readLocalJson(file, seedFallback);
     await upsertState(key, seed);
     writeLocalJson(file, seed);
@@ -204,7 +205,7 @@ async function initPersistentStore() {
 
   patchFileWrites();
   ready = true;
-  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio, solicitações de pós-venda, avisos de reposição, confirmações de disponibilidade e migrações administrativas.');
+  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio, solicitações de pós-venda, avisos de reposição, confirmações de disponibilidade, anexos fiscais e migrações administrativas.');
   return { persistent: true, provider: 'postgresql' };
 }
 
