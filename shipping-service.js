@@ -196,6 +196,22 @@ async function callMelhorEnvio(pathname, body) {
     throw error;
   }
 
+  const send = async token => {
+    const response = await fetch(`${baseUrl()}${pathname}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': userAgent()
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000)
+    });
+    const data = await response.json().catch(() => ({}));
+    return { response, data };
+  };
+
   let token;
   try {
     token = await getAccessToken();
@@ -204,19 +220,22 @@ async function callMelhorEnvio(pathname, body) {
     throw error;
   }
 
-  const response = await fetch(`${baseUrl()}${pathname}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'User-Agent': userAgent()
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(15000)
-  });
+  let { response, data } = await send(token);
+  const authenticationMessage = String(data?.message || data?.error || '').toLowerCase();
+  const unauthenticated = response.status === 401 || authenticationMessage.includes('unauthenticated');
 
-  const data = await response.json().catch(() => ({}));
+  if (!response.ok && unauthenticated) {
+    try {
+      // A orientação oficial é renovar o token e repetir exatamente uma vez a
+      // requisição que recebeu Unauthenticated.
+      token = await getAccessToken({ forceRefresh: true });
+      ({ response, data } = await send(token));
+    } catch (error) {
+      error.code = error.code || 'melhor_envio_reauthorization_required';
+      throw error;
+    }
+  }
+
   if (!response.ok) {
     const detail = data?.message || data?.error || (Array.isArray(data) ? data.map(x => x?.error || x?.message).filter(Boolean).join('; ') : '');
     const error = new Error(detail || `Melhor Envio respondeu com status ${response.status}.`);
@@ -362,5 +381,6 @@ module.exports = {
   getEffectiveShippingData,
   SHIPPING_PRODUCTS,
   buildShipment,
-  rejectedQuoteDetails
+  rejectedQuoteDetails,
+  callMelhorEnvio
 };
