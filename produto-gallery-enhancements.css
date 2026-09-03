@@ -39,6 +39,32 @@
   pointer-events: none;
 }
 
+/* Nos modos de acessibilidade, algumas fotos transparentes herdavam o fundo
+   escuro enquanto arquivos com fundo próprio continuavam brancos. Uma única
+   superfície branca mantém todos os produtos legíveis e visualmente iguais. */
+html.reloja-dark .product-main-photo,
+html.reloja-dark .product-main-photo > img,
+html.reloja-dark .product-thumb,
+html.reloja-dark .product-thumb img,
+html.reloja-dark .related-photo,
+html.reloja-dark .related-photo img,
+html.reloja-high-contrast .product-main-photo,
+html.reloja-high-contrast .product-main-photo > img,
+html.reloja-high-contrast .product-thumb,
+html.reloja-high-contrast .product-thumb img,
+html.reloja-high-contrast .related-photo,
+html.reloja-high-contrast .related-photo img {
+  background: #fff !important;
+}
+
+html.reloja-dark .product-zoom-hint,
+html.reloja-high-contrast .product-zoom-hint {
+  border-color: #111 !important;
+  background: #111 !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 1px #fff;
+}
+
 body.product-zoom-open {
   overflow: hidden;
 }
@@ -125,6 +151,11 @@ body.product-zoom-open {
   transition: transform .12s ease;
   cursor: zoom-in;
   -webkit-user-drag: none;
+}
+
+html.reloja-dark .product-zoom-stage img,
+html.reloja-high-contrast .product-zoom-stage img {
+  background: #fff !important;
 }
 
 .product-zoom-stage.is-zoomed img {
