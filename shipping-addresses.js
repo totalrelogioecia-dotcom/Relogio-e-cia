@@ -86,6 +86,7 @@
   function ensurePicker() {
     const shippingBox = document.getElementById('shipping-box');
     const form = shippingBox?.querySelector('.shipping-form');
+    const slot = document.getElementById('shipping-address-slot');
     if (!shippingBox || !form || document.getElementById('shipping-address-picker')) return;
     ensureStyles();
     const box = document.createElement('div');
@@ -96,7 +97,8 @@
       <select id="shipping-address-select"></select>
       <p id="shipping-address-current" class="shipping-address-current"></p>
       <a href="enderecos.html" class="shipping-address-manage">Gerenciar endereços</a>`;
-    shippingBox.insertBefore(box, form);
+    if (slot) slot.appendChild(box);
+    else shippingBox.insertBefore(box, form);
     document.getElementById('shipping-address-select').addEventListener('change', event => selectAddress(event.target.value, true));
   }
 
