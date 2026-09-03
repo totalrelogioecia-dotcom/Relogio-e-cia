@@ -3,6 +3,10 @@ const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
 const { flushPersistentStore } = require('./persistent-store');
+const {
+  queueReturnRequestReceivedEmail,
+  queueReturnRequestStatusEmail
+} = require('./return-request-email');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const ORDERS = path.join(DATA, 'orders.json');
@@ -150,6 +154,7 @@ function registerReturnRequestRoutes(app) {
 
       requests.push(item);
       await writeRequests(requests);
+      queueReturnRequestReceivedEmail(item.protocol);
       console.log('Solicitação pós-venda criada', { protocol: item.protocol, order_id: item.order_id, type: item.type });
       res.set('Cache-Control', 'no-store');
       return res.status(201).json({ request: publicRequest(item) });
@@ -219,6 +224,7 @@ function registerReturnRequestRoutes(app) {
         requests[index].history.push({ status, at: now, source: 'admin' });
       }
       await writeRequests(requests);
+      if (previousStatus !== status) queueReturnRequestStatusEmail(code, status);
       return res.json({ request: adminSummary(requests[index]) });
     } catch (error) {
       console.error('Erro ao atualizar solicitação pós-venda:', error.message);
