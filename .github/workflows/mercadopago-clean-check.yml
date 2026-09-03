@@ -43,10 +43,18 @@ jobs:
           node --check coupon-checkout.js
           node --check checkout-rate-limit.js
           node --check auth-bootstrap.js
+          node --check resend-client.js
+          node --check operational-email-watcher.js
+          node --check order-email.js
+          node --check invoice-email.js
+          node --check shipping-email.js
+          node --check order-shipping.js
+          node --check admin-order-shipping.js
           node --check order-cancellation-policy.js
           node --check order-cancellation.js
           node --check order-cancellation-email.js
           node --check admin-order-cancellation.js
+          node --check return-request-email.js
           node --check account-orders.js
           node --check availability-requests.js
           node --check admin-extra-tabs.js
@@ -67,7 +75,6 @@ jobs:
           node --check catalog-technical-filters.js
           node --check produto-gallery-enhancements.js
           node --check return-requests.js
-          node --check order-email.js
           node --check admin-returns.js
           node --check return-request-form.js
           node --check legal-footer.js
