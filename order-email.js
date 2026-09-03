@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { flushPersistentStore } = require('./persistent-store');
+const { sendResendEmail } = require('./resend-client');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const ORDERS = path.join(DATA, 'orders.json');
@@ -19,16 +20,35 @@ function brl(value) {
   return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function date(value) {
+  if (!value) return '';
+  try { return new Date(value).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }); }
+  catch { return ''; }
+}
+
 function paymentLabel(order) {
   return String(order?.metodo || '').toLowerCase() === 'pix' ? 'PIX' : 'Cartão';
 }
 
-function statusLabel(order) {
-  const status = String(order?.payment_status || order?.status || '').toLowerCase();
-  if (status === 'approved' || status === 'paid') return 'Pagamento aprovado';
-  if (status === 'rejected') return 'Pagamento recusado';
-  if (status === 'cancelled' || status === 'canceled') return 'Pagamento cancelado';
-  return 'Aguardando confirmação do pagamento';
+function isApproved(order) {
+  const status = String(order?.status || '').toLowerCase();
+  const payment = String(order?.payment_status || '').toLowerCase();
+  return status === 'paid' || ['approved', 'processed'].includes(payment);
+}
+
+function addressLabel(address) {
+  if (!address || typeof address !== 'object') return '';
+  const street = [address.street_name, address.street_number].filter(Boolean).join(', ');
+  const complement = address.complement ? ` — ${address.complement}` : '';
+  const city = [address.neighborhood, address.city_name, address.state_code || address.state_name].filter(Boolean).join(' · ');
+  const zip = String(address.zip_code || '').replace(/\D/g, '');
+  const cep = zip.length === 8 ? `CEP ${zip.slice(0, 5)}-${zip.slice(5)}` : '';
+  return [street ? `${street}${complement}` : '', city, cep].filter(Boolean).join('<br>');
+}
+
+function shippingLabel(order) {
+  if (String(order?.shipping?.mode || '').toLowerCase() === 'pickup') return 'Retirada na loja';
+  return [order?.shipping?.company_name, order?.shipping?.service_name].filter(Boolean).join(' · ') || 'Entrega';
 }
 
 function orderHtml(order) {
@@ -38,67 +58,69 @@ function orderHtml(order) {
   const shippingOriginal = Number(order?.shipping?.original_price || shipping || 0);
   const coupon = order?.coupon?.code ? `<p style="margin:5px 0"><strong>Cupom:</strong> ${esc(order.coupon.code)}</p>` : '';
   const pixDiscount = Number(order?.desconto_pix || 0);
+  const address = String(order?.shipping?.mode || '').toLowerCase() === 'pickup' ? '' : addressLabel(order?.payer?.endereco);
+  const paymentId = order?.payment_id ? `<p style="margin:5px 0"><strong>ID do pagamento:</strong> ${esc(order.payment_id)}</p>` : '';
+  const approvedAt = date(order?.payment_detail?.date_approved || order?.updated_at || order?.created_at);
 
-  return `<!doctype html><html lang="pt-BR"><body style="font-family:Arial,sans-serif;background:#f5f3ef;padding:28px;color:#171717"><div style="max-width:620px;margin:auto;background:#fff;padding:30px;border:1px solid #ddd"><h2 style="margin-top:0">Relógio e Cia</h2><p>Olá, ${esc(order?.payer?.nome || 'cliente')}.</p><p>Recebemos o seu pedido <strong>${esc(order.id)}</strong>. Guarde este número para acompanhar qualquer atendimento relacionado à compra.</p><div style="background:#f5f3ef;padding:15px 18px;margin:20px 0"><p style="margin:0 0 5px"><strong>Status:</strong> ${esc(statusLabel(order))}</p><p style="margin:0"><strong>Pagamento:</strong> ${esc(paymentLabel(order))}</p></div><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding-bottom:8px">Produto</th><th style="text-align:center;padding-bottom:8px">Qtd.</th><th style="text-align:right;padding-bottom:8px">Valor</th></tr></thead><tbody>${itemRows}</tbody></table><div style="margin-top:18px"><p style="margin:5px 0"><strong>Subtotal:</strong> ${brl(order.subtotal)}</p>${pixDiscount ? `<p style="margin:5px 0"><strong>Desconto PIX:</strong> -${brl(pixDiscount)}</p>` : ''}<p style="margin:5px 0"><strong>Frete:</strong> ${shipping === 0 && shippingOriginal > 0 ? `Grátis <span style="color:#777">(original ${brl(shippingOriginal)})</span>` : brl(shipping)}</p>${coupon}<p style="font-size:18px;margin:14px 0 0"><strong>Total: ${brl(order.total)}</strong></p></div><p style="margin-top:24px">Se precisar de ajuda, responda pelos canais de atendimento informados no site. Para trocas, devoluções ou estornos, use a página específica da Relógio e Cia.</p><p style="font-size:12px;color:#777;margin-top:24px">Este e-mail confirma o recebimento do pedido. A aprovação do pagamento é informada separadamente pelo meio de pagamento e pelo status do pedido.</p></div></body></html>`;
+  return `<!doctype html><html lang="pt-BR"><body style="font-family:Arial,sans-serif;background:#f5f3ef;padding:28px;color:#171717"><div style="max-width:620px;margin:auto;background:#fff;padding:30px;border:1px solid #ddd"><h2 style="margin-top:0">Relógio e Cia</h2><p>Olá, ${esc(order?.payer?.nome || 'cliente')}.</p><p><strong>Seu pagamento foi aprovado e o pedido ${esc(order.id)} está confirmado.</strong></p><div style="background:#f5f3ef;padding:15px 18px;margin:20px 0"><p style="margin:0 0 5px"><strong>Pagamento:</strong> ${esc(paymentLabel(order))}</p><p style="margin:5px 0"><strong>Valor pago:</strong> ${brl(order.total)}</p>${approvedAt ? `<p style="margin:5px 0"><strong>Confirmação:</strong> ${esc(approvedAt)}</p>` : ''}${paymentId}</div><h3 style="margin-top:26px">Resumo do pedido</h3><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding-bottom:8px">Produto</th><th style="text-align:center;padding-bottom:8px">Qtd.</th><th style="text-align:right;padding-bottom:8px">Valor</th></tr></thead><tbody>${itemRows}</tbody></table><div style="margin-top:18px"><p style="margin:5px 0"><strong>Subtotal:</strong> ${brl(order.subtotal)}</p>${pixDiscount ? `<p style="margin:5px 0"><strong>Desconto PIX:</strong> -${brl(pixDiscount)}</p>` : ''}<p style="margin:5px 0"><strong>Frete:</strong> ${shipping === 0 && shippingOriginal > 0 ? `Grátis <span style="color:#777">(original ${brl(shippingOriginal)})</span>` : brl(shipping)}</p>${coupon}<p style="font-size:18px;margin:14px 0 0"><strong>Total: ${brl(order.total)}</strong></p></div><div style="background:#f5f3ef;padding:15px 18px;margin:20px 0"><p style="margin:0 0 5px"><strong>Entrega:</strong> ${esc(shippingLabel(order))}</p>${address ? `<p style="margin:8px 0 0"><strong>Endereço:</strong><br>${address}</p>` : ''}</div><p style="margin-top:24px">A nota fiscal e as informações de envio serão comunicadas separadamente quando estiverem disponíveis.</p><p style="font-size:12px;color:#777;margin-top:24px">Esta mensagem confirma o pagamento registrado para o pedido ${esc(order.id)}. O identificador do pagamento acima permite localizar a operação no histórico do pedido.</p></div></body></html>`;
 }
 
-async function sendOrderReceivedEmail(orderId) {
-  if (!orderId || inFlight.has(orderId)) return;
-  inFlight.add(orderId);
+async function sendPaymentApprovedEmail(orderId) {
+  const key = String(orderId || '');
+  if (!key || inFlight.has(key)) return;
+  inFlight.add(key);
   try {
-    const apiKey = String(process.env.RESEND_API_KEY || '').trim();
-    const from = String(process.env.RESEND_FROM || '').trim();
-    if (!apiKey || !from) {
-      console.log('E-mail de pedido preparado, aguardando configuração do domínio/Resend.', { orderId });
-      return;
-    }
-
     const orders = read(ORDERS, []);
-    const order = orders.find(item => String(item.id) === String(orderId));
-    if (!order?.payer?.email) return;
-    if (order?.notifications?.order_received_email_sent_at) return;
+    const order = orders.find(item => String(item.id) === key);
+    if (!order?.payer?.email || !isApproved(order)) return;
+    if (order?.notifications?.payment_approved_email_sent_at) return;
 
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from,
-        to: [String(order.payer.email).trim().toLowerCase()],
-        subject: `Pedido recebido ${order.id} — Relógio e Cia`,
-        html: orderHtml(order)
-      })
+    const result = await sendResendEmail({
+      to: order.payer.email,
+      subject: `Pagamento aprovado — pedido ${order.id} — Relógio e Cia`,
+      html: orderHtml(order),
+      idempotencyKey: `relogio-payment-approved-${order.id}`
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      console.warn('E-mail de confirmação do pedido não enviado', {
-        orderId,
-        statusCode: response.status,
-        message: data?.message || data?.name || 'erro do provedor'
-      });
+
+    if (!result.sent) {
+      if (result.reason === 'not_configured') {
+        console.log('E-mail de pagamento aprovado preparado, aguardando configuração do domínio/Resend.', { orderId: key });
+      } else {
+        console.warn('E-mail de pagamento aprovado não enviado', { orderId: key, ...result });
+      }
       return;
     }
 
     const currentOrders = read(ORDERS, []);
-    const index = currentOrders.findIndex(item => String(item.id) === String(orderId));
-    if (index >= 0) {
+    const index = currentOrders.findIndex(item => String(item.id) === key);
+    if (index >= 0 && !currentOrders[index]?.notifications?.payment_approved_email_sent_at) {
+      const sentAt = new Date().toISOString();
       currentOrders[index].notifications = {
         ...(currentOrders[index].notifications || {}),
-        order_received_email_sent_at: new Date().toISOString(),
-        order_received_email_provider_id: data?.id || null
+        payment_approved_email_sent_at: sentAt,
+        payment_approved_email_provider_id: result.id || null,
+        // Mantido por compatibilidade com dados/testes anteriores ao novo fluxo.
+        order_received_email_sent_at: currentOrders[index]?.notifications?.order_received_email_sent_at || sentAt,
+        order_received_email_provider_id: currentOrders[index]?.notifications?.order_received_email_provider_id || result.id || null
       };
       fs.writeFileSync(ORDERS, JSON.stringify(currentOrders, null, 2), 'utf8');
       await flushPersistentStore();
     }
-    console.log('E-mail de pedido recebido enviado', { orderId, to: order.payer.email, resend_id: data?.id || null });
+    console.log('E-mail de pagamento aprovado enviado', { orderId: key, to: order.payer.email, resend_id: result.id || null });
   } catch (error) {
-    console.warn('Falha não bloqueante no e-mail de pedido recebido', { orderId, message: error.message });
+    console.warn('Falha não bloqueante no e-mail de pagamento aprovado', { orderId: key, message: error.message });
   } finally {
-    inFlight.delete(orderId);
+    inFlight.delete(key);
   }
 }
 
-function queueOrderReceivedEmail(orderId) {
-  setImmediate(() => { sendOrderReceivedEmail(String(orderId || '')).catch(() => {}); });
+function queuePaymentApprovedEmail(orderId) {
+  setImmediate(() => { sendPaymentApprovedEmail(String(orderId || '')).catch(() => {}); });
 }
 
-module.exports = { queueOrderReceivedEmail };
+// Nome antigo preservado para o bootstrap atual. Agora só envia se o pagamento estiver aprovado.
+function queueOrderReceivedEmail(orderId) {
+  queuePaymentApprovedEmail(orderId);
+}
+
+module.exports = { queuePaymentApprovedEmail, queueOrderReceivedEmail, sendPaymentApprovedEmail, isApproved };
