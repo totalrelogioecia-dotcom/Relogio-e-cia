@@ -100,6 +100,15 @@ function getInvoiceEmailAttachments(orderId) {
     }));
 }
 
+function invoiceEmailSignature(invoice, files = []) {
+  const filePart = files.length
+    ? `|${files.map(item => `${item.kind}:${item.sha256 || ''}`).sort().join('|')}`
+    : '';
+  return crypto.createHash('sha256')
+    .update(`${invoice?.status || ''}|${invoice?.number || ''}|${invoice?.access_key || ''}${filePart}`)
+    .digest('hex');
+}
+
 function decodeBase64(value) {
   const base64 = String(value || '').trim();
   if (!base64 || base64.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(base64)) {
@@ -183,6 +192,20 @@ async function touchOrder(orderId) {
   await writeJson(ORDERS, orders);
 }
 
+async function markRemovalAsCurrent(orderId) {
+  const orders = read(ORDERS, []);
+  const index = orders.findIndex(order => String(order?.id || '') === String(orderId));
+  if (index < 0 || !orders[index]?.notifications?.invoice_email_sent_at) return;
+  const now = new Date().toISOString();
+  orders[index].notifications = {
+    ...(orders[index].notifications || {}),
+    invoice_email_signature: invoiceEmailSignature(orders[index].invoice || {}, listInvoiceFiles(orderId)),
+    invoice_email_attachment_removed_at: now
+  };
+  orders[index].updated_at = now;
+  await writeJson(ORDERS, orders);
+}
+
 function registerInvoiceFileRoutes(app) {
   app.use('/api/admin/invoice-files', express.json({ limit: '8mb' }));
 
@@ -252,8 +275,9 @@ function registerInvoiceFileRoutes(app) {
       if (Object.keys(current).length) store[orderId] = current;
       else delete store[orderId];
       await writeJson(INVOICE_FILES, store);
-      // Remover um arquivo não dispara novo e-mail: mensagens já enviadas não podem ser recolhidas.
-      // Ao enviar um arquivo substituto, o PUT toca o pedido e gera a versão atualizada.
+      // Mensagens já enviadas não podem ser recolhidas. Atualizamos a assinatura para
+      // que a remoção não gere reenvio agora nem numa varredura futura do watcher.
+      await markRemovalAsCurrent(orderId);
       return res.json({ ok: true, order_id: orderId, files: listInvoiceFiles(orderId) });
     } catch (error) {
       console.error('Erro ao remover arquivo da NF-e:', { message: error.message });
@@ -266,5 +290,6 @@ module.exports = {
   FILE_RULES,
   listInvoiceFiles,
   getInvoiceEmailAttachments,
+  invoiceEmailSignature,
   registerInvoiceFileRoutes
 };
