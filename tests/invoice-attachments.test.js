@@ -144,6 +144,22 @@ test('Admin salva DANFE e XML separados do pedido e o Resend recebe os dois anex
 
   await sendInvoiceEmail('PED-NFE-FILES-1');
   assert.equal(calls.length, 1, 'o mesmo conjunto de arquivos não deve gerar e-mail duplicado');
+
+  const removal = await originalFetch(`${url}/danfe_pdf`, {
+    method: 'DELETE',
+    headers: { Authorization: authorization }
+  });
+  assert.equal(removal.status, 200);
+  const removalData = await removal.json();
+  assert.equal(removalData.files.length, 1);
+  assert.equal(removalData.files[0].kind, 'nfe_xml');
+
+  const orderAfterRemoval = JSON.parse(fs.readFileSync(ordersFile, 'utf8'))[0];
+  assert.ok(orderAfterRemoval.notifications.invoice_email_attachment_removed_at);
+  assert.notEqual(orderAfterRemoval.notifications.invoice_email_signature, savedOrder.notifications.invoice_email_signature);
+
+  await sendInvoiceEmail('PED-NFE-FILES-1');
+  assert.equal(calls.length, 1, 'remover anexo não deve reenviar um e-mail que já foi entregue');
 });
 
 test('painel carrega somente o cliente de anexos e mantém o armazenamento fiscal fora dos arquivos públicos', () => {
@@ -164,6 +180,7 @@ test('painel carrega somente o cliente de anexos e mantém o armazenamento fisca
   assert.match(backend, /MAX_TOTAL_BYTES = 5 \* 1024 \* 1024/);
   assert.match(backend, /%PDF-/);
   assert.match(backend, /nfeProc\|NFe/);
+  assert.match(backend, /markRemovalAsCurrent/);
   assert.match(bootstrap, /registerInvoiceFileRoutes\(app\)/);
   assert.match(persistence, /invoice-files\.json/);
   assert.match(persistence, /invoice_files/);
