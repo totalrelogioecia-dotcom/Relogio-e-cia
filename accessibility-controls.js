@@ -74,6 +74,15 @@
       html.reloja-dark .shipping-message.error,html.reloja-dark .form-error{background:#2a1719!important;color:#ffb5b8!important;border-color:#a93a3f!important}
       html.reloja-dark .form-success{background:#13271b!important;color:#a8e5bc!important;border-color:#34794d!important}
       html.reloja-dark .admin-card,html.reloja-dark .admin-table-wrap,html.reloja-dark .admin-modal,html.reloja-dark .photo-card,html.reloja-dark .photo-dropzone{background:var(--bg-soft)!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
+      html.reloja-dark .return-admin-dialog,html.reloja-dark .store-cancel-card{background:var(--bg-soft)!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
+      html.reloja-dark .return-admin-grid div,html.reloja-dark .return-admin-message,html.reloja-dark .return-admin-images a{background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line-strong)!important}
+      html.reloja-dark .return-admin-close{color:var(--ink)!important}
+      html.reloja-dark .store-cancel-warning{background:#2b2118!important;color:var(--ink-soft)!important;border-left-color:#ffad66!important}
+      html.reloja-dark .store-cancel-fiscal{background:#2b2818!important;color:var(--ink-soft)!important;border-color:#8f7a25!important}
+      html.reloja-dark .store-cancel-error{background:#2a1719!important;color:#ffb5b8!important;border-color:#a93a3f!important}
+      html.reloja-dark .store-cancel-note.ok{color:#8fe0ae!important}
+      html.reloja-dark .store-cancel-note.fail{color:#ffb5b8!important}
+      html.reloja-dark .store-cancel-note.pending{color:#ffd27a!important}
       html.reloja-dark .admin-table th,html.reloja-dark .admin-table td,html.reloja-dark .admin-tabs{border-color:var(--line)!important}
       html.reloja-dark .admin-tabs button{color:var(--ink)!important}
       html.reloja-dark .admin-tabs button.active{background:var(--ink)!important;color:var(--bg)!important}
