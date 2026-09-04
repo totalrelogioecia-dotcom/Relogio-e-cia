@@ -18,7 +18,9 @@ const FILES = new Map([
   [path.resolve(path.join(DATA, 'return-requests.json')), 'return_requests'],
   [path.resolve(path.join(DATA, 'stock-alerts.json')), 'stock_alerts'],
   [path.resolve(path.join(DATA, 'availability-requests.json')), 'availability_requests'],
-  [path.resolve(path.join(DATA, 'invoice-files.json')), 'invoice_files']
+  [path.resolve(path.join(DATA, 'invoice-files.json')), 'invoice_files'],
+  [path.resolve(path.join(DATA, 'admin-audit.json')), 'admin_audit'],
+  [path.resolve(path.join(DATA, 'product-reviews.json')), 'product_reviews']
 ]);
 
 const PRODUCT_RESTORE_MARKER = 'products_restored_from_commit_1055198_2026_08_25';
@@ -205,7 +207,7 @@ async function initPersistentStore() {
 
   patchFileWrites();
   ready = true;
-  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio, solicitações de pós-venda, avisos de reposição, confirmações de disponibilidade, anexos fiscais e migrações administrativas.');
+  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio, pós-venda, reposição, disponibilidade, anexos fiscais, auditoria administrativa, avaliações de clientes e migrações administrativas.');
   return { persistent: true, provider: 'postgresql' };
 }
 
