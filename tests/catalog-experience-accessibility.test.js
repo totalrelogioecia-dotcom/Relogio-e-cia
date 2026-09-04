@@ -82,6 +82,16 @@ test('painel avançado oferece múltiplos recursos de acessibilidade', () => {
   assert.match(panel, /aria-live/);
 });
 
+test('acessibilidade usa um único A quadrado no cabeçalho ao lado do catálogo', () => {
+  const panel = read('accessibility-panel.js');
+  assert.match(panel, /position:static!important/);
+  assert.match(panel, /border-radius:0/);
+  assert.match(panel, /const catalog = nav\.querySelector\('\.nav-cta'\)/);
+  assert.match(panel, /nav\.insertBefore\(button, catalog \|\| mobileToggle \|\| null\)/);
+  assert.match(panel, /reloja-accessibility-global-rail/);
+  assert.doesNotMatch(panel, /\.reloja-a11y-trigger\{position:fixed/);
+});
+
 test('somente scripts de navegador novos são públicos; backend de favoritos continua privado', () => {
   const policy = require('../public-static-policy');
   ['accessibility-panel.js','catalog-intelligence.js','favorites-client.js','admin-favorites.js','product-compare.js','product-recommendations.js'].forEach(file => assert.equal(policy.isPublicStaticPath('/' + file), true));
