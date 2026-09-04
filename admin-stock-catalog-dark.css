@@ -92,24 +92,64 @@ html.reloja-dark .stock-catalog-results .admin-actions button:focus-visible {
   color: #fff !important;
 }
 
+/* Alto contraste segue o padrão claro do site, mesmo quando o modo escuro também está ativo. */
 html.reloja-high-contrast .stock-catalog-card,
 html.reloja-high-contrast .stock-catalog-placeholder,
 html.reloja-high-contrast .stock-catalog-results table,
+html.reloja-high-contrast .stock-catalog-results thead,
+html.reloja-high-contrast .stock-catalog-results tbody,
+html.reloja-high-contrast .stock-catalog-results tr,
 html.reloja-high-contrast .stock-catalog-results th,
 html.reloja-high-contrast .stock-catalog-results td {
-  background: #000 !important;
-  color: #fff !important;
-  border-color: #fff !important;
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #000 !important;
+}
+
+html.reloja-high-contrast .stock-catalog-head h3,
+html.reloja-high-contrast .stock-catalog-head p,
+html.reloja-high-contrast .stock-catalog-status,
+html.reloja-high-contrast .stock-catalog-counts,
+html.reloja-high-contrast .stock-catalog-product strong,
+html.reloja-high-contrast .stock-catalog-product small {
+  color: #000 !important;
 }
 
 html.reloja-high-contrast .stock-catalog-search input,
 html.reloja-high-contrast .stock-catalog-search select {
-  background: #000 !important;
-  color: #fff !important;
-  border-color: #fff !important;
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+  color-scheme: light !important;
+}
+
+html.reloja-high-contrast .stock-catalog-search input::placeholder {
+  color: #333 !important;
+  opacity: 1;
 }
 
 html.reloja-high-contrast .stock-catalog-thumb {
   background: #fff !important;
+  border-color: #000 !important;
   filter: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+html.reloja-high-contrast .stock-catalog-badge {
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+}
+
+html.reloja-high-contrast .stock-catalog-results .admin-actions button {
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+}
+
+html.reloja-high-contrast .stock-catalog-results .admin-actions button:hover,
+html.reloja-high-contrast .stock-catalog-results .admin-actions button:focus-visible {
+  background: #000 !important;
+  color: #fff !important;
 }
