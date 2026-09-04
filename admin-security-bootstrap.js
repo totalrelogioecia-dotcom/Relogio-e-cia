@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
+const { recordAudit, recordRequestAudit, tokenPayload } = require('./admin-audit');
 
 const COOKIE_NAME = 'reloja_admin_session';
 const SESSION_MS = 8 * 60 * 60 * 1000;
@@ -103,6 +104,11 @@ function securityHeaders(res) {
   res.set('Referrer-Policy', 'same-origin');
 }
 
+function safeAudit(entry) {
+  try { recordAudit(entry); }
+  catch (error) { console.error('Falha ao registrar auditoria administrativa:', error.message); }
+}
+
 const originalExpress = express;
 if (!originalExpress.__relogioAdminSecurityPatched) {
   const wrappedExpress = function (...args) {
@@ -170,6 +176,17 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
         const token = makeToken({ role: 'admin', email: adminEmail, exp: Date.now() + SESSION_MS });
         res.setHeader('Set-Cookie', sessionCookie(req, token, SESSION_MS / 1000));
         console.log('Login administrativo autorizado', { ip });
+        safeAudit({
+          actor: adminEmail,
+          action: 'Login administrativo',
+          entity: 'sessão',
+          method: 'POST',
+          path: '/api/admin/login',
+          status_code: 200,
+          success: true,
+          ip,
+          user_agent: req.headers['user-agent']
+        });
 
         // O valor retornado ao JavaScript é apenas um marcador de compatibilidade.
         // O token real fica somente no cookie HttpOnly e não pode ser lido por scripts.
@@ -182,6 +199,19 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
 
     app.post('/api/admin/logout', originalExpress.json({ limit: '2kb' }), (req, res) => {
       securityHeaders(res);
+      const sessionToken = parseCookies(req)[COOKIE_NAME];
+      const payload = tokenPayload(sessionToken);
+      safeAudit({
+        actor: payload?.email || process.env.ADMIN_EMAIL || 'administrador',
+        action: 'Logout administrativo',
+        entity: 'sessão',
+        method: 'POST',
+        path: '/api/admin/logout',
+        status_code: 200,
+        success: true,
+        ip: clientIp(req),
+        user_agent: req.headers['user-agent']
+      });
       res.setHeader('Set-Cookie', sessionCookie(req, '', 0));
       return res.json({ ok: true });
     });
@@ -202,6 +232,7 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
       // Mantém compatibilidade com as rotas administrativas existentes,
       // que já validam Authorization no servidor. O token nunca vai ao navegador.
       req.headers.authorization = `Bearer ${token}`;
+      recordRequestAudit(req, res, token);
       return next();
     });
 
