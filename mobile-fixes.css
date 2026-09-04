@@ -2,6 +2,7 @@
 @import url('visual-polish.css');
 @import url('mobile-complete-review.css?v=1');
 @import url('mobile-catalog-timeline-fix.css?v=1');
+@import url('product-photo-favorites-fix.css?v=1');
 
 /* Evita flashes de elementos legados antes dos scripts terminarem de carregar. */
 .reloja-contrast-toggle{
