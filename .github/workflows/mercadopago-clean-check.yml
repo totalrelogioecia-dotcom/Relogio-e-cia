@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - ui-performance-favorites-admin-cleanup-2026-09-04
   pull_request:
     branches:
       - main
@@ -33,10 +34,14 @@ jobs:
           node --check admin-store-health.js
           node --check accessibility-controls.js
           node --check accessibility-panel.js
+          node --check accessibility-trigger-enhancement.js
           node --check catalog-intelligence.js
           node --check favorites.js
           node --check favorites-client.js
           node --check admin-favorites.js
+          node --check product-page-route.js
+          node --check product-page-core.js
+          node --check produto.js
           node --check product-compare.js
           node --check product-recommendations.js
           node --check site-search.js
@@ -81,6 +86,7 @@ jobs:
           node --check shipping-service.js
           node --check shipping-routes.js
           node --check admin-shipping.js
+          node --check admin-melhorenvio.js
           node --check admin-photo-order.js
           node --check catalog-technical-filters.js
           node --check produto-gallery-enhancements.js
