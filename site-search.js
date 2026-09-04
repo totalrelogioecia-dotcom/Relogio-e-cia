@@ -73,6 +73,21 @@
     button.innerHTML = '<span aria-hidden="true">⌕</span> Buscar';
     utility.prepend(button);
 
+    const navLinks = document.querySelector('.site-header .nav-links');
+    let mobileButton = document.getElementById('site-search-mobile-button');
+    if (navLinks && !mobileButton) {
+      const item = document.createElement('li');
+      item.className = 'nav-mobile-only site-search-mobile-item';
+      mobileButton = document.createElement('button');
+      mobileButton.type = 'button';
+      mobileButton.id = 'site-search-mobile-button';
+      mobileButton.className = 'site-search-mobile-button';
+      mobileButton.setAttribute('aria-label', 'Pesquisar produtos');
+      mobileButton.innerHTML = '<span aria-hidden="true">⌕</span> Buscar produtos';
+      item.appendChild(mobileButton);
+      navLinks.appendChild(item);
+    }
+
     const overlay = document.createElement('div');
     overlay.className = 'site-search-overlay';
     overlay.setAttribute('aria-hidden', 'true');
@@ -102,8 +117,20 @@
     let debounce = null;
     let lastFocus = null;
 
+    function closeMobileMenu() {
+      if (!navLinks) return;
+      navLinks.classList.remove('open');
+      const toggle = document.querySelector('.site-header .nav-toggle');
+      if (toggle) {
+        toggle.textContent = 'Mais';
+        toggle.setAttribute('aria-label', 'Abrir mais opções');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    }
+
     function openSearch() {
       lastFocus = document.activeElement;
+      closeMobileMenu();
       overlay.classList.add('open');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.classList.add('site-search-open');
@@ -163,6 +190,7 @@
     }
 
     button.addEventListener('click', openSearch);
+    mobileButton?.addEventListener('click', openSearch);
     close.addEventListener('click', closeSearch);
     overlay.addEventListener('click', event => { if (event.target === overlay) closeSearch(); });
     input.addEventListener('input', () => {
