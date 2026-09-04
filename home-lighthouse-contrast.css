@@ -1,0 +1,15 @@
+/* Ajustes de contraste apontados pelo Lighthouse na página inicial. */
+:root {
+  /* Antes: #74767D (~4,53:1 no branco). Mantém o visual, com margem maior para AA. */
+  --muted: #686A70;
+}
+
+/* O vermelho padrão da marca funciona no branco, mas não atingia 4,5:1 sobre #0D0D0D. */
+.section-black .store-cell .idx {
+  color: #F0444A !important;
+}
+
+/* Reforço explícito dos números do índice de marcas no fundo claro. */
+.brand-row .idx {
+  color: #686A70;
+}
