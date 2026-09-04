@@ -13,6 +13,15 @@
     {tab:'audit',icon:'≡',title:'Auditoria',text:'Histórico das principais ações administrativas.'}
   ];
 
+  function loadAccessibilityEnhancement(){
+    if(document.querySelector('script[data-a11y-trigger-enhancement]'))return;
+    const script=document.createElement('script');
+    script.src='accessibility-trigger-enhancement.js?v=1';
+    script.dataset.a11yTriggerEnhancement='1';
+    script.defer=true;
+    document.head.appendChild(script);
+  }
+
   function injectHubStyles(){if(document.getElementById('admin-hub-style'))return;const s=document.createElement('style');s.id='admin-hub-style';s.textContent=`
     #dashboard .admin-tabs{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
     .admin-hub{margin:0 0 30px}.admin-hub-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:15px}.admin-hub-head h2{margin:2px 0 4px;font-family:var(--font-display);font-size:1.6rem}.admin-hub-head p{margin:0;color:var(--ink-soft)}.admin-hub-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.admin-hub-card{min-height:148px;border:1px solid var(--line-strong);border-radius:0;background:var(--bg);color:var(--ink);padding:17px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:16px;cursor:pointer;transition:background .16s,color .16s,border-color .16s}.admin-hub-card:hover,.admin-hub-card:focus-visible{background:var(--ink);color:var(--bg);border-color:var(--ink)}.admin-hub-card:focus-visible{outline:3px solid var(--red);outline-offset:2px}.admin-hub-icon{font-size:1.2rem}.admin-hub-card strong{display:block;font-family:var(--font-display);font-size:1rem;margin-bottom:5px}.admin-hub-card small{display:block;line-height:1.4;color:var(--ink-soft)}.admin-hub-card:hover small,.admin-hub-card:focus-visible small{color:inherit}.admin-hub-open{font-family:var(--font-mono);font-size:.67rem;letter-spacing:.07em;text-transform:uppercase}
@@ -29,6 +38,6 @@
 
   async function loadFavorites(){const overview=document.querySelector('#tab-overview .admin-overview')||document.querySelector('#tab-overview');if(!overview||document.getElementById('admin-favorites-section'))return;const section=document.createElement('section');section.id='admin-favorites-section';section.className='dashboard-section';section.innerHTML='<div class="dashboard-loading">Carregando favoritos...</div>';overview.appendChild(section);try{const r=await fetch('/api/admin/favorites/summary',{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Não foi possível carregar favoritos.');section.innerHTML=`<div class="dashboard-section-head"><div><h3>Mais favoritados</h3><p>Interesse dos clientes medido pelos produtos salvos em suas contas.</p></div><div><strong>${Number(data.total_saves||0)}</strong><br><small>${Number(data.customers_with_favorites||0)} cliente(s) com favoritos</small></div></div>${data.top?.length?`<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Produto</th><th>Marca / referência</th><th>Preço</th><th>Favoritos</th></tr></thead><tbody>${data.top.map(i=>`<tr><td><strong>${esc(i.nome)}</strong></td><td>${esc(i.marca)}<br><small>${esc(i.sku||'—')}</small></td><td>${money(i.preco)}</td><td><strong>${Number(i.favorites||0)}</strong></td></tr>`).join('')}</tbody></table></div>`:'<div class="dashboard-empty">Ainda não há produtos favoritados.</div>'}`}catch(e){section.innerHTML=`<div class="dashboard-error">${esc(e.message)}</div>`}}
 
-  function run(){injectHubStyles();installHub();loadFavorites();const dashboard=document.getElementById('dashboard');if(dashboard)new MutationObserver(()=>{if(getComputedStyle(dashboard).display!=='none'){installHub();loadFavorites()}}).observe(dashboard,{attributes:true,attributeFilter:['style']});const tabs=document.querySelector('.admin-tabs');if(tabs)new MutationObserver(()=>installHub()).observe(tabs,{childList:true,subtree:true})}
+  function run(){loadAccessibilityEnhancement();injectHubStyles();installHub();loadFavorites();const dashboard=document.getElementById('dashboard');if(dashboard)new MutationObserver(()=>{if(getComputedStyle(dashboard).display!=='none'){installHub();loadFavorites()}}).observe(dashboard,{attributes:true,attributeFilter:['style']});const tabs=document.querySelector('.admin-tabs');if(tabs)new MutationObserver(()=>installHub()).observe(tabs,{childList:true,subtree:true})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
