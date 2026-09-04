@@ -2,6 +2,7 @@
   'use strict';
 
   const CART_KEY = 'reloja_carrinho';
+  const SESSION_KEY = 'reloja_sessao';
 
   function readCart() {
     try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
@@ -20,6 +21,15 @@
       badge.textContent = String(count);
       badge.dataset.zero = count === 0 ? '1' : '0';
     });
+  }
+
+  function updateAccountLink() {
+    const link = document.getElementById('nav-conta-link');
+    if (!link) return;
+    try {
+      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+      if (session?.nome) link.textContent = String(session.nome).split(/\s+/)[0] || 'Conta';
+    } catch {}
   }
 
   function addCurrentProduct(id, qty = 1) {
@@ -90,6 +100,7 @@
 
   const install = () => {
     updateCartBadge();
+    updateAccountLink();
     installMobileMenu();
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once:true });
