@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const { aggregate, orderContainsProduct, paidOrder } = require('../product-reviews');
 const { actionFromRequest, targetFromPath } = require('../admin-audit');
+const { isPublicStaticPath } = require('../public-static-policy');
 
 test('novos módulos JavaScript têm sintaxe válida', () => {
   [
@@ -98,4 +99,14 @@ test('segurança registra auditoria após validar a sessão administrativa', () 
   assert.ok(validation >= 0 && audit > validation);
   assert.match(security, /HttpOnly/);
   assert.match(security, /SameSite=Strict/);
+});
+
+test('somente clientes JavaScript são públicos; backend e dados novos continuam privados', () => {
+  assert.equal(isPublicStaticPath('/admin-dashboard.js'), true);
+  assert.equal(isPublicStaticPath('/product-reviews-client.js'), true);
+  assert.equal(isPublicStaticPath('/admin-audit.js'), false);
+  assert.equal(isPublicStaticPath('/admin-dashboard-data.js'), false);
+  assert.equal(isPublicStaticPath('/product-reviews.js'), false);
+  assert.equal(isPublicStaticPath('/data/admin-audit.json'), false);
+  assert.equal(isPublicStaticPath('/data/product-reviews.json'), false);
 });
