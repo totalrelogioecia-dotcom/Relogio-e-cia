@@ -21,6 +21,8 @@ const { registerOrderCancellationRoutes } = require('./order-cancellation');
 const { registerOrderShippingRoutes } = require('./order-shipping');
 const { registerInvoiceFileRoutes } = require('./invoice-files');
 const { registerAvailabilityRequestRoutes } = require('./availability-requests');
+const { registerReviewRoutes } = require('./product-reviews');
+const { registerAdminDashboardRoutes } = require('./admin-dashboard-data');
 const { queueOrderReceivedEmail } = require('./order-email');
 const { startOperationalEmailWatcher } = require('./operational-email-watcher');
 const { createCheckoutRateLimit } = require('./checkout-rate-limit');
@@ -89,6 +91,8 @@ if (!originalExpress.__relogioAuthPatched) {
     }
 
     registerAuthRoutes(app);
+    registerReviewRoutes(app, { userFromRequest });
+    registerAdminDashboardRoutes(app);
     registerInvoiceFileRoutes(app);
     registerOrderCancellationRoutes(app, { userFromRequest });
     registerOrderShippingRoutes(app);
