@@ -65,7 +65,7 @@
     if (!panel) return;
     const map = { contrast: KEYS.contrast, dark: KEYS.dark, readable: KEYS.readable, spacing: KEYS.spacing, links: KEYS.links, motion: KEYS.motion, focus: KEYS.focus, targets: KEYS.targets, guide: KEYS.guide };
     Object.entries(map).forEach(([name, key]) => { const input = panel.querySelector(`[name="${name}"]`); if (input) input.checked = bool(key); });
-    const scale = panel.querySelector('[name="scale"]'); if (scale) scale.value = String(Number(read(KEYS.scale) || 100);
+    const scale = panel.querySelector('[name="scale"]'); if (scale) scale.value = String(Number(read(KEYS.scale) || 100));
   }
   function announce(message) { if (status) { status.textContent = ''; requestAnimationFrame(() => { status.textContent = message; }); } }
   function open() { lastFocus = document.activeElement; panel.parentElement.classList.add('open'); panel.parentElement.setAttribute('aria-hidden','false'); setTimeout(() => panel.querySelector('.reloja-a11y-close')?.focus(), 20); }
