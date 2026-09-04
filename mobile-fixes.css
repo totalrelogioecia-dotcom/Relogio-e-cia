@@ -1,5 +1,6 @@
 @import url('mobile-fixes-original.css');
 @import url('visual-polish.css');
+@import url('mobile-complete-review.css?v=1');
 
 /* Evita flashes de elementos legados antes dos scripts terminarem de carregar. */
 .reloja-contrast-toggle{
