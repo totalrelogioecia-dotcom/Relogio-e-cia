@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - accessibility-search-compare-favorites-recommendations-2026-09-04
   pull_request:
     branches:
       - main
@@ -32,6 +33,14 @@ jobs:
           node --check store-health-bootstrap.js
           node --check admin-store-health.js
           node --check accessibility-controls.js
+          node --check accessibility-panel.js
+          node --check catalog-intelligence.js
+          node --check favorites.js
+          node --check favorites-client.js
+          node --check admin-favorites.js
+          node --check product-compare.js
+          node --check product-recommendations.js
+          node --check site-search.js
           node --check home-enhancements.js
           node --check home-gshock-live.js
           node --check home-watch-selector.js
