@@ -6,6 +6,7 @@ const path = require('path');
 const PUBLIC_BROWSER_SCRIPTS = new Set([
   'accessibility-controls.js',
   'accessibility-panel.js',
+  'accessibility-trigger-enhancement.js',
   'account-orders.js',
   'admin-coupons.js',
   'admin-customer-documents.js',
@@ -49,6 +50,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'pickup-checkout-bridge.js',
   'product-compare.js',
   'product-confirmation-request.js',
+  'product-page-core.js',
   'product-recommendations.js',
   'product-reviews-client.js',
   'produto-gallery-enhancements.js',
