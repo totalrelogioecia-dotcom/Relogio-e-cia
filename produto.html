@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="produto.css?v=availability-1">
+<link rel="stylesheet" href="product-ui-polish.css?v=1">
 <link rel="stylesheet" href="produto-gallery-enhancements.css?v=2">
 <link rel="stylesheet" href="product-reviews.css?v=1">
 <link rel="stylesheet" href="site-search.css">
@@ -34,7 +35,20 @@
 </header>
 
 <main id="product-page" class="product-page-shell">
-  <div class="product-loading">Carregando produto...</div>
+  <div class="product-loading-shell" aria-label="Carregando produto" aria-live="polite">
+    <div class="product-loading-skeleton" aria-hidden="true">
+      <div class="product-loading-photo"></div>
+      <div class="product-loading-copy">
+        <div class="product-loading-line short"></div>
+        <div class="product-loading-line title"></div>
+        <div class="product-loading-line medium"></div>
+        <div class="product-loading-line price"></div>
+        <div class="product-loading-line medium"></div>
+        <div class="product-loading-line"></div>
+        <div class="product-loading-line"></div>
+      </div>
+    </div>
+  </div>
 </main>
 
 <footer>
@@ -52,9 +66,9 @@
   </div>
 </footer>
 
-<script src="script.js"></script>
+<script src="product-page-core.js?v=1"></script>
 <script src="legal-footer.js"></script>
-<script src="produto.js?v=availability-1"></script>
+<script src="produto.js?v=fast-1"></script>
 <script src="product-reviews-client.js?v=1"></script>
 <script src="site-dialog.js?v=1"></script>
 <script src="product-confirmation-request.js?v=dialog-2"></script>
