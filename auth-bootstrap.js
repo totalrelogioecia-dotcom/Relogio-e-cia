@@ -9,6 +9,7 @@ const { storageStatus } = require('./persistent-store');
 const { registerShippingRoutes } = require('./shipping-routes');
 const { registerMelhorEnvioOAuthRoutes } = require('./melhorenvio-oauth-routes');
 const { registerProductDetailsRoutes } = require('./product-details-routes');
+const { registerProductPageRoute } = require('./product-page-route');
 const { registerCasioEnrichmentV2 } = require('./casio-enrichment-v2');
 const { registerImageProxy } = require('./image-proxy');
 const { registerOrientEnrichment } = require('./orient-enrichment');
@@ -57,12 +58,13 @@ if (!originalExpress.__relogioAuthPatched) {
 
     function injectExperienceScripts(html, page) {
       html = injectScript(html, 'accessibility-panel.js?v=1');
+      html = injectScript(html, 'accessibility-trigger-enhancement.js?v=1');
       if (page === 'index.html' || page === 'produtos.html' || page === 'produto.html' || page === 'conta.html') {
-        html = injectScript(html, 'favorites-client.js?v=2');
+        html = injectScript(html, 'favorites-client.js?v=3');
       }
       if (page === 'produto.html') {
-        html = injectScript(html, 'product-compare.js?v=2');
-        html = injectScript(html, 'product-recommendations.js?v=1');
+        html = injectScript(html, 'product-compare.js?v=3');
+        html = injectScript(html, 'product-recommendations.js?v=2');
       }
       return html;
     }
@@ -122,6 +124,7 @@ if (!originalExpress.__relogioAuthPatched) {
     registerAuthRoutes(app);
     registerReviewRoutes(app, { userFromRequest });
     registerFavoriteRoutes(app, { userFromRequest });
+    registerProductPageRoute(app);
     registerAdminDashboardRoutes(app);
     registerInvoiceFileRoutes(app);
     registerOrderCancellationRoutes(app, { userFromRequest });
