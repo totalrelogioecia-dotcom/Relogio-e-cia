@@ -22,6 +22,7 @@ const { registerOrderShippingRoutes } = require('./order-shipping');
 const { registerInvoiceFileRoutes } = require('./invoice-files');
 const { registerAvailabilityRequestRoutes } = require('./availability-requests');
 const { registerReviewRoutes } = require('./product-reviews');
+const { registerFavoriteRoutes } = require('./favorites');
 const { registerAdminDashboardRoutes } = require('./admin-dashboard-data');
 const { queueOrderReceivedEmail } = require('./order-email');
 const { startOperationalEmailWatcher } = require('./operational-email-watcher');
@@ -41,12 +42,43 @@ if (!originalExpress.__relogioAuthPatched) {
   const wrappedExpress = function (...args) {
     const app = originalExpress(...args);
 
+    function injectScript(html, source) {
+      const clean = String(source).split('?')[0];
+      if (html.includes(clean)) return html;
+      return html.replace('</body>', `<script src="${source}"></script>\n</body>`);
+    }
+
     function injectLegalFooterScript(html) {
       if (!html.includes('legal-footer.js')) {
         html = html.replace('</body>', '<script src="legal-footer.js"></script>\n</body>');
       }
       return html;
     }
+
+    function injectExperienceScripts(html, page) {
+      html = injectScript(html, 'accessibility-panel.js?v=1');
+      if (page === 'produto.html') {
+        html = injectScript(html, 'favorites-client.js?v=1');
+        html = injectScript(html, 'product-compare.js?v=1');
+        html = injectScript(html, 'product-recommendations.js?v=1');
+      }
+      if (page === 'conta.html') html = injectScript(html, 'favorites-client.js?v=1');
+      return html;
+    }
+
+    function serveEnhancedPage(page, req, res, next) {
+      try {
+        const file = path.join(__dirname, page);
+        let html = fs.readFileSync(file, 'utf8');
+        html = injectLegalFooterScript(html);
+        html = injectExperienceScripts(html, page);
+        res.type('html').send(html);
+      } catch (error) {
+        next(error);
+      }
+    }
+
+    app.get(['/', '/index.html'], (req, res, next) => serveEnhancedPage('index.html', req, res, next));
 
     app.get('/carrinho.html', (req, res, next) => {
       try {
@@ -62,36 +94,33 @@ if (!originalExpress.__relogioAuthPatched) {
           );
         }
         html = injectLegalFooterScript(html);
+        html = injectExperienceScripts(html, 'carrinho.html');
         res.type('html').send(html);
       } catch (error) {
         next(error);
       }
     });
 
-    const legalPages = [
+    const enhancedPages = [
       'produtos.html',
       'produto.html',
       'sobre.html',
       'conta.html',
+      'enderecos.html',
       'trocas-estornos.html',
       'politica-de-privacidade.html',
-      'termos-de-uso.html'
+      'termos-de-uso.html',
+      'pagamento.html',
+      'pagamento-pix.html'
     ];
 
-    for (const page of legalPages) {
-      app.get(`/${page}`, (req, res, next) => {
-        try {
-          const file = path.join(__dirname, page);
-          const html = injectLegalFooterScript(fs.readFileSync(file, 'utf8'));
-          res.type('html').send(html);
-        } catch (error) {
-          next(error);
-        }
-      });
+    for (const page of enhancedPages) {
+      app.get(`/${page}`, (req, res, next) => serveEnhancedPage(page, req, res, next));
     }
 
     registerAuthRoutes(app);
     registerReviewRoutes(app, { userFromRequest });
+    registerFavoriteRoutes(app, { userFromRequest });
     registerAdminDashboardRoutes(app);
     registerInvoiceFileRoutes(app);
     registerOrderCancellationRoutes(app, { userFromRequest });
