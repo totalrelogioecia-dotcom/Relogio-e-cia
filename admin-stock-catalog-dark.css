@@ -1,0 +1,115 @@
+/* Pesquisa de estoque — coerência visual com os modos escuro e alto contraste. */
+html.reloja-dark .stock-catalog-card {
+  background: #17191d !important;
+  border-color: #3a3e45 !important;
+  color: #f4f4f2 !important;
+}
+
+html.reloja-dark .stock-catalog-head h3,
+html.reloja-dark .stock-catalog-product strong,
+html.reloja-dark .stock-catalog-results th,
+html.reloja-dark .stock-catalog-results td {
+  color: #f4f4f2 !important;
+}
+
+html.reloja-dark .stock-catalog-head p,
+html.reloja-dark .stock-catalog-status,
+html.reloja-dark .stock-catalog-counts,
+html.reloja-dark .stock-catalog-product small {
+  color: #b8bcc4 !important;
+}
+
+html.reloja-dark .stock-catalog-search input,
+html.reloja-dark .stock-catalog-search select {
+  background: #0f1012 !important;
+  color: #f4f4f2 !important;
+  border-color: #4a4e55 !important;
+  color-scheme: dark;
+}
+
+html.reloja-dark .stock-catalog-search input::placeholder {
+  color: #9499a2 !important;
+  opacity: 1;
+}
+
+html.reloja-dark .stock-catalog-placeholder {
+  background: #121417 !important;
+  color: #c5c8ce !important;
+  border-color: #444850 !important;
+}
+
+html.reloja-dark .stock-catalog-results table,
+html.reloja-dark .stock-catalog-results thead,
+html.reloja-dark .stock-catalog-results tbody,
+html.reloja-dark .stock-catalog-results tr,
+html.reloja-dark .stock-catalog-results th,
+html.reloja-dark .stock-catalog-results td {
+  background: #17191d !important;
+  border-color: #343840 !important;
+}
+
+html.reloja-dark .stock-catalog-results tbody tr:nth-child(even) td {
+  background: #14161a !important;
+}
+
+/* As miniaturas mantêm fundo branco para preservar a foto original do produto. */
+html.reloja-dark .stock-catalog-thumb {
+  background: #fff !important;
+  border-color: #d7d7d7 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+html.reloja-dark .stock-catalog-badge {
+  background: #101215 !important;
+}
+
+html.reloja-dark .stock-catalog-badge.in {
+  color: #70e09c !important;
+  border-color: #3d9a63 !important;
+}
+
+html.reloja-dark .stock-catalog-badge.out {
+  color: #ff9a9a !important;
+  border-color: #a95454 !important;
+}
+
+html.reloja-dark .stock-catalog-badge.hidden {
+  color: #c7c9ce !important;
+  border-color: #686d75 !important;
+}
+
+html.reloja-dark .stock-catalog-results .admin-actions button {
+  background: #0f1012 !important;
+  color: #f4f4f2 !important;
+  border-color: #4a4e55 !important;
+}
+
+html.reloja-dark .stock-catalog-results .admin-actions button:hover,
+html.reloja-dark .stock-catalog-results .admin-actions button:focus-visible {
+  border-color: #ef2029 !important;
+  color: #fff !important;
+}
+
+html.reloja-high-contrast .stock-catalog-card,
+html.reloja-high-contrast .stock-catalog-placeholder,
+html.reloja-high-contrast .stock-catalog-results table,
+html.reloja-high-contrast .stock-catalog-results th,
+html.reloja-high-contrast .stock-catalog-results td {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+html.reloja-high-contrast .stock-catalog-search input,
+html.reloja-high-contrast .stock-catalog-search select {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+html.reloja-high-contrast .stock-catalog-thumb {
+  background: #fff !important;
+  filter: none !important;
+}
