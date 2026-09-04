@@ -66,7 +66,7 @@ test('favoritos aparecem no perfil, produto e cards do catálogo', () => {
   assert.match(client, /data-catalog-favorite/);
   assert.match(client, /MutationObserver/);
   assert.match(bootstrap, /page === 'produtos\.html'/);
-  assert.match(bootstrap, /favorites-client\.js\?v=2/);
+  assert.match(bootstrap, /favorites-client\.js\?v=3/);
 });
 
 test('Admin mantém ranking de favoritos e ganha navegação em hub', () => {
