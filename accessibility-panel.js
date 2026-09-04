@@ -29,6 +29,49 @@
   function reset(){Object.values(KEYS).forEach(remove);remove(LEGACY_LARGE_TEXT_KEY);root.style.fontSize='';['reloja-readable-font','reloja-spacious-text','reloja-underlined-links','reloja-reduce-motion','reloja-strong-focus','reloja-large-targets','reloja-reading-guide-on','reloja-high-contrast','reloja-dark','reloja-large-text'].forEach(c=>root.classList.remove(c));apply();announce('Preferências de acessibilidade restauradas.')}
   function removeLegacy(){document.querySelectorAll('.reloja-accessibility-global-rail,.reloja-accessibility-header,.reloja-accessibility-rail,.reloja-contrast-toggle').forEach(n=>n.remove())}
 
+  function ensureMainLandmark(){
+    let main=document.querySelector('main,[role=main]');
+    if(!main){
+      const header=document.querySelector('body > header');
+      const footer=document.querySelector('body > footer');
+      const content=[];
+      let node=header?header.nextElementSibling:document.body.firstElementChild;
+      while(node&&node!==footer){
+        const next=node.nextElementSibling;
+        const auxiliary=node.matches('.reloja-skip-link,.site-search-overlay,.modal-backdrop,.compare-backdrop,.reloja-reading-guide,.reloja-a11y-backdrop,[hidden]');
+        if(!['SCRIPT','STYLE','LINK'].includes(node.tagName)&&!auxiliary)content.push(node);
+        node=next;
+      }
+      if(content.length){
+        main=document.createElement('main');
+        main.id='main-content';
+        content[0].parentNode.insertBefore(main,content[0]);
+        content.forEach(item=>main.appendChild(item));
+      }
+    }
+    if(!main)return null;
+    if(!main.id)main.id='main-content';
+    if(!main.hasAttribute('tabindex'))main.setAttribute('tabindex','-1');
+    return main;
+  }
+
+  function normalizeHeadingOrder(){
+    document.querySelectorAll('footer .footer-grid h5').forEach(h=>h.setAttribute('aria-level','2'));
+    document.querySelectorAll('.store-grid .store-cell h4').forEach(h=>h.setAttribute('aria-level','3'));
+    document.querySelectorAll('.cart-summary h3,.products-layout .filters h3').forEach(h=>h.setAttribute('aria-level','2'));
+
+    let previous=0;
+    document.querySelectorAll('h1,h2,h3,h4,h5,h6,[role=heading]').forEach(heading=>{
+      if(heading.closest('[hidden],[aria-hidden="true"]')||heading.getClientRects().length===0)return;
+      const native=/^H([1-6])$/.exec(heading.tagName);
+      const declared=Number(heading.getAttribute('aria-level'))||Number(native?.[1]||0);
+      if(!declared)return;
+      const level=previous&&declared>previous+1?previous+1:declared;
+      if(level!==declared)heading.setAttribute('aria-level',String(level));
+      previous=level;
+    });
+  }
+
   function styles(){
     if(document.getElementById('reloja-accessibility-panel-style'))return;
     const s=document.createElement('style');s.id='reloja-accessibility-panel-style';s.textContent=`
@@ -50,11 +93,15 @@
 
   function install(){
     migrate();styles();removeLegacy();
-    if(!document.querySelector('.reloja-skip-link')){const skip=document.createElement('a');skip.className='reloja-skip-link';skip.href='#main-content';skip.textContent='Ir para o conteúdo principal';const main=document.querySelector('main')||document.querySelector('[role=main]');if(main&&!main.id)main.id='main-content';if(main)skip.href=`#${main.id}`;document.body.prepend(skip)}
+    const main=ensureMainLandmark();
+    normalizeHeadingOrder();
+    let skip=document.querySelector('.reloja-skip-link');
+    if(!skip){skip=document.createElement('a');skip.className='reloja-skip-link';skip.textContent='Ir para o conteúdo principal';document.body.prepend(skip)}
+    skip.href=main?`#${main.id}`:'#main-content';
     let guide=document.querySelector('.reloja-reading-guide');if(!guide){guide=document.createElement('div');guide.className='reloja-reading-guide';guide.setAttribute('aria-hidden','true');document.body.appendChild(guide)}const moveGuide=y=>{if(bool(KEYS.guide))guide.style.top=`${Math.max(0,y-17)}px`};document.addEventListener('pointermove',e=>moveGuide(e.clientY),{passive:true});document.addEventListener('focusin',e=>{if(!bool(KEYS.guide))return;const r=e.target?.getBoundingClientRect?.();if(r)moveGuide(r.top+Math.min(r.height/2,24))});
     trigger=installTrigger();
     const backdrop=document.createElement('div');backdrop.className='reloja-a11y-backdrop';backdrop.setAttribute('aria-hidden','true');backdrop.innerHTML=`<section id="reloja-a11y-panel" class="reloja-a11y-panel" role="dialog" aria-modal="true" aria-labelledby="reloja-a11y-title"><div class="reloja-a11y-head"><div><h2 id="reloja-a11y-title">Acessibilidade</h2><p>Todos os ajustes ficam reunidos aqui e salvos neste navegador.</p></div><button class="reloja-a11y-close" type="button" aria-label="Fechar painel">×</button></div><fieldset class="reloja-a11y-group"><legend>Visualização</legend><label class="reloja-a11y-row"><span>Alto contraste<small>Preto e branco com contornos reforçados.</small></span><input name="contrast" type="checkbox"></label><label class="reloja-a11y-row"><span>Modo escuro<small>Reduz a luminosidade da interface.</small></span><input name="dark" type="checkbox"></label><label class="reloja-a11y-row"><span>Tamanho do texto<small>Amplia o texto sem usar o zoom do navegador.</small></span><select name="scale"><option value="100">100%</option><option value="112.5">112%</option><option value="125">125%</option><option value="140">140%</option></select></label><label class="reloja-a11y-row"><span>Fonte de alta legibilidade<small>Usa uma família sem serifa mais simples.</small></span><input name="readable" type="checkbox"></label><label class="reloja-a11y-row"><span>Mais espaçamento<small>Aumenta linhas, letras e palavras.</small></span><input name="spacing" type="checkbox"></label><label class="reloja-a11y-row"><span>Sublinhar links<small>Facilita identificar elementos clicáveis.</small></span><input name="links" type="checkbox"></label></fieldset><fieldset class="reloja-a11y-group"><legend>Navegação e movimento</legend><label class="reloja-a11y-row"><span>Reduzir animações<small>Minimiza movimentos e transições.</small></span><input name="motion" type="checkbox"></label><label class="reloja-a11y-row"><span>Foco reforçado<small>Destaca o elemento selecionado pelo teclado.</small></span><input name="focus" type="checkbox"></label><label class="reloja-a11y-row"><span>Botões e campos maiores<small>Aumenta alvos de clique e toque.</small></span><input name="targets" type="checkbox"></label><label class="reloja-a11y-row"><span>Guia de leitura<small>Exibe uma faixa horizontal acompanhando ponteiro ou foco.</small></span><input name="guide" type="checkbox"></label></fieldset><button class="reloja-a11y-reset" type="button">Restaurar padrão</button><div class="reloja-a11y-status" aria-live="polite"></div></section>`;document.body.appendChild(backdrop);panel=backdrop.querySelector('.reloja-a11y-panel');status=panel.querySelector('.reloja-a11y-status');
-    trigger?.addEventListener('click',open);panel.querySelector('.reloja-a11y-close').addEventListener('click',close);backdrop.addEventListener('click',e=>{if(e.target===backdrop)close()});panel.querySelector('.reloja-a11y-reset').addEventListener('click',reset);panel.querySelector('[name=contrast]').addEventListener('change',e=>setContrast(e.target.checked));panel.querySelector('[name=dark]').addEventListener('change',e=>setDark(e.target.checked));['readable','spacing','links','motion','focus','targets','guide'].forEach(n=>panel.querySelector(`[name=${n}]`).addEventListener('change',e=>setBool(KEYS[n],e.target.checked)));panel.querySelector('[name=scale]').addEventListener('change',e=>{write(KEYS.scale,e.target.value);apply();announce(`Tamanho do texto: ${e.target.value}%.`)});document.addEventListener('keydown',e=>{if(e.altKey&&e.key.toLowerCase()==='a'){e.preventDefault();backdrop.classList.contains('open')?close():open()}if(e.key==='Escape'&&backdrop.classList.contains('open'))close()});new MutationObserver(removeLegacy).observe(document.body,{childList:true});apply();
+    trigger?.addEventListener('click',open);panel.querySelector('.reloja-a11y-close').addEventListener('click',close);backdrop.addEventListener('click',e=>{if(e.target===backdrop)close()});panel.querySelector('.reloja-a11y-reset').addEventListener('click',reset);panel.querySelector('[name=contrast]').addEventListener('change',e=>setContrast(e.target.checked));panel.querySelector('[name=dark]').addEventListener('change',e=>setDark(e.target.checked));['readable','spacing','links','motion','focus','targets','guide'].forEach(n=>panel.querySelector(`[name=${n}]`).addEventListener('change',e=>setBool(KEYS[n],e.target.checked)));panel.querySelector('[name=scale]').addEventListener('change',e=>{write(KEYS.scale,e.target.value);apply();announce(`Tamanho do texto: ${e.target.value}%.`)});document.addEventListener('keydown',e=>{if(e.altKey&&e.key.toLowerCase()==='a'){e.preventDefault();backdrop.classList.contains('open')?close():open()}if(e.key==='Escape'&&backdrop.classList.contains('open'))close()});new MutationObserver(()=>{removeLegacy();normalizeHeadingOrder()}).observe(document.body,{childList:true,subtree:true});apply();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

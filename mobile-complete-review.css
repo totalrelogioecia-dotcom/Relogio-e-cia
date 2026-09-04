@@ -577,7 +577,15 @@
     padding:20px 18px!important;
   }
 
-  /* Rodapé */
+  /* Rodapé e contatos: alvos confortáveis para toque e sem sobreposição. */
+  .store-cell p a,
+  .footer-grid li a,
+  .footer-contact-buttons a{
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+  }
+
   .footer-grid a,
   .footer-grid p,
   .footer-bottom{
