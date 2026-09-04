@@ -5,7 +5,6 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
-      - ui-performance-favorites-admin-cleanup-2026-09-04
   pull_request:
     branches:
       - main
