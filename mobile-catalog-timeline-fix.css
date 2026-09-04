@@ -1,0 +1,151 @@
+/* =========================================================
+   RELÓGIO E CIA — catálogo mobile em 2 colunas + timeline
+   Ajustes apenas para celular.
+   ========================================================= */
+
+@media (max-width: 640px){
+  /* Catálogo: duas colunas para reduzir a altura total da página. */
+  .product-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:1px!important;
+  }
+
+  .product-card{
+    padding:12px!important;
+    min-width:0!important;
+  }
+
+  .product-card .card-photo{
+    aspect-ratio:1/1!important;
+    margin:-12px -12px 12px!important;
+  }
+
+  .product-card .card-photo img{
+    padding:10px!important;
+  }
+
+  .product-card .card-top{
+    gap:6px!important;
+    margin-bottom:10px!important;
+  }
+
+  .product-card .brand-chip{
+    padding:4px 6px!important;
+    font-size:.58rem!important;
+    letter-spacing:.05em!important;
+  }
+
+  .product-card .cat-chip{
+    font-size:.58rem!important;
+    line-height:1.25!important;
+    text-align:right!important;
+  }
+
+  .product-card h4{
+    font-size:.88rem!important;
+    line-height:1.22!important;
+    margin:0 0 6px!important;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    min-height:3.2em;
+  }
+
+  .product-card .sku{
+    font-size:.60rem!important;
+    line-height:1.3!important;
+    margin:0 0 10px!important;
+    min-height:1.3em;
+  }
+
+  .product-card .price{
+    font-size:1rem!important;
+    margin:0 0 10px!important;
+    padding-top:10px!important;
+  }
+
+  .product-card .price small{
+    font-size:.58rem!important;
+    line-height:1.35!important;
+  }
+
+  .product-card .card-actions{
+    margin-top:auto!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:6px!important;
+  }
+
+  .product-card .card-actions .btn,
+  .product-card .btn{
+    width:100%!important;
+    min-height:40px!important;
+    padding:8px 6px!important;
+    font-size:.61rem!important;
+    line-height:1.2!important;
+    white-space:normal!important;
+    text-align:center!important;
+  }
+
+  .product-card .availability-note,
+  .product-card .availability-box,
+  .product-card .stock-note,
+  .product-card .stock-status{
+    font-size:.68rem!important;
+    line-height:1.35!important;
+    padding:9px!important;
+    margin:0 0 8px!important;
+  }
+
+  /* Mantém o coração legível sem dominar o card menor. */
+  html body .product-card .card-photo .catalog-favorite-button{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    min-height:42px!important;
+    top:7px!important;
+    right:7px!important;
+    font-size:1.28rem!important;
+  }
+
+  /* Timeline da página Sobre: remove marcadores absolutos que invadiam o texto. */
+  .timeline-scale{
+    padding-top:22px!important;
+  }
+
+  .timeline-points{
+    grid-template-columns:1fr!important;
+    gap:26px!important;
+  }
+
+  .timeline-points li{
+    padding-left:0!important;
+  }
+
+  .timeline-points li::before{
+    display:none!important;
+    content:none!important;
+  }
+
+  .timeline-points strong{
+    margin-bottom:8px!important;
+  }
+
+  .timeline-points span{
+    display:block;
+    line-height:1.55!important;
+  }
+}
+
+/* Em telas muito estreitas ou com texto ampliado, uma coluna volta a ser mais legível. */
+@media (max-width: 330px){
+  .product-grid{
+    grid-template-columns:1fr!important;
+  }
+}
+
+html.reloja-spacious-text .product-grid,
+html[style*="font-size: 140%"] .product-grid{
+  grid-template-columns:1fr!important;
+}
