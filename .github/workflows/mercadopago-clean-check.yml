@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - favorite-photo-dark-fix-2026-09-04
   pull_request:
     branches:
       - main
