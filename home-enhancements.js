@@ -7,6 +7,13 @@
 (() => {
   'use strict';
 
+  if (!document.querySelector('link[href^="home-lighthouse-contrast.css"]')) {
+    const contrastCss = document.createElement('link');
+    contrastCss.rel = 'stylesheet';
+    contrastCss.href = 'home-lighthouse-contrast.css?v=1';
+    document.head.appendChild(contrastCss);
+  }
+
   const TIME_ZONE = 'America/Sao_Paulo';
 
   function iniciarRelogioBrasilia() {
