@@ -9,9 +9,16 @@
   const PICKUP_SERVICE_ID = 'pickup';
   const PORTO_ALEGRE_CEP_MIN = 90000000;
   const PORTO_ALEGRE_CEP_MAX = 91999999;
+  const AUTO_QUOTE_DELAY_MS = 550;
   let config = { configured: false };
   let selected = null;
   let lastQuotedCartSignature = '';
+  let lastCompletedQuoteKey = '';
+  let lastObservedPostalCode = '';
+  let automaticQuoteTimer = 0;
+  let activeQuoteController = null;
+  let activeQuoteKey = '';
+  let quoteSequence = 0;
   let pickupAllowedForAddress = Boolean(window.__RELOJA_PICKUP_ALLOWED);
   let pickupAddressResolved = false;
 
@@ -32,6 +39,12 @@
 
   function cartSignature() {
     return cart().map(i => `${Number(i.id)}:${Number(i.qtd || 1)}`).sort().join('|');
+  }
+
+  function quoteKey(postalCode) {
+    const postal = digits(postalCode).slice(0, 8);
+    const signature = cartSignature();
+    return postal.length === 8 && signature ? `${postal}|${signature}` : '';
   }
 
   function subtotal() {
@@ -194,12 +207,20 @@
     const input = document.getElementById('shipping-postal-code');
     input.addEventListener('input', () => {
       input.value = formatCep(input.value);
+      const postal = digits(input.value).slice(0, 8);
+      if (lastObservedPostalCode && postal !== lastObservedPostalCode) {
+        lastCompletedQuoteKey = '';
+        cancelActiveQuote();
+      }
+      lastObservedPostalCode = postal;
       if (!pickupAddressResolved) refreshPickupAvailability();
       if (selected && !pickupSelected() && digits(input.value) !== digits(selected.postal_code)) {
         clearSelection('O CEP mudou. Calcule o frete novamente.');
       }
+      if (postal.length === 8) scheduleAutomaticQuote('address');
+      else cancelAutomaticQuote();
     });
-    document.getElementById('shipping-quote-btn').addEventListener('click', quote);
+    document.getElementById('shipping-quote-btn').addEventListener('click', () => quote({ automatic: false }));
     document.getElementById('payment-form')?.addEventListener('change', updateTotal);
     refreshPickupAvailability();
   }
@@ -240,6 +261,42 @@
     document.querySelectorAll('input[name="shipping_service"]').forEach(x => { x.checked = false; });
     if (reason) message(reason, 'info');
     updateTotal();
+  }
+
+  function cancelAutomaticQuote() {
+    if (automaticQuoteTimer) {
+      window.clearTimeout(automaticQuoteTimer);
+      automaticQuoteTimer = 0;
+    }
+  }
+
+  function cancelActiveQuote() {
+    if (activeQuoteController) {
+      activeQuoteController.abort();
+      quoteSequence += 1;
+    }
+    activeQuoteController = null;
+    activeQuoteKey = '';
+    const button = document.getElementById('shipping-quote-btn');
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Calcular entrega';
+    }
+  }
+
+  function scheduleAutomaticQuote(reason = '') {
+    cancelAutomaticQuote();
+    const postal = digits(document.getElementById('shipping-postal-code')?.value).slice(0, 8);
+    const key = quoteKey(postal);
+    if (!config.configured || !key || lastCompletedQuoteKey === key || activeQuoteKey === key) return;
+
+    if (reason === 'address') message('Endereço atualizado. Calculando as opções de entrega...', 'info');
+    if (reason === 'cart') message('Carrinho atualizado. Recalculando as opções de entrega...', 'info');
+
+    automaticQuoteTimer = window.setTimeout(() => {
+      automaticQuoteTimer = 0;
+      quote({ automatic: true });
+    }, AUTO_QUOTE_DELAY_MS);
   }
 
   function updateTotal() {
@@ -289,7 +346,8 @@
     });
   }
 
-  async function quote() {
+  async function quote({ automatic = false } = {}) {
+    cancelAutomaticQuote();
     const input = document.getElementById('shipping-postal-code');
     const button = document.getElementById('shipping-quote-btn');
     const postal = digits(input?.value).slice(0, 8);
@@ -304,18 +362,32 @@
       );
     }
 
+    const requestKey = quoteKey(postal);
+    if (automatic && requestKey && lastCompletedQuoteKey === requestKey) return;
+
+    const previousSelection = selected ? { ...selected } : null;
+    const preservePickup = automatic && pickupSelected() && pickupAllowedForAddress;
+    cancelActiveQuote();
+    const currentSequence = ++quoteSequence;
+    const controller = new AbortController();
+    activeQuoteController = controller;
+    activeQuoteKey = requestKey;
+
     button.disabled = true;
     button.textContent = 'Calculando...';
     message('Consultando transportadoras e prazos...', 'info');
     document.getElementById('shipping-options').innerHTML = '';
-    saveSelected(null);
-    setPickupVisual(false);
-    updateTotal();
+    if (!preservePickup) {
+      saveSelected(null);
+      setPickupVisual(false);
+      updateTotal();
+    }
 
     try {
       const response = await fetch('/api/shipping/quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           postal_code: postal,
           items: cart().map(i => ({ id: i.id, qtd: i.qtd }))
@@ -323,16 +395,42 @@
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Não foi possível calcular o frete.');
+      const currentPostal = document.getElementById('shipping-postal-code')?.value || '';
+      if (currentSequence !== quoteSequence || requestKey !== quoteKey(currentPostal)) return;
+
       lastQuotedCartSignature = cartSignature();
+      lastCompletedQuoteKey = requestKey;
+
+      if (!preservePickup && automatic && previousSelection && previousSelection.mode !== 'pickup' &&
+          digits(previousSelection.postal_code).slice(0, 8) === postal &&
+          previousSelection.cart_signature === cartSignature()) {
+        const refreshedSelection = (data.quotes || []).find(q => String(q.service_id) === String(previousSelection.service_id));
+        if (refreshedSelection) {
+          saveSelected({
+            ...refreshedSelection,
+            postal_code: postal,
+            cart_signature: cartSignature()
+          });
+        }
+      }
+
       renderQuotes(data.quotes, postal);
+      if (preservePickup) setPickupVisual(true);
+      updateTotal();
       const hasQuotes = Boolean(data.quotes?.length);
       const suffix = pickupAllowedForAddress ? ' ou Retirar na loja.' : '.';
       message(hasQuotes ? `Escolha uma das opções de entrega abaixo${suffix}` : (pickupAllowedForAddress ? 'Nenhum serviço encontrado. Você pode Retirar na loja.' : 'Nenhum serviço de entrega foi encontrado para este CEP.'), hasQuotes ? 'info' : 'error');
     } catch (error) {
+      if (error?.name === 'AbortError' || currentSequence !== quoteSequence) return;
+      lastCompletedQuoteKey = '';
       message(`${error.message || 'Não foi possível calcular o frete.'}${pickupAllowedForAddress ? ' Você pode escolher Retirar na loja.' : ''}`, 'error');
     } finally {
-      button.disabled = false;
-      button.textContent = 'Calcular entrega';
+      if (currentSequence === quoteSequence) {
+        activeQuoteController = null;
+        activeQuoteKey = '';
+        button.disabled = false;
+        button.textContent = 'Calcular entrega';
+      }
     }
   }
 
@@ -346,11 +444,14 @@
       if (deliveryHost) deliveryHost.hidden = !cart().length;
       if (now !== last) {
         last = now;
+        lastCompletedQuoteKey = '';
+        cancelActiveQuote();
         if (selected || lastQuotedCartSignature) {
           lastQuotedCartSignature = '';
           document.getElementById('shipping-options').innerHTML = '';
           clearSelection('O carrinho mudou. Escolha novamente a entrega ou retirada.');
         }
+        scheduleAutomaticQuote('cart');
       }
       updateTotal();
     }).observe(host, { childList: true, subtree: true, characterData: true });
@@ -425,6 +526,10 @@
   window.addEventListener('reloja:endereco-entrega', event => {
     pickupAddressResolved = Boolean(event.detail?.address_resolved);
     refreshPickupAvailability(true);
+    const postal = digits(event.detail?.address?.zip_code).slice(0, 8);
+    if (postal.length === 8) {
+      scheduleAutomaticQuote('address');
+    }
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -443,6 +548,7 @@
     } else if (selected) {
       clearSelection();
     }
+    scheduleAutomaticQuote();
 
     const subtotalEl = document.getElementById('cart-subtotal');
     const discountEl = document.getElementById('cart-desconto');
