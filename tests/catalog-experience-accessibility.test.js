@@ -36,10 +36,13 @@ test('busca inteligente usa ficha técnica e motor compartilhado', () => {
   assert.match(search, /faixa de preço|características técnicas/);
 });
 
-test('comparador fica na página de produto e limita comparação a 3 relógios', () => {
+test('comparador limita a 3 relógios e mostra miniaturas na seleção e busca', () => {
   const compare = read('product-compare.js');
   assert.match(compare, /produto\.html/);
   assert.match(compare, /selected\.length>=3/);
+  assert.match(compare, /compare-suggestion-photo/);
+  assert.match(compare, /compare-product-card/);
+  assert.match(compare, /object-fit:contain/);
   assert.match(compare, /Movimento/);
   assert.match(compare, /Resistência à água/);
   assert.match(compare, /Garantia/);
@@ -54,13 +57,27 @@ test('favoritos exigem conta e são persistidos no registro do usuário', () => 
   assert.doesNotMatch(favorites, /password_hash/);
 });
 
-test('perfil e Admin expõem favoritos nos contextos solicitados', () => {
+test('favoritos aparecem no perfil, produto e cards do catálogo', () => {
   const client = read('favorites-client.js');
-  const admin = read('admin-favorites.js');
+  const bootstrap = read('auth-bootstrap.js');
   assert.match(client, /account-favorites-section/);
   assert.match(client, /favorite-product-button/);
+  assert.match(client, /catalog-favorite-button/);
+  assert.match(client, /data-catalog-favorite/);
+  assert.match(client, /MutationObserver/);
+  assert.match(bootstrap, /page === 'produtos\.html'/);
+  assert.match(bootstrap, /favorites-client\.js\?v=2/);
+});
+
+test('Admin mantém ranking de favoritos e ganha navegação em hub', () => {
+  const admin = read('admin-favorites.js');
   assert.match(admin, /Mais favoritados/);
   assert.match(admin, /\/api\/admin\/favorites\/summary/);
+  assert.match(admin, /Central administrativa/);
+  assert.match(admin, /admin-hub-grid/);
+  assert.match(admin, /Central administrativa/);
+  assert.match(admin, /data-hub-tab/);
+  assert.match(admin, /admin-back-hub/);
 });
 
 test('recomendações são técnicas e reutilizam o mesmo motor do catálogo', () => {
@@ -82,12 +99,12 @@ test('painel avançado oferece múltiplos recursos de acessibilidade', () => {
   assert.match(panel, /aria-live/);
 });
 
-test('acessibilidade usa um único A quadrado no cabeçalho ao lado do catálogo', () => {
+test('acessibilidade usa um único A quadrado à direita do botão catálogo', () => {
   const panel = read('accessibility-panel.js');
   assert.match(panel, /position:static!important/);
   assert.match(panel, /border-radius:0/);
-  assert.match(panel, /const catalog = nav\.querySelector\('\.nav-cta'\)/);
-  assert.match(panel, /nav\.insertBefore\(button, catalog \|\| mobileToggle \|\| null\)/);
+  assert.match(panel, /insertAdjacentElement\('afterend',b\)/);
+  assert.match(panel, /\.nav-cta\{order:97\}/);
   assert.match(panel, /reloja-accessibility-global-rail/);
   assert.doesNotMatch(panel, /\.reloja-a11y-trigger\{position:fixed/);
 });
@@ -109,7 +126,7 @@ test('bootstrap não altera a ordem crítica do checkout do Mercado Pago', () =>
   assert.match(bootstrap, /accessibility-panel\.js/);
 });
 
-test('Admin recebe painel avançado e ranking agregado sem remover segurança de cookie', () => {
+test('Admin recebe hub e ranking agregado sem remover segurança de cookie', () => {
   const security = read('admin-security-bootstrap.js');
   assert.match(security, /admin-favorites\.js/);
   assert.match(security, /accessibility-panel\.js/);
