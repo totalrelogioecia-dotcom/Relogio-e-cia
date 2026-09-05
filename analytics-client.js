@@ -8,6 +8,14 @@
   let googleTagLoaded = false;
   let clarityLoaded = false;
 
+  if (!document.querySelector('link[data-relogio-cursor-theme]')) {
+    const cursorTheme = document.createElement('link');
+    cursorTheme.rel = 'stylesheet';
+    cursorTheme.href = 'cursor-theme.css?v=1';
+    cursorTheme.dataset.relogioCursorTheme = '1';
+    document.head.appendChild(cursorTheme);
+  }
+
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function gtag() {
     window.dataLayer.push(arguments);
