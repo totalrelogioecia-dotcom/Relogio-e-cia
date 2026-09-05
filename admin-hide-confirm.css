@@ -1,0 +1,25 @@
+/* Modal de confirmação para ocultar produto no Admin */
+.admin-hide-product-modal .eyebrow{margin-bottom:8px}
+.admin-hide-product-modal .admin-muted{margin:0 0 18px;line-height:1.6}
+.admin-hide-product-note{display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--red);background:var(--paper);padding:13px 15px;line-height:1.5}
+.admin-hide-product-note strong{color:var(--ink);font-family:var(--font-display)}
+.admin-hide-product-note span{color:var(--ink-soft);font-size:.9rem}
+.admin-hide-product-actions{justify-content:flex-end}
+
+html.reloja-dark .admin-hide-product-modal{background:#111;color:#f7f7f5;border-color:#f7f7f5}
+html.reloja-dark .admin-hide-product-modal .admin-muted{color:#d8d8d4}
+html.reloja-dark .admin-hide-product-note{background:#1a1a1a;border-color:#ff4a50}
+html.reloja-dark .admin-hide-product-note strong{color:#fff}
+html.reloja-dark .admin-hide-product-note span{color:#d8d8d4}
+html.reloja-dark .admin-hide-product-modal .admin-modal-close{color:#e2e2de}
+
+html.reloja-contrast .admin-hide-product-modal{background:#fff!important;color:#000!important;border:2px solid #000!important;box-shadow:none!important}
+html.reloja-contrast .admin-hide-product-modal .admin-muted,
+html.reloja-contrast .admin-hide-product-note span{color:#000!important}
+html.reloja-contrast .admin-hide-product-note{background:#fff!important;border:2px solid #000!important;border-left:6px solid #000!important}
+html.reloja-contrast .admin-hide-product-note strong{color:#000!important}
+
+@media(max-width:700px){
+  .admin-hide-product-actions{flex-direction:column}
+  .admin-hide-product-actions .btn{width:100%;justify-content:center;min-height:44px}
+}
