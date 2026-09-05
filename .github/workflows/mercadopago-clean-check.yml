@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - google-seo-shopping-2026-09-05-v3
   pull_request:
     branches:
       - main
@@ -43,6 +44,7 @@ jobs:
           node --check produto.js
           node --check product-compare.js
           node --check product-recommendations.js
+          node --check seo-routes.js
           node --check site-search.js
           node --check home-enhancements.js
           node --check home-gshock-live.js
