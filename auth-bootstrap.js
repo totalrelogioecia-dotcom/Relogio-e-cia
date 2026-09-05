@@ -58,6 +58,7 @@ if (!originalExpress.__relogioAuthPatched) {
     }
 
     function injectExperienceScripts(html, page) {
+      html = injectScript(html, 'analytics-client.js?v=2');
       html = injectScript(html, 'accessibility-panel.js?v=1');
       html = injectScript(html, 'accessibility-trigger-enhancement.js?v=1');
       if (page === 'index.html' || page === 'produtos.html' || page === 'produto.html' || page === 'conta.html') {
@@ -131,7 +132,7 @@ if (!originalExpress.__relogioAuthPatched) {
     registerAdminDashboardRoutes(app);
     registerInvoiceFileRoutes(app);
     registerOrderCancellationRoutes(app, { userFromRequest });
-    registerOrderShippingRoutes(app);
+    registerOrderShippingRoutes(app, { userFromRequest });
     registerAvailabilityRequestRoutes(app, { userFromRequest });
     registerCustomerAddressRoutes(app);
     registerCheckoutProfileRoutes(app);
