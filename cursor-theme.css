@@ -1,0 +1,39 @@
+/* Cursor de marca — discreto, apenas para dispositivos com mouse preciso. */
+@media (hover:hover) and (pointer:fine){
+  html:not(.reloja-high-contrast),
+  html:not(.reloja-high-contrast) body,
+  html:not(.reloja-high-contrast) body *{
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 2.5V21l5.1-5.15 3.3 7.4 3.3-1.48-3.26-7.3H19L3 2.5Z' fill='%23fff' stroke='%23111' stroke-width='1.6' stroke-linejoin='round'/%3E%3Crect x='3' y='2.5' width='4.1' height='4.1' fill='%23E31E24'/%3E%3C/svg%3E") 3 3, auto;
+  }
+
+  html:not(.reloja-high-contrast) a,
+  html:not(.reloja-high-contrast) button,
+  html:not(.reloja-high-contrast) [role='button'],
+  html:not(.reloja-high-contrast) summary,
+  html:not(.reloja-high-contrast) label[for],
+  html:not(.reloja-high-contrast) input[type='button'],
+  html:not(.reloja-high-contrast) input[type='submit'],
+  html:not(.reloja-high-contrast) input[type='reset'],
+  html:not(.reloja-high-contrast) input[type='checkbox'],
+  html:not(.reloja-high-contrast) input[type='radio'],
+  html:not(.reloja-high-contrast) select{
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cpath d='M3 2.5V22l5.35-5.4 3.5 7.85 3.45-1.55-3.45-7.72H20L3 2.5Z' fill='%23111' stroke='%23fff' stroke-width='1.8' stroke-linejoin='round'/%3E%3Ccircle cx='6.2' cy='5.7' r='2.7' fill='%23E31E24' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E") 3 3, pointer;
+  }
+
+  html:not(.reloja-high-contrast) input[type='text'],
+  html:not(.reloja-high-contrast) input[type='email'],
+  html:not(.reloja-high-contrast) input[type='password'],
+  html:not(.reloja-high-contrast) input[type='search'],
+  html:not(.reloja-high-contrast) input[type='tel'],
+  html:not(.reloja-high-contrast) input[type='url'],
+  html:not(.reloja-high-contrast) input[type='number'],
+  html:not(.reloja-high-contrast) textarea,
+  html:not(.reloja-high-contrast) [contenteditable='true']{
+    cursor:text;
+  }
+
+  html:not(.reloja-high-contrast) [disabled],
+  html:not(.reloja-high-contrast) [aria-disabled='true']{
+    cursor:not-allowed;
+  }
+}
