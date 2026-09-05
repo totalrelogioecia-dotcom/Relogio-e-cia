@@ -14,6 +14,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'admin-extra-tabs-navigation-fix.js',
   'admin-extra-tabs.js',
   'admin-favorites.js',
+  'admin-hide-confirm.js',
   'admin-invoice-files.js',
   'admin-melhorenvio.js',
   'admin-order-cancellation.js',
