@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - admin-hide-modal-2026-09-05-v2
   pull_request:
     branches:
       - main
@@ -87,6 +88,7 @@ jobs:
           node --check admin-shipping.js
           node --check admin-melhorenvio.js
           node --check admin-photo-order.js
+          node --check admin-hide-confirm.js
           node --check catalog-technical-filters.js
           node --check produto-gallery-enhancements.js
           node --check return-requests.js
