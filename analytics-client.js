@@ -2,9 +2,11 @@
   'use strict';
 
   const MEASUREMENT_ID = 'G-YXYDW5Y2M5';
-  const STORAGE_KEY = 'relogio_analytics_consent';
+  const CLARITY_PROJECT_ID = 'ydqjc4sykt';
+  const STORAGE_KEY = 'relogio_analytics_consent_v2';
   const VALID = new Set(['granted', 'denied']);
-  let tagLoaded = false;
+  let googleTagLoaded = false;
+  let clarityLoaded = false;
 
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function gtag() {
@@ -21,8 +23,8 @@
   }
 
   function loadGoogleTag() {
-    if (tagLoaded || document.querySelector(`script[data-ga4="${MEASUREMENT_ID}"]`)) return;
-    tagLoaded = true;
+    if (googleTagLoaded || document.querySelector(`script[data-ga4="${MEASUREMENT_ID}"]`)) return;
+    googleTagLoaded = true;
 
     const script = document.createElement('script');
     script.async = true;
@@ -38,6 +40,26 @@
     });
   }
 
+  function loadClarity() {
+    if (clarityLoaded || document.querySelector(`script[data-clarity="${CLARITY_PROJECT_ID}"]`)) return;
+    clarityLoaded = true;
+
+    window.clarity = window.clarity || function clarity() {
+      (window.clarity.q = window.clarity.q || []).push(arguments);
+    };
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.clarity.ms/tag/${encodeURIComponent(CLARITY_PROJECT_ID)}`;
+    script.dataset.clarity = CLARITY_PROJECT_ID;
+    document.head.appendChild(script);
+  }
+
+  function loadAnalyticsTools() {
+    loadGoogleTag();
+    loadClarity();
+  }
+
   function saveChoice(value) {
     try { localStorage.setItem(STORAGE_KEY, value); } catch {}
   }
@@ -50,7 +72,7 @@
     saveChoice(value);
     setConsent(value);
     removeBanner();
-    if (value === 'granted') loadGoogleTag();
+    if (value === 'granted') loadAnalyticsTools();
   }
 
   function showBanner() {
@@ -63,7 +85,7 @@
     banner.innerHTML = `
       <div class="analytics-consent-copy">
         <strong>Privacidade e cookies</strong>
-        <span>Usamos cookies de análise para melhorar sua experiência.</span>
+        <span>Usamos ferramentas de análise para melhorar sua experiência.</span>
         <a href="politica-de-privacidade.html">Política de Privacidade</a>
       </div>
       <div class="analytics-consent-actions">
@@ -115,7 +137,7 @@
   setConsent(stored === 'granted' ? 'granted' : 'denied', 'default');
 
   if (stored === 'granted') {
-    loadGoogleTag();
+    loadAnalyticsTools();
   } else if (!stored) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', showBanner, { once: true });
