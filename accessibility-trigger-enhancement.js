@@ -3,6 +3,15 @@
   if(window.__relogioAccessibilityTriggerEnhanced)return;
   window.__relogioAccessibilityTriggerEnhanced=true;
 
+  function loadAnalyticsClient(){
+    if(document.querySelector('script[data-relogio-analytics]'))return;
+    const script=document.createElement('script');
+    script.src='analytics-client.js?v=1';
+    script.defer=true;
+    script.setAttribute('data-relogio-analytics','1');
+    document.head.appendChild(script);
+  }
+
   function injectStyles(){
     if(document.getElementById('reloja-accessibility-trigger-enhancement-style'))return;
     const style=document.createElement('style');
@@ -37,6 +46,7 @@
   }
 
   function install(){
+    loadAnalyticsClient();
     injectStyles();
     if(enhance())return;
     const observer=new MutationObserver(()=>{if(enhance())observer.disconnect()});
