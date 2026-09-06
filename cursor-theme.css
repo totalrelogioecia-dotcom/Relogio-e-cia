@@ -1,20 +1,22 @@
-/* Cursor de marca — Minimal Técnico. Só em dispositivos com mouse preciso. */
+/* Cursor de marca — Minimal Técnico fiel ao mockup aprovado.
+   Só em dispositivos com mouse preciso. Alto contraste usa o cursor padrão do sistema. */
 @media (hover:hover) and (pointer:fine){
   html:not(.reloja-high-contrast),
-  html:not(.reloja-high-contrast) body{
-    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M4 3.2 19.2 15l-7.1 1.15 3.35 7.05-3.2 1.52-3.35-7.05-4.9 5.03V3.2Z' fill='%23111111' stroke='%23ffffff' stroke-width='1.35' stroke-linejoin='round'/%3E%3Ccircle cx='8.2' cy='14.7' r='2.2' fill='%23E31E24' stroke='%23ffffff' stroke-width='1.05'/%3E%3C/svg%3E") 4 4, auto;
+  html:not(.reloja-high-contrast) body,
+  html:not(.reloja-high-contrast) body *{
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='28' viewBox='0 0 26 28'%3E%3Cpath d='M3.4 2.4 18.9 14.4l-7.35 1.15 3.35 7.15-3.05 1.45-3.35-7.08-4.85 4.95L3.4 2.4Z' fill='%23111111' stroke='%23ffffff' stroke-width='1.35' stroke-linejoin='round'/%3E%3Ccircle cx='10.1' cy='17.2' r='2.45' fill='%23E31E24' stroke='%23ffffff' stroke-width='1.05'/%3E%3C/svg%3E") 3 3, auto !important;
   }
 
-  /* Texto selecionável e campos de digitação: I-beam técnico com detalhe vermelho. */
+  /* Texto e campos: I-beam fino, preto, com terminais vermelhos como na prancha. */
   html:not(.reloja-high-contrast) :where(
-    p,h1,h2,h3,h4,h5,h6,li,dt,dd,blockquote,figcaption,small,
+    p,h1,h2,h3,h4,h5,h6,li,dt,dd,blockquote,figcaption,small,span,
     input[type='text'],input[type='email'],input[type='password'],input[type='search'],
     input[type='tel'],input[type='url'],input[type='number'],textarea,[contenteditable='true']
   ){
-    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28' viewBox='0 0 24 28'%3E%3Cpath d='M9 3h6M12 3v22M9 25h6' fill='none' stroke='%23111111' stroke-width='2' stroke-linecap='square'/%3E%3Cpath d='M8 3h8M8 25h8' fill='none' stroke='%23E31E24' stroke-width='2' stroke-linecap='square'/%3E%3C/svg%3E") 12 14, text;
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='28' viewBox='0 0 20 28'%3E%3Cpath d='M7 3h6M10 3v22M7 25h6' fill='none' stroke='%23111111' stroke-width='2' stroke-linecap='square'/%3E%3Cpath d='M6.5 3h7M6.5 25h7' fill='none' stroke='%23E31E24' stroke-width='1.8' stroke-linecap='square'/%3E%3C/svg%3E") 10 14, text !important;
   }
 
-  /* Elementos interativos: mesma linguagem, com aro vermelho sutil. */
+  /* Links e botões: mesmo cursor, com um aro vermelho discreto ao redor do ponto. */
   html:not(.reloja-high-contrast) a,
   html:not(.reloja-high-contrast) button,
   html:not(.reloja-high-contrast) [role='button'],
@@ -30,11 +32,11 @@
   html:not(.reloja-high-contrast) .product-card,
   html:not(.reloja-high-contrast) [data-action],
   html:not(.reloja-high-contrast) [onclick]{
-    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cpath d='M4 3.2 20.1 15.65l-7.5 1.2 3.55 7.45-3.4 1.6-3.5-7.42-5.25 5.35V3.2Z' fill='%23111111' stroke='%23ffffff' stroke-width='1.4' stroke-linejoin='round'/%3E%3Ccircle cx='8.55' cy='15.35' r='4.1' fill='none' stroke='%23E31E24' stroke-width='1.8'/%3E%3Ccircle cx='8.55' cy='15.35' r='1.9' fill='%23E31E24' stroke='%23ffffff' stroke-width='.9'/%3E%3C/svg%3E") 4 4, pointer;
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cpath d='M3.8 2.8 20.2 15.3l-7.7 1.2 3.55 7.45-3.2 1.5-3.5-7.4-5.15 5.2L3.8 2.8Z' fill='%23111111' stroke='%23ffffff' stroke-width='1.4' stroke-linejoin='round'/%3E%3Ccircle cx='10.9' cy='18' r='4.7' fill='none' stroke='%23E31E24' stroke-width='1.65'/%3E%3Ccircle cx='10.9' cy='18' r='2.3' fill='%23E31E24' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E") 4 4, pointer !important;
   }
 
   html:not(.reloja-high-contrast) [disabled],
   html:not(.reloja-high-contrast) [aria-disabled='true']{
-    cursor:not-allowed;
+    cursor:not-allowed !important;
   }
 }
