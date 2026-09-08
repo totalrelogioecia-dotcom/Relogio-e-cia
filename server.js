@@ -6,6 +6,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const { registerStockAlertRoutes, queueStockAvailableEmails } = require('./stock-alerts');
 const { createPublicStaticGuard } = require('./public-static-policy');
+const { buildHomeCatalog } = require('./home-catalog');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -136,6 +137,11 @@ function extractCasioImages(html) {
 }
 
 app.get('/healthz', (req, res) => res.json({ ok: true }));
+
+app.get('/api/products/home', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json(buildHomeCatalog(getProducts()));
+});
 
 app.get('/api/products', (req, res) => {
   res.set('Cache-Control', 'no-store');

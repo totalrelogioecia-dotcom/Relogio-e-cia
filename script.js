@@ -354,7 +354,10 @@ let catalogoCarregamento = null;
 
 function quandoCatalogoPronto(callback) {
   if (!catalogoCarregamento) {
-    catalogoCarregamento = fetch('/api/products', { cache: 'no-store' })
+    const endpointCatalogo = document.querySelector('#marcas .brand-index')
+      ? '/api/products/home'
+      : '/api/products';
+    catalogoCarregamento = fetch(endpointCatalogo, { cache: 'no-store' })
       .then(res => {
         if (!res.ok) throw new Error(`Falha ao carregar produtos (${res.status})`);
         return res.json();
