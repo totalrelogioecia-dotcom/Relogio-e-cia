@@ -1,6 +1,6 @@
 'use strict';
 
-const DEFAULT_HOME_PRODUCTS_PER_BRAND = 4;
+const DEFAULT_HOME_PRODUCTS_PER_BRAND = 10;
 
 function normalizeKey(value) {
   return String(value || '')
@@ -20,7 +20,7 @@ function firstPhoto(product) {
 function buildHomeCatalog(products, options = {}) {
   const requestedLimit = Number(options.limitPerBrand);
   const limitPerBrand = Number.isInteger(requestedLimit) && requestedLimit > 0
-    ? Math.min(requestedLimit, 12)
+    ? Math.min(requestedLimit, DEFAULT_HOME_PRODUCTS_PER_BRAND)
     : DEFAULT_HOME_PRODUCTS_PER_BRAND;
   const counts = new Map();
   const result = [];

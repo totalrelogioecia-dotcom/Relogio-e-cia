@@ -11,7 +11,7 @@ const {
 
 test('catálogo leve da Home limita produtos por marca e mantém apenas a primeira foto', () => {
   const products = [
-    ...Array.from({ length: 6 }, (_, index) => ({
+    ...Array.from({ length: 12 }, (_, index) => ({
       id: index + 1,
       nome: `Relógio A ${index + 1}`,
       marca: 'Marca A',
@@ -53,8 +53,8 @@ test('catálogo leve da Home limita produtos por marca e mantém apenas a primei
   ];
 
   const result = buildHomeCatalog(products);
-  assert.equal(DEFAULT_HOME_PRODUCTS_PER_BRAND, 4);
-  assert.equal(result.filter(product => product.marca === 'Marca A').length, 4);
+  assert.equal(DEFAULT_HOME_PRODUCTS_PER_BRAND, 10);
+  assert.equal(result.filter(product => product.marca === 'Marca A').length, 10);
   assert.equal(result.filter(product => product.marca === 'Marca B').length, 3);
   assert.deepEqual(result[0].fotos, ['foto-1-principal']);
   assert.equal(Object.hasOwn(result[0], 'desc'), false);
