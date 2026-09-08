@@ -227,7 +227,7 @@
             <div class="brand-showcase-head">
               <div>
                 <span class="brand-showcase-kicker">Seleção ${escapeHtml(marca)}</span>
-                <strong>${produtos.length} relógio${produtos.length === 1 ? '' : 's'} no mostruário</strong>
+                <strong>Modelos em destaque</strong>
               </div>
               <div class="brand-showcase-nav">
                 <a href="produtos.html?marca=${encodeURIComponent(marca)}" class="brand-showcase-all">Ver todos</a>
