@@ -12,6 +12,7 @@ const {
   stopAccessTokenMaintenance
 } = require('./melhorenvio-auth');
 const { runProductDataMigrations } = require('./product-data-migrations');
+const { completeLaunchCatalogMetadata } = require('./catalog-completion-migration');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const USERS = path.join(DATA, 'users.json');
@@ -307,6 +308,8 @@ process.on('SIGINT', () => shutdown('SIGINT'));
     // Corrige a alteração anterior: somente os relógios que vieram do antigo
     // estoque-base recebem preço R$ 500 e passam a ficar visíveis.
     correctImportedCatalogReleaseOnce();
+    // Padroniza os metadados comerciais do catálogo sem tocar em preço, estoque ou fotos.
+    completeLaunchCatalogMetadata();
     // Medida temporária de segurança: zera o estoque atual uma única vez para
     // impedir compras enquanto frete e checkout são validados. Depois deste
     // marcador, qualquer estoque recolocado manualmente no Admin é preservado.
