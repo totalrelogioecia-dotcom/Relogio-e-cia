@@ -318,6 +318,11 @@
   color:inherit;
   text-decoration:none;
 }
+#product-grid .card-photo-link img{
+  width:min(86%, 360px);
+  height:min(86%, 320px);
+  padding:12px;
+}
 .card-photo-link:focus-visible{
   outline:3px solid var(--red);
   outline-offset:-4px;
