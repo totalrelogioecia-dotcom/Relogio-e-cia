@@ -974,6 +974,28 @@ a{ color:inherit; }
   overflow:hidden;
 }
 .product-card .card-photo img{ width:100%; height:100%; object-fit:contain; display:block; padding:24px; background:#FFFFFF; }
+
+/* Zoom discreto das fotos no catálogo: somente para mouse/trackpad. */
+#product-grid .product-card .card-photo img{
+  transform:scale(1);
+  transform-origin:center;
+  transition:transform .24s ease;
+}
+@media (hover:hover) and (pointer:fine){
+  #product-grid .product-card:hover .card-photo img,
+  #product-grid .product-card:focus-within .card-photo img{
+    transform:scale(1.04);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #product-grid .product-card .card-photo img{
+    transition:none;
+  }
+  #product-grid .product-card:hover .card-photo img,
+  #product-grid .product-card:focus-within .card-photo img{
+    transform:none;
+  }
+}
 .card-photo-placeholder{
   font-family:var(--font-mono);
   font-size:.72rem;
