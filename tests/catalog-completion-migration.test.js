@@ -33,6 +33,7 @@ test('mapa de cores cobre os 85 SKUs que estavam sem cor no catálogo', () => {
   const { migration, restore } = loadMigration(tempDir);
   try {
     assert.equal(Object.keys(migration.COLORS_BY_SKU).length, 85);
+    assert.ok(Object.values(migration.COLORS_BY_SKU).every(value => String(value).trim()));
     assert.equal(migration.COLORS_BY_SKU['F-91W-1'], 'Preto');
     assert.equal(migration.COLORS_BY_SKU['GA-B2100-1A'], 'Preto');
     assert.equal(migration.COLORS_BY_SKU['2035LWF-4P'], 'Preto / dourado');
@@ -42,7 +43,7 @@ test('mapa de cores cobre os 85 SKUs que estavam sem cor no catálogo', () => {
   }
 });
 
-test('padroniza metadados sem alterar preço, estoque, fotos ou visibilidade', () => {
+test('preenche somente campos ausentes sem alterar produto ou metadados já informados', () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'relogio-catalog-completion-'));
   const productsFile = path.join(tempDir, 'products.json');
   const detailsFile = path.join(tempDir, 'product-details.json');
@@ -89,7 +90,7 @@ test('padroniza metadados sem alterar preço, estoque, fotos ou visibilidade', (
   writeJson(productsFile, products);
   writeJson(detailsFile, {
     '68': { cor: '', garantia: '', conteudo_embalagem: '' },
-    '73': { cor: 'Cor já confirmada', garantia: '6 meses', conteudo_embalagem: 'Antigo' },
+    '73': { cor: 'Cor já confirmada', garantia: '6 meses', conteudo_embalagem: 'Conteúdo específico' },
     '999': { cor: '', garantia: '', conteudo_embalagem: '' }
   });
 
@@ -101,12 +102,12 @@ test('padroniza metadados sem alterar preço, estoque, fotos ou visibilidade', (
 
     const details = readJson(detailsFile);
     assert.equal(details['68'].cor, 'Preto');
-    assert.equal(details['68'].garantia, '12 meses');
+    assert.equal(details['68'].garantia, '1 ano');
     assert.equal(details['68'].conteudo_embalagem, 'Relógio + manual + certificado de garantia');
 
     assert.equal(details['73'].cor, 'Cor já confirmada');
-    assert.equal(details['73'].garantia, '12 meses');
-    assert.equal(details['73'].conteudo_embalagem, 'Relógio + manual + certificado de garantia');
+    assert.equal(details['73'].garantia, '6 meses');
+    assert.equal(details['73'].conteudo_embalagem, 'Conteúdo específico');
 
     assert.equal(details['999'].cor, '');
     assert.equal(details['999'].garantia, '');
@@ -120,7 +121,7 @@ test('padroniza metadados sem alterar preço, estoque, fotos ou visibilidade', (
   }
 });
 
-test('segunda execução é idempotente quando o catálogo já está padronizado', () => {
+test('segunda execução é idempotente quando o catálogo já está completo', () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'relogio-catalog-idempotent-'));
   writeJson(path.join(tempDir, 'products.json'), [{
     id: 68,
@@ -137,7 +138,7 @@ test('segunda execução é idempotente quando o catálogo já está padronizado
   writeJson(path.join(tempDir, 'product-details.json'), {
     '68': {
       cor: 'Preto',
-      garantia: '12 meses',
+      garantia: '1 ano',
       conteudo_embalagem: 'Relógio + manual + certificado de garantia'
     }
   });
