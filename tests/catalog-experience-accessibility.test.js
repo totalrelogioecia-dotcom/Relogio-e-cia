@@ -150,6 +150,7 @@ test('catálogo mostra filtros ativos, prioriza pronta-entrega e usa links reais
   assert.match(script, /class="product-title-link"/);
   assert.doesNotMatch(script, /class="cat-chip"/);
   assert.doesNotMatch(script, /class="sku">Ref\. \${p\.sku}/);
+  assert.doesNotMatch(script, /formatarPreco\(p\.preco\)\}<small>à vista no PIX<\/small>/);
   assert.match(script, /case 'pronta-entrega'/);
   assert.match(script, /renderActiveFilters/);
   assert.doesNotMatch(script, /function abrirModal/);

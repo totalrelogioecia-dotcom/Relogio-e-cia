@@ -516,7 +516,7 @@ function iniciarPaginaProdutos() {
           <span class="brand-chip">${p.marca}</span>
         </div>
         <h4><a class="product-title-link" href="${productUrl}">${p.nome}</a></h4>
-        <p class="price">${formatarPreco(p.preco)}<small>à vista no PIX</small></p>
+        <p class="price">${formatarPreco(p.preco)}</p>
         <div class="card-actions">
           <a class="btn btn-outline" href="${productUrl}">Ver detalhes</a>
           <button class="btn btn-primary" type="button" data-add-carrinho="${p.id}">Adicionar</button>
