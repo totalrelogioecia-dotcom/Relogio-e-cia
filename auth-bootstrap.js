@@ -25,7 +25,7 @@ const { registerAvailabilityRequestRoutes } = require('./availability-requests')
 const { registerReviewRoutes } = require('./product-reviews');
 const { registerFavoriteRoutes } = require('./favorites');
 const { registerAdminDashboardRoutes } = require('./admin-dashboard-data');
-const { registerSeoRoutes, enhanceProductHtml } = require('./seo-routes');
+const { registerSeoRoutes, enhanceProductHtml, enhanceCatalogHtml } = require('./seo-routes');
 const { queueOrderReceivedEmail } = require('./order-email');
 const { startOperationalEmailWatcher } = require('./operational-email-watcher');
 const { createCheckoutRateLimit } = require('./checkout-rate-limit');
@@ -76,6 +76,7 @@ if (!originalExpress.__relogioAuthPatched) {
         const file = path.join(__dirname, page);
         let html = fs.readFileSync(file, 'utf8');
         if (page === 'produto.html') html = enhanceProductHtml(req, html);
+        if (page === 'produtos.html') html = enhanceCatalogHtml(req, html);
         html = injectLegalFooterScript(html);
         html = injectExperienceScripts(html, page);
         res.type('html').send(html);
