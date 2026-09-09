@@ -5,7 +5,6 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
-      - google-product-discovery-2026-09-09
   pull_request:
     branches:
       - main
