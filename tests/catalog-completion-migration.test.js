@@ -43,7 +43,7 @@ test('mapa de cores cobre os 85 SKUs que estavam sem cor no catálogo', () => {
   }
 });
 
-test('preenche somente campos ausentes sem alterar produto ou metadados já informados', () => {
+test('padroniza garantia e conteúdo dos relógios visíveis sem alterar produto ou cor já informada', () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'relogio-catalog-completion-'));
   const productsFile = path.join(tempDir, 'products.json');
   const detailsFile = path.join(tempDir, 'product-details.json');
@@ -102,12 +102,12 @@ test('preenche somente campos ausentes sem alterar produto ou metadados já info
 
     const details = readJson(detailsFile);
     assert.equal(details['68'].cor, 'Preto');
-    assert.equal(details['68'].garantia, '1 ano');
-    assert.equal(details['68'].conteudo_embalagem, 'Relógio + manual + certificado de garantia');
+    assert.equal(details['68'].garantia, '12 meses');
+    assert.equal(details['68'].conteudo_embalagem, 'Relógio, manual de instruções e certificado de garantia.');
 
     assert.equal(details['73'].cor, 'Cor já confirmada');
-    assert.equal(details['73'].garantia, '6 meses');
-    assert.equal(details['73'].conteudo_embalagem, 'Conteúdo específico');
+    assert.equal(details['73'].garantia, '12 meses');
+    assert.equal(details['73'].conteudo_embalagem, 'Relógio, manual de instruções e certificado de garantia.');
 
     assert.equal(details['999'].cor, '');
     assert.equal(details['999'].garantia, '');
@@ -121,7 +121,7 @@ test('preenche somente campos ausentes sem alterar produto ou metadados já info
   }
 });
 
-test('segunda execução é idempotente quando o catálogo já está completo', () => {
+test('segunda execução é idempotente quando o catálogo já está padronizado', () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'relogio-catalog-idempotent-'));
   writeJson(path.join(tempDir, 'products.json'), [{
     id: 68,
@@ -138,8 +138,8 @@ test('segunda execução é idempotente quando o catálogo já está completo', 
   writeJson(path.join(tempDir, 'product-details.json'), {
     '68': {
       cor: 'Preto',
-      garantia: '1 ano',
-      conteudo_embalagem: 'Relógio + manual + certificado de garantia'
+      garantia: '12 meses',
+      conteudo_embalagem: 'Relógio, manual de instruções e certificado de garantia.'
     }
   });
 
