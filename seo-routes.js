@@ -3,6 +3,7 @@ const path = require('path');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
+const DETAILS = path.join(DATA, 'product-details.json');
 
 function readJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
@@ -44,6 +45,11 @@ function visibleProducts() {
 
 function findVisibleProduct(id) {
   return visibleProducts().find(product => Number(product.id) === Number(id)) || null;
+}
+
+function firstPhotoRaw(product) {
+  if (Array.isArray(product?.fotos)) return String(product.fotos.find(Boolean) || '').trim();
+  return String(product?.foto || '').trim();
 }
 
 function firstPhotos(product, origin) {
@@ -178,6 +184,80 @@ function enhanceCatalogHtml(req, html) {
   return output;
 }
 
+function merchantImageLink(product, origin) {
+  const raw = firstPhotoRaw(product);
+  if (!raw) return '';
+  if (/^data:image\//i.test(raw)) {
+    return `${origin}/merchant-product-image/${encodeURIComponent(product.id)}`;
+  }
+  const url = absoluteUrl(origin, raw);
+  return /^https?:\/\//i.test(url) ? url : '';
+}
+
+function decodeDataImage(raw) {
+  const match = String(raw || '').match(/^data:(image\/(?:png|jpe?g|webp|gif));base64,([a-z0-9+/=\s]+)$/i);
+  if (!match) return null;
+  try {
+    const bytes = Buffer.from(match[2].replace(/\s+/g, ''), 'base64');
+    if (!bytes.length || bytes.length > 10 * 1024 * 1024) return null;
+    const type = match[1].toLowerCase() === 'image/jpg' ? 'image/jpeg' : match[1].toLowerCase();
+    return { type, bytes };
+  } catch {
+    return null;
+  }
+}
+
+function merchantFeedXml(products, details, origin) {
+  const items = products.map(product => {
+    const id = Number(product.id);
+    const name = String(product.nome || '').trim().slice(0, 150);
+    const brand = String(product.marca || '').trim();
+    const sku = String(product.sku || '').trim().slice(0, 70);
+    const price = Number(product.preco);
+    const image = merchantImageLink(product, origin);
+    if (!Number.isFinite(id) || id <= 0 || !name || !brand || !Number.isFinite(price) || price <= 0 || !image) return '';
+
+    const detail = details && typeof details === 'object' && !Array.isArray(details)
+      ? (details[String(id)] || {})
+      : {};
+    const color = String(detail.cor || '').trim().slice(0, 100);
+    const category = String(product.categoria || 'Relógios').trim().slice(0, 100);
+    const link = `${origin}/produto.html?id=${encodeURIComponent(id)}`;
+    const availability = Math.max(0, Number(product.estoque) || 0) > 0 ? 'in_stock' : 'out_of_stock';
+    const description = productDescription(product).slice(0, 5000);
+
+    return [
+      '    <item>',
+      `      <g:id>${xmlEscape(`relogio-${id}`)}</g:id>`,
+      `      <g:title>${xmlEscape(name)}</g:title>`,
+      `      <g:description>${xmlEscape(description)}</g:description>`,
+      `      <g:link>${xmlEscape(link)}</g:link>`,
+      `      <g:image_link>${xmlEscape(image)}</g:image_link>`,
+      '      <g:condition>new</g:condition>',
+      `      <g:availability>${availability}</g:availability>`,
+      `      <g:price>${price.toFixed(2)} BRL</g:price>`,
+      `      <g:brand>${xmlEscape(brand)}</g:brand>`,
+      sku ? `      <g:mpn>${xmlEscape(sku)}</g:mpn>` : '',
+      color ? `      <g:color>${xmlEscape(color)}</g:color>` : '',
+      category ? `      <g:product_type>${xmlEscape(`${category} > ${brand}`)}</g:product_type>` : '',
+      '    </item>'
+    ].filter(Boolean).join('\n');
+  }).filter(Boolean).join('\n');
+
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">',
+    '  <channel>',
+    '    <title>Relógio e Cia — Catálogo</title>',
+    `    <link>${xmlEscape(`${origin}/`)}</link>`,
+    '    <description>Catálogo de produtos da Relógio e Cia para o Google Merchant Center.</description>',
+    items,
+    '  </channel>',
+    '</rss>',
+    ''
+  ].join('\n');
+}
+
 function registerSeoRoutes(app) {
   app.get('/robots.txt', (req, res) => {
     const origin = requestOrigin(req);
@@ -189,6 +269,26 @@ function registerSeoRoutes(app) {
       `Sitemap: ${origin}/sitemap.xml`,
       ''
     ].join('\n'));
+  });
+
+  app.get('/google-merchant-feed.xml', (req, res) => {
+    const origin = requestOrigin(req);
+    const details = readJson(DETAILS, {});
+    res.set('Cache-Control', 'public, max-age=300');
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.type('application/xml').send(merchantFeedXml(visibleProducts(), details, origin));
+  });
+
+  app.get('/merchant-product-image/:id', (req, res) => {
+    const product = findVisibleProduct(req.params.id);
+    if (!product) return res.status(404).end();
+    const raw = firstPhotoRaw(product);
+    const image = decodeDataImage(raw);
+    if (!image) return res.status(404).end();
+    res.set('Content-Type', image.type);
+    res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.set('X-Content-Type-Options', 'nosniff');
+    return res.send(image.bytes);
   });
 
   app.get('/sitemap.xml', (req, res) => {
@@ -215,6 +315,9 @@ module.exports = {
   catalogItemListJsonLd,
   enhanceProductHtml,
   enhanceCatalogHtml,
+  merchantImageLink,
+  merchantFeedXml,
+  decodeDataImage,
   registerSeoRoutes,
   visibleProducts
 };
