@@ -5,8 +5,8 @@ const DATA = path.resolve(process.env.DATA_DIR || path.join(__dirname, 'data'));
 const PRODUCTS = path.join(DATA, 'products.json');
 const DETAILS = path.join(DATA, 'product-details.json');
 
-const WARRANTY_TEXT = '1 ano';
-const PACKAGE_CONTENTS_TEXT = 'Relógio + manual + certificado de garantia';
+const WARRANTY_TEXT = '12 meses';
+const PACKAGE_CONTENTS_TEXT = 'Relógio, manual de instruções e certificado de garantia.';
 
 const COLORS_BY_SKU = Object.freeze({
   'F-91W-1': 'Preto',
@@ -138,13 +138,13 @@ function completeLaunchCatalogMetadata() {
     const next = { ...current };
     let touched = false;
 
-    if (!String(next.garantia || '').trim()) {
+    if (String(next.garantia || '').trim() !== WARRANTY_TEXT) {
       next.garantia = WARRANTY_TEXT;
       warrantyUpdated += 1;
       touched = true;
     }
 
-    if (!String(next.conteudo_embalagem || '').trim()) {
+    if (String(next.conteudo_embalagem || '').trim() !== PACKAGE_CONTENTS_TEXT) {
       next.conteudo_embalagem = PACKAGE_CONTENTS_TEXT;
       packageUpdated += 1;
       touched = true;
@@ -169,9 +169,9 @@ function completeLaunchCatalogMetadata() {
   if (!warrantyUpdated && !packageUpdated && !colorUpdated) return false;
 
   writeJson(DETAILS, details);
-  console.log('Catálogo de lançamento completado.', {
-    garantias_preenchidas: warrantyUpdated,
-    conteudos_embalagem_preenchidos: packageUpdated,
+  console.log('Catálogo de lançamento padronizado.', {
+    garantias_padronizadas: warrantyUpdated,
+    conteudos_embalagem_padronizados: packageUpdated,
     cores_preenchidas: colorUpdated,
     garantia_padrao: WARRANTY_TEXT,
     conteudo_padrao: PACKAGE_CONTENTS_TEXT
