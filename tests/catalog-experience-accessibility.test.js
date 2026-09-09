@@ -152,7 +152,7 @@ test('catálogo mostra filtros ativos, prioriza pronta-entrega e usa links reais
   assert.match(script, /renderActiveFilters/);
   assert.doesNotMatch(script, /function abrirModal/);
 
-  assert.match(filters, /content-visibility:auto/);
+  assert.doesNotMatch(filters, /content-visibility\s*:/);
   assert.match(filters, /width:min\(86%, 360px\)/);
   assert.match(filters, /height:min\(86%, 320px\)/);
   assert.match(filters, /catalog-filter-chip/);

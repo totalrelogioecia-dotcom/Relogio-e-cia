@@ -351,10 +351,3 @@
   margin:18px auto 0;
 }
 
-/* Mantém todo o catálogo navegável, evitando desenhar cards fora da tela. */
-@supports (content-visibility:auto){
-  .product-grid > .product-card{
-    content-visibility:auto;
-    contain-intrinsic-size:auto 620px;
-  }
-}
