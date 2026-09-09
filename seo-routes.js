@@ -124,6 +124,60 @@ function enhanceProductHtml(req, html) {
   return output.replace('</head>', `${seo}\n</head>`);
 }
 
+function catalogItemListJsonLd(products, origin) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Catálogo de relógios da Relógio e Cia',
+    numberOfItems: products.length,
+    itemListElement: products.map((product, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: String(product.nome || '').trim(),
+      url: `${origin}/produto.html?id=${encodeURIComponent(product.id)}`
+    }))
+  };
+}
+
+function enhanceCatalogHtml(req, html) {
+  const products = visibleProducts();
+  if (!products.length) return html;
+
+  const origin = requestOrigin(req);
+  const canonical = `${origin}/produtos.html`;
+  const jsonLd = JSON.stringify(catalogItemListJsonLd(products, origin)).replace(/</g, '\\u003c');
+  const headSeo = [
+    '<meta name="robots" content="index,follow,max-image-preview:large">',
+    `<link rel="canonical" href="${htmlEscape(canonical)}">`,
+    `<script type="application/ld+json" id="catalog-itemlist-structured-data">${jsonLd}</script>`
+  ].join('\n');
+
+  let output = html.replace('</head>', `${headSeo}\n</head>`);
+
+  const links = products.map(product => {
+    const url = `/produto.html?id=${encodeURIComponent(product.id)}`;
+    return `<li><a href="${htmlEscape(url)}">${htmlEscape(product.nome || `Produto ${product.id}`)}</a></li>`;
+  }).join('');
+  const noScriptFallback = [
+    '<noscript id="catalog-product-discovery">',
+    '<section aria-label="Catálogo de produtos">',
+    '<h2>Catálogo de produtos</h2>',
+    '<p>Ative o JavaScript para usar os filtros e recursos interativos do catálogo.</p>',
+    `<ul>${links}</ul>`,
+    '</section>',
+    '</noscript>'
+  ].join('');
+
+  const gridPattern = /<div\s+class=["']product-grid["']\s+id=["']product-grid["']\s*><\/div>/i;
+  if (gridPattern.test(output)) {
+    output = output.replace(gridPattern, `${noScriptFallback}\n$&`);
+  } else {
+    output = output.replace('</body>', `${noScriptFallback}\n</body>`);
+  }
+
+  return output;
+}
+
 function registerSeoRoutes(app) {
   app.get('/robots.txt', (req, res) => {
     const origin = requestOrigin(req);
@@ -158,7 +212,9 @@ function registerSeoRoutes(app) {
 module.exports = {
   requestOrigin,
   productJsonLd,
+  catalogItemListJsonLd,
   enhanceProductHtml,
+  enhanceCatalogHtml,
   registerSeoRoutes,
   visibleProducts
 };
