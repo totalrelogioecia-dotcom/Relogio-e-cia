@@ -5,7 +5,7 @@ const DATA = path.resolve(process.env.DATA_DIR || path.join(__dirname, 'data'));
 const PRODUCTS = path.join(DATA, 'products.json');
 const DETAILS = path.join(DATA, 'product-details.json');
 
-const WARRANTY_TEXT = '12 meses';
+const WARRANTY_TEXT = '1 ano';
 const PACKAGE_CONTENTS_TEXT = 'Relógio + manual + certificado de garantia';
 
 const COLORS_BY_SKU = Object.freeze({
@@ -138,13 +138,13 @@ function completeLaunchCatalogMetadata() {
     const next = { ...current };
     let touched = false;
 
-    if (String(next.garantia || '').trim() !== WARRANTY_TEXT) {
+    if (!String(next.garantia || '').trim()) {
       next.garantia = WARRANTY_TEXT;
       warrantyUpdated += 1;
       touched = true;
     }
 
-    if (String(next.conteudo_embalagem || '').trim() !== PACKAGE_CONTENTS_TEXT) {
+    if (!String(next.conteudo_embalagem || '').trim()) {
       next.conteudo_embalagem = PACKAGE_CONTENTS_TEXT;
       packageUpdated += 1;
       touched = true;
@@ -169,9 +169,9 @@ function completeLaunchCatalogMetadata() {
   if (!warrantyUpdated && !packageUpdated && !colorUpdated) return false;
 
   writeJson(DETAILS, details);
-  console.log('Catálogo de lançamento padronizado.', {
-    garantia_atualizada: warrantyUpdated,
-    conteudo_embalagem_atualizado: packageUpdated,
+  console.log('Catálogo de lançamento completado.', {
+    garantias_preenchidas: warrantyUpdated,
+    conteudos_embalagem_preenchidos: packageUpdated,
     cores_preenchidas: colorUpdated,
     garantia_padrao: WARRANTY_TEXT,
     conteudo_padrao: PACKAGE_CONTENTS_TEXT
