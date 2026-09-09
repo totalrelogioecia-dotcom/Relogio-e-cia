@@ -257,3 +257,99 @@
     transition:none!important;
   }
 }
+
+
+/* Resumo removível dos filtros escolhidos. */
+.catalog-active-filters{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+  margin:-4px 0 18px;
+}
+.catalog-active-filters[hidden]{
+  display:none;
+}
+.catalog-filter-chip,
+.catalog-filter-clear{
+  min-height:44px;
+  border:1px solid var(--line-strong);
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-mono);
+  font-size:.68rem;
+  letter-spacing:.04em;
+  cursor:pointer;
+}
+.catalog-filter-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  padding:8px 11px;
+}
+.catalog-filter-chip-close{
+  color:var(--red);
+  font-size:1rem;
+  line-height:1;
+}
+.catalog-filter-clear{
+  padding:8px 12px;
+  border-color:transparent;
+  color:var(--red);
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.catalog-filter-chip:hover,
+.catalog-filter-chip:focus-visible{
+  border-color:var(--red);
+}
+.catalog-filter-clear:hover,
+.catalog-filter-clear:focus-visible{
+  color:var(--ink);
+}
+
+/* Foto e nome funcionam como links comuns para a página individual. */
+.card-photo-link{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:inherit;
+  text-decoration:none;
+}
+.card-photo-link:focus-visible{
+  outline:3px solid var(--red);
+  outline-offset:-4px;
+}
+.product-title-link{
+  color:inherit;
+  text-decoration:none;
+}
+.product-title-link:hover,
+.product-title-link:focus-visible{
+  color:var(--red);
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+
+/* Estado vazio com uma saída clara para o cliente. */
+.catalog-empty-state p,
+.catalog-technical-empty span{
+  display:block;
+  max-width:48ch;
+  margin:8px auto 0;
+  color:var(--ink-soft);
+}
+.catalog-empty-reset{
+  width:auto!important;
+  margin:18px auto 0;
+}
+
+/* Mantém todo o catálogo navegável, evitando desenhar cards fora da tela. */
+@supports (content-visibility:auto){
+  .product-grid > .product-card{
+    content-visibility:auto;
+    contain-intrinsic-size:auto 620px;
+  }
+}

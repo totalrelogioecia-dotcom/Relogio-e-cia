@@ -124,13 +124,16 @@
               <div class="sort-control">
                 <label for="ordenar">Ordenar por</label>
                 <select id="ordenar">
-                  <option value="relevancia">Relevância</option>
+                  <option value="pronta-entrega">Pronta-entrega primeiro</option>
+                  <option value="relevancia">Ordem do catálogo</option>
                   <option value="preco-asc">Menor preço</option>
                   <option value="preco-desc">Maior preço</option>
                   <option value="nome-asc">Nome (A-Z)</option>
                 </select>
               </div>
             </div>
+
+            <div class="catalog-active-filters" id="catalog-active-filters" hidden aria-live="polite" aria-label="Filtros selecionados"></div>
 
             <div class="product-grid" id="product-grid"></div>
           </div>
@@ -186,18 +189,10 @@
   </div>
 </footer>
 
-<div class="modal-backdrop" id="modal-backdrop">
-  <div class="modal">
-    <button class="modal-close" aria-label="Fechar">✕</button>
-    <div id="modal-body"></div>
-  </div>
-</div>
-
 <script src="script.js"></script>
 <script src="legal-footer.js"></script>
 <script src="catalog-technical-filters.js"></script>
 <script src="catalog-mobile-filters.js?v=1"></script>
-<script src="catalog-product-links.js"></script>
 <script src="site-dialog.js?v=1"></script>
 <script src="catalog-availability.js?v=dialog-2"></script>
 <script src="site-search.js"></script>

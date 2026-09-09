@@ -133,3 +133,27 @@ test('Admin recebe hub e ranking agregado sem remover segurança de cookie', () 
   assert.match(security, /HttpOnly/);
   assert.match(security, /SameSite=Strict/);
 });
+
+test('catálogo mostra filtros ativos, prioriza pronta-entrega e usa links reais', () => {
+  const html = read('produtos.html');
+  const script = read('script.js');
+  const filters = read('catalog-filters.css');
+  const availability = read('catalog-availability.js');
+  const technical = read('catalog-technical-filters.js');
+
+  assert.match(html, /id="catalog-active-filters"/);
+  assert.match(html, /value="pronta-entrega">Pronta-entrega primeiro/);
+  assert.doesNotMatch(html, /catalog-product-links\.js/);
+  assert.doesNotMatch(html, /id="modal-backdrop"/);
+
+  assert.match(script, /class="card-photo-link"/);
+  assert.match(script, /class="product-title-link"/);
+  assert.match(script, /case 'pronta-entrega'/);
+  assert.match(script, /renderActiveFilters/);
+  assert.doesNotMatch(script, /function abrirModal/);
+
+  assert.match(filters, /content-visibility:auto/);
+  assert.match(filters, /catalog-filter-chip/);
+  assert.match(availability, /<strong>Pronta-entrega<\/strong>/);
+  assert.match(technical, /data-reset-catalog-filters/);
+});

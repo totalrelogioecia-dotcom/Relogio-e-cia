@@ -389,6 +389,9 @@ function iniciarPaginaProdutos() {
   const sortSelect = document.getElementById('ordenar');
   const resetBtn = document.getElementById('reset-filtros');
   const countEl = document.getElementById('result-count');
+  const filtersPanel = document.querySelector('.products-layout .filters');
+  const activeFiltersEl = document.getElementById('catalog-active-filters');
+  let activeFilterTargets = new Map();
 
   function getFiltros() {
     const marcas = brandInputs.filter(i => i.checked).map(i => i.value);
@@ -396,6 +399,58 @@ function iniciarPaginaProdutos() {
     const min = parseFloat(minPriceInput.value) || 0;
     const max = parseFloat(maxPriceInput.value) || Infinity;
     return { marcas, categorias, min, max, ordenar: sortSelect.value };
+  }
+
+  function filterGroupLabel(input) {
+    const legend = input.closest('fieldset')?.querySelector('legend');
+    return legend?.textContent.trim() || 'Filtro';
+  }
+
+  function renderActiveFilters() {
+    if (!filtersPanel || !activeFiltersEl) return;
+
+    const selected = Array.from(filtersPanel.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked'))
+      .map(input => ({ input, label: `${filterGroupLabel(input)}: ${input.value}` }));
+
+    if (minPriceInput.value) {
+      selected.push({ input: minPriceInput, label: `A partir de ${formatarPreco(Number(minPriceInput.value))}` });
+    }
+    if (maxPriceInput.value) {
+      selected.push({ input: maxPriceInput, label: `Até ${formatarPreco(Number(maxPriceInput.value))}` });
+    }
+
+    activeFiltersEl.replaceChildren();
+    activeFilterTargets = new Map();
+    activeFiltersEl.hidden = selected.length === 0;
+    if (!selected.length) return;
+
+    selected.forEach(({ input, label }, index) => {
+      const key = String(index);
+      activeFilterTargets.set(key, input);
+
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'catalog-filter-chip';
+      chip.dataset.filterTarget = key;
+      chip.setAttribute('aria-label', `Remover filtro ${label}`);
+
+      const text = document.createElement('span');
+      text.textContent = label;
+      const close = document.createElement('span');
+      close.className = 'catalog-filter-chip-close';
+      close.setAttribute('aria-hidden', 'true');
+      close.textContent = '×';
+
+      chip.append(text, close);
+      activeFiltersEl.appendChild(chip);
+    });
+
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'catalog-filter-clear';
+    clear.dataset.clearCatalogFilters = '1';
+    clear.textContent = 'Limpar todos';
+    activeFiltersEl.appendChild(clear);
   }
 
   function aplicarFiltros() {
@@ -409,6 +464,13 @@ function iniciarPaginaProdutos() {
     });
 
     switch (ordenar) {
+      case 'pronta-entrega':
+        resultado.sort((a, b) => {
+          const rankA = Number(a.estoque || 0) > 0 ? 0 : 1;
+          const rankB = Number(b.estoque || 0) > 0 ? 0 : 1;
+          return rankA - rankB || a.id - b.id;
+        });
+        break;
       case 'preco-asc':
         resultado.sort((a, b) => a.preco - b.preco);
         break;
@@ -430,40 +492,41 @@ function iniciarPaginaProdutos() {
 
     if (lista.length === 0) {
       grid.innerHTML = `
-        <div class="empty-state">
-          <strong>Nenhum produto encontrado</strong>
-          Tente ajustar os filtros de marca, categoria ou faixa de preço.
+        <div class="empty-state catalog-empty-state">
+          <strong>Nenhum produto combina com estes filtros</strong>
+          <p>Remova algum filtro ou limpe a seleção para voltar ao catálogo completo.</p>
+          <button class="btn btn-outline catalog-empty-reset" type="button" data-reset-catalog-filters>Limpar filtros</button>
         </div>`;
       return;
     }
 
     grid.innerHTML = lista.map(p => {
       const primeiraFoto = (p.fotos && p.fotos[0]) || p.foto;
+      const productUrl = `produto.html?id=${encodeURIComponent(p.id)}`;
       return `
-      <article class="product-card">
+      <article class="product-card" data-product-id="${p.id}">
         <div class="card-photo">
-          ${primeiraFoto
-            ? `<img src="${primeiraFoto}" alt="${p.nome}" loading="lazy" onerror="tratarErroFoto(this)">`
-            : `<span class="card-photo-placeholder">Foto em breve</span>`}
+          <a class="card-photo-link" href="${productUrl}">
+            ${primeiraFoto
+              ? `<img src="${primeiraFoto}" alt="${p.nome}" loading="lazy" onerror="tratarErroFoto(this)">`
+              : `<span class="card-photo-placeholder">Foto em breve</span>`}
+          </a>
         </div>
         <div class="card-top">
           <span class="brand-chip">${p.marca}</span>
           <span class="cat-chip">${p.categoria}</span>
         </div>
-        <h4>${p.nome}</h4>
+        <h4><a class="product-title-link" href="${productUrl}">${p.nome}</a></h4>
         <p class="sku">Ref. ${p.sku}</p>
         <p class="price">${formatarPreco(p.preco)}<small>à vista no PIX</small></p>
         <div class="card-actions">
-          <button class="btn btn-outline" type="button" data-produto="${p.id}">Ver detalhes</button>
+          <a class="btn btn-outline" href="${productUrl}">Ver detalhes</a>
           <button class="btn btn-primary" type="button" data-add-carrinho="${p.id}">Adicionar</button>
         </div>
       </article>
     `;
     }).join('');
 
-    grid.querySelectorAll('[data-produto]').forEach(btn => {
-      btn.addEventListener('click', () => abrirModal(parseInt(btn.dataset.produto, 10)));
-    });
     grid.querySelectorAll('[data-add-carrinho]').forEach(btn => {
       btn.addEventListener('click', () => {
         adicionarAoCarrinho(parseInt(btn.dataset.addCarrinho, 10));
@@ -474,72 +537,7 @@ function iniciarPaginaProdutos() {
     });
   }
 
-  /* ---------- Modal ---------- */
-  const backdrop = document.getElementById('modal-backdrop');
-  const modalBody = document.getElementById('modal-body');
-
-  function abrirModal(id) {
-    const p = PRODUTOS.find(x => x.id === id);
-    if (!p) return;
-    const fotos = (p.fotos && p.fotos.length ? p.fotos : (p.foto ? [p.foto] : []));
-    const fotoPrincipal = fotos[0];
-    const thumbs = fotos.length > 1
-      ? `<div class="modal-thumbs">${fotos.map((f, i) => `
-          <button type="button" class="${i === 0 ? 'active' : ''}" data-foto="${f}">
-            <img src="${f}" alt="${p.nome} - foto ${i + 1}" loading="lazy" onerror="this.closest('button').remove()">
-          </button>`).join('')}</div>`
-      : '';
-    modalBody.innerHTML = `
-      <div class="modal-photo" id="modal-foto-principal">
-        ${fotoPrincipal
-          ? `<img src="${fotoPrincipal}" alt="${p.nome}" loading="lazy" onerror="tratarErroFoto(this)">`
-          : `<span class="card-photo-placeholder">Foto em breve</span>`}
-      </div>
-      ${thumbs}
-      <span class="brand-chip">${p.marca}</span>
-      <h3>${p.nome}</h3>
-      <p class="price">${formatarPreco(p.preco)}</p>
-      <p class="desc">${p.desc}</p>
-      <div class="meta-row">
-        <span>Ref. ${p.sku}</span>
-        <span>${p.categoria}</span>
-      </div>
-      <div class="card-actions" style="margin:0 0 12px;">
-        <button class="btn btn-primary" type="button" id="modal-add-carrinho" style="flex:1; justify-content:center;">Adicionar ao carrinho</button>
-      </div>
-      <a class="btn btn-outline" style="width:100%; justify-content:center;"
-         href="https://wa.me/555196311864?text=${encodeURIComponent('Olá! Tenho interesse no ' + p.nome + ' (Ref. ' + p.sku + ').')}"
-         target="_blank" rel="noopener">Consultar disponibilidade</a>
-    `;
-    const btnAdd = document.getElementById('modal-add-carrinho');
-    if (btnAdd) {
-      btnAdd.addEventListener('click', () => {
-        adicionarAoCarrinho(p.id);
-        btnAdd.textContent = 'Adicionado ✓';
-        setTimeout(() => { btnAdd.textContent = 'Adicionar ao carrinho'; }, 1400);
-      });
-    }
-    modalBody.querySelectorAll('.modal-thumbs button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const principal = document.querySelector('#modal-foto-principal img');
-        if (principal) principal.src = btn.dataset.foto;
-        modalBody.querySelectorAll('.modal-thumbs button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
-    backdrop.classList.add('open');
-  }
-
-  function fecharModal() {
-    backdrop.classList.remove('open');
-  }
-
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop || e.target.closest('.modal-close')) fecharModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') fecharModal();
-  });
+  /* Os detalhes agora usam links comuns para a página individual do produto. */
 
   /* ---------- Contagem por marca/categoria nos filtros ---------- */
   function preencherContagens() {
@@ -564,12 +562,46 @@ function iniciarPaginaProdutos() {
     [...brandInputs, ...catInputs].forEach(i => i.checked = false);
     minPriceInput.value = '';
     maxPriceInput.value = '';
-    sortSelect.value = 'relevancia';
+    sortSelect.value = 'pronta-entrega';
     aplicarFiltros();
+    window.setTimeout(renderActiveFilters, 0);
   });
+
+  if (activeFiltersEl) {
+    activeFiltersEl.addEventListener('click', event => {
+      const clear = event.target.closest('[data-clear-catalog-filters]');
+      if (clear) {
+        resetBtn.click();
+        return;
+      }
+
+      const chip = event.target.closest('[data-filter-target]');
+      if (!chip) return;
+      const input = activeFilterTargets.get(chip.dataset.filterTarget);
+      if (!input) return;
+
+      if (input.matches('input[type="checkbox"], input[type="radio"]')) input.checked = false;
+      else input.value = '';
+
+      input.dispatchEvent(new Event(input.type === 'number' ? 'input' : 'change', { bubbles: true }));
+      document.getElementById('apply-filters')?.click();
+      window.setTimeout(renderActiveFilters, 0);
+    });
+  }
+
+  grid.addEventListener('click', event => {
+    if (event.target.closest('[data-reset-catalog-filters]')) resetBtn.click();
+  });
+
+  if (filtersPanel) {
+    filtersPanel.addEventListener('change', renderActiveFilters, true);
+    filtersPanel.addEventListener('input', renderActiveFilters, true);
+    new MutationObserver(renderActiveFilters).observe(filtersPanel, { childList: true, subtree: true });
+  }
 
   preencherContagens();
   aplicarFiltros();
+  renderActiveFilters();
 }
 document.addEventListener('DOMContentLoaded', () => quandoCatalogoPronto(iniciarPaginaProdutos));
 

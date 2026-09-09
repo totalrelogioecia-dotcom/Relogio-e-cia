@@ -184,9 +184,9 @@
   }
 
   function cardProductId(card) {
-    const detailButton = card.querySelector('[data-produto]');
+    const detailLink = card.querySelector('[data-produto]');
     const addButton = card.querySelector('[data-add-carrinho]');
-    return Number(detailButton?.dataset.produto || addButton?.dataset.addCarrinho || 0);
+    return Number(card.dataset.productId || detailLink?.dataset.produto || addButton?.dataset.addCarrinho || 0);
   }
 
   function ensureEmptyMessage(grid) {
@@ -197,7 +197,10 @@
     empty.id = 'catalog-technical-empty';
     empty.className = 'catalog-technical-empty';
     empty.hidden = true;
-    empty.innerHTML = '<strong>Nenhum produto encontrado</strong><span>Tente remover um dos filtros técnicos.</span>';
+    empty.innerHTML = '<strong>Nenhum produto combina com estes filtros</strong><span>Remova algum filtro ou limpe a seleção para voltar ao catálogo completo.</span><button class="btn btn-outline catalog-empty-reset" type="button" data-reset-catalog-filters>Limpar filtros</button>';
+    empty.querySelector('[data-reset-catalog-filters]')?.addEventListener('click', () => {
+      document.getElementById('reset-filtros')?.click();
+    });
     grid.insertAdjacentElement('afterend', empty);
     return empty;
   }

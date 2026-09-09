@@ -41,11 +41,12 @@
         btn.textContent=btn.dataset.confirmRequestSent==='1'?'Enviado ✓ · WhatsApp':'Solicitar confirmação';
       }else if(Number(p.estoque||0)<=0){
         btn.removeAttribute('data-confirm-request-sent');
-        note.style.display='block';note.className='catalog-availability';note.innerHTML='<strong>Indisponível</strong>Sem unidade disponível para compra agora.';
+        note.style.display='block';note.className='catalog-availability unavailable';note.innerHTML='<strong>Indisponível</strong>Sem unidade disponível para compra agora.';
         btn.disabled=true;btn.textContent='Indisponível';
       }else{
         btn.removeAttribute('data-confirm-request-sent');
-        note.style.display='none';note.textContent='';btn.disabled=false;
+        note.style.display='block';note.className='catalog-availability ready';note.innerHTML='<strong>Pronta-entrega</strong>Disponível para compra e envio.';
+        btn.disabled=false;
         if(!/adicionado/i.test(btn.textContent||''))btn.textContent='Adicionar';
       }
     });
