@@ -220,7 +220,7 @@
             <div class="brand-showcase-empty">
               <span>Mostruário ${escapeHtml(marca)}</span>
               <p>Os relógios desta marca aparecerão aqui assim que estiverem disponíveis no catálogo.</p>
-              <a class="btn btn-outline" href="produtos.html?marca=${encodeURIComponent(marca)}">Ver catálogo</a>
+              <a class="btn btn-outline" href="produtos.html?marca=${encodeURIComponent(marca)}">Ver catálogo ${escapeHtml(marca)}</a>
             </div>`;
         } else {
           painel.innerHTML = `
@@ -230,7 +230,7 @@
                 <strong>Modelos em destaque</strong>
               </div>
               <div class="brand-showcase-nav">
-                <a href="produtos.html?marca=${encodeURIComponent(marca)}" class="brand-showcase-all">Ver todos</a>
+                <a href="produtos.html?marca=${encodeURIComponent(marca)}" class="brand-showcase-all">Ver catálogo ${escapeHtml(marca)}</a>
                 <button type="button" data-carousel-prev aria-label="Voltar no carrossel ${escapeHtml(marca)}">←</button>
                 <button type="button" data-carousel-next aria-label="Avançar no carrossel ${escapeHtml(marca)}">→</button>
               </div>
@@ -245,12 +245,58 @@
         row.insertAdjacentElement('afterend', painel);
 
         const viewport = painel.querySelector('.brand-showcase-viewport');
-        painel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => {
-          viewport?.scrollBy({ left: -Math.max(280, viewport.clientWidth * 0.8), behavior: 'smooth' });
+        const botaoAnterior = painel.querySelector('[data-carousel-prev]');
+        const botaoProximo = painel.querySelector('[data-carousel-next]');
+        const comportamentoRolagem = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth';
+
+        function atualizarBotoesCarrossel() {
+          const podeRolar = Boolean(
+            viewport && viewport.scrollWidth - viewport.clientWidth > 1
+          );
+
+          [botaoAnterior, botaoProximo].forEach(botao => {
+            if (!botao) return;
+            botao.disabled = !podeRolar;
+            botao.setAttribute('aria-disabled', String(!podeRolar));
+          });
+        }
+
+        function rolarCarrosselCircular(direcao) {
+          if (!viewport) return;
+
+          const maximo = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+          atualizarBotoesCarrossel();
+          if (maximo <= 1) return;
+
+          const margem = 2;
+          const noInicio = viewport.scrollLeft <= margem;
+          const noFim = viewport.scrollLeft >= maximo - margem;
+
+          if (direcao < 0 && noInicio) {
+            viewport.scrollTo({ left: maximo, behavior: comportamentoRolagem });
+            return;
+          }
+
+          if (direcao > 0 && noFim) {
+            viewport.scrollTo({ left: 0, behavior: comportamentoRolagem });
+            return;
+          }
+
+          viewport.scrollBy({
+            left: direcao * Math.max(280, viewport.clientWidth * 0.8),
+            behavior: comportamentoRolagem
+          });
+        }
+
+        botaoAnterior?.addEventListener('click', () => {
+          rolarCarrosselCircular(-1);
         });
-        painel.querySelector('[data-carousel-next]')?.addEventListener('click', () => {
-          viewport?.scrollBy({ left: Math.max(280, viewport.clientWidth * 0.8), behavior: 'smooth' });
+        botaoProximo?.addEventListener('click', () => {
+          rolarCarrosselCircular(1);
         });
+        window.addEventListener('resize', atualizarBotoesCarrossel, { passive: true });
 
         painel.querySelectorAll('[data-home-add]').forEach(button => {
           button.addEventListener('click', () => {
@@ -283,11 +329,12 @@
           row.setAttribute('aria-expanded', 'true');
           painelAberto = painel;
           rowAberta = row;
+          window.requestAnimationFrame(atualizarBotoesCarrossel);
 
           window.setTimeout(() => {
             const top = row.getBoundingClientRect().top;
             if (top < 80 || top > window.innerHeight * 0.75) {
-              row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              row.scrollIntoView({ behavior: comportamentoRolagem, block: 'start' });
             }
           }, 80);
         });

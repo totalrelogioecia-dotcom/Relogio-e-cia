@@ -17,15 +17,26 @@ function firstPhoto(product) {
   return typeof product?.foto === 'string' ? product.foto.trim() : '';
 }
 
+function productHasStock(product) {
+  return Number(product?.estoque || 0) > 0;
+}
+
 function buildHomeCatalog(products, options = {}) {
   const requestedLimit = Number(options.limitPerBrand);
   const limitPerBrand = Number.isInteger(requestedLimit) && requestedLimit > 0
     ? Math.min(requestedLimit, DEFAULT_HOME_PRODUCTS_PER_BRAND)
     : DEFAULT_HOME_PRODUCTS_PER_BRAND;
+  const orderedProducts = (Array.isArray(products) ? products : [])
+    .map((product, index) => ({ product, index }))
+    .sort((itemA, itemB) => {
+      const stockDifference = Number(productHasStock(itemB.product))
+        - Number(productHasStock(itemA.product));
+      return stockDifference || itemA.index - itemB.index;
+    });
   const counts = new Map();
   const result = [];
 
-  for (const product of Array.isArray(products) ? products : []) {
+  for (const { product } of orderedProducts) {
     if (!product || product.ativo === false) continue;
     if (!normalizeKey(product.categoria).includes('relog')) continue;
 
