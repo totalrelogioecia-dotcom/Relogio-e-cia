@@ -514,10 +514,8 @@ function iniciarPaginaProdutos() {
         </div>
         <div class="card-top">
           <span class="brand-chip">${p.marca}</span>
-          <span class="cat-chip">${p.categoria}</span>
         </div>
         <h4><a class="product-title-link" href="${productUrl}">${p.nome}</a></h4>
-        <p class="sku">Ref. ${p.sku}</p>
         <p class="price">${formatarPreco(p.preco)}<small>à vista no PIX</small></p>
         <div class="card-actions">
           <a class="btn btn-outline" href="${productUrl}">Ver detalhes</a>

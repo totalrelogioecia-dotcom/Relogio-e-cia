@@ -18,10 +18,26 @@
   function ensureStyle(){
     if(document.getElementById('catalog-availability-style'))return;
     const s=document.createElement('style');s.id='catalog-availability-style';s.textContent=`
-      .catalog-availability{margin:0 0 12px;padding:8px 9px;border-left:2px solid var(--red);background:var(--paper);font-size:.72rem;line-height:1.4;color:var(--ink-soft)}
-      .catalog-availability strong{display:block;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-bottom:2px}
-      .catalog-availability.confirmation{border:1px solid var(--line);border-left:2px solid var(--red)}
-      .product-card [data-add-carrinho]:disabled{opacity:.45;cursor:not-allowed}`;document.head.appendChild(s);
+      .catalog-availability{width:max-content;max-width:100%;margin:0 0 12px;padding:5px 8px;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-strong);border-left:2px solid var(--red);background:var(--bg-soft);color:var(--ink);font-family:var(--font-mono);font-size:.62rem;line-height:1.3;letter-spacing:.06em;text-transform:uppercase}
+      .catalog-availability strong{font:inherit;letter-spacing:inherit;color:inherit;margin:0}
+      .catalog-availability span{padding-left:7px;border-left:1px solid var(--line);color:var(--muted);font-size:.62rem;letter-spacing:.02em;text-transform:none}
+      .product-card--ready .card-actions .btn-outline,
+      .product-card--preorder .card-actions .btn-outline,
+      .product-card--confirmation .card-actions .btn-outline{display:none}
+      .product-card--unavailable .card-actions [data-add-carrinho]{display:none}
+      .product-card [data-add-carrinho]:disabled{opacity:.55;cursor:not-allowed}`;document.head.appendChild(s);
+  }
+  function compactStatus(note,card,state,label,detail,meta){
+    const markup=`<strong>${label}</strong>${meta?`<span>${meta}</span>`:''}`;
+    card.classList.remove('product-card--ready','product-card--preorder','product-card--confirmation','product-card--unavailable');
+    card.classList.add(`product-card--${state}`);
+    if(note.dataset.availabilityState!==state||note.innerHTML!==markup){
+      note.className=`catalog-availability ${state}`;
+      note.dataset.availabilityState=state;
+      note.innerHTML=markup;
+    }
+    note.title=detail;
+    note.setAttribute('aria-label',`${label}. ${detail}`);
   }
   function decorate(){
     ensureStyle();
@@ -33,19 +49,19 @@
       btn.removeAttribute('data-confirm-availability');
       if(a.type==='sob_encomenda'){
         btn.removeAttribute('data-confirm-request-sent');
-        note.style.display='block';note.className='catalog-availability preorder';note.innerHTML=`<strong>Sob encomenda</strong>Preparação de ${a.days} dias úteis antes do transporte.`;
+        compactStatus(note,card,'preorder','Sob encomenda',`Preparação de ${a.days} dias úteis antes do transporte.`,`${a.days} dias úteis`);
         btn.disabled=false;btn.textContent='Encomendar';
       }else if(a.type==='mediante_confirmacao'){
-        note.style.display='block';note.className='catalog-availability confirmation';note.innerHTML='<strong>Pedido mediante confirmação</strong>Envie a solicitação para a loja antes do pagamento.';
+        compactStatus(note,card,'confirmation','Pedido mediante confirmação','Envie a solicitação para a loja antes do pagamento.');
         btn.disabled=false;btn.dataset.confirmAvailability='1';
-        btn.textContent=btn.dataset.confirmRequestSent==='1'?'Enviado ✓ · WhatsApp':'Solicitar confirmação';
+        btn.textContent=btn.dataset.confirmRequestSent==='1'?'Enviado ✓ · WhatsApp':'Consultar disponibilidade';
       }else if(Number(p.estoque||0)<=0){
         btn.removeAttribute('data-confirm-request-sent');
-        note.style.display='block';note.className='catalog-availability unavailable';note.innerHTML='<strong>Indisponível</strong>Sem unidade disponível para compra agora.';
+        compactStatus(note,card,'unavailable','Indisponível','Sem unidade disponível para compra agora.');
         btn.disabled=true;btn.textContent='Indisponível';
       }else{
         btn.removeAttribute('data-confirm-request-sent');
-        note.style.display='block';note.className='catalog-availability ready';note.innerHTML='<strong>Pronta-entrega</strong>Disponível para compra e envio.';
+        compactStatus(note,card,'ready','Pronta-entrega','Disponível para compra e envio.');
         btn.disabled=false;
         if(!/adicionado/i.test(btn.textContent||''))btn.textContent='Adicionar';
       }

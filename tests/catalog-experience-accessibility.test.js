@@ -148,6 +148,8 @@ test('catálogo mostra filtros ativos, prioriza pronta-entrega e usa links reais
 
   assert.match(script, /class="card-photo-link"/);
   assert.match(script, /class="product-title-link"/);
+  assert.doesNotMatch(script, /class="cat-chip"/);
+  assert.doesNotMatch(script, /class="sku">Ref\. \${p\.sku}/);
   assert.match(script, /case 'pronta-entrega'/);
   assert.match(script, /renderActiveFilters/);
   assert.doesNotMatch(script, /function abrirModal/);
@@ -156,6 +158,9 @@ test('catálogo mostra filtros ativos, prioriza pronta-entrega e usa links reais
   assert.match(filters, /width:min\(86%, 360px\)/);
   assert.match(filters, /height:min\(86%, 320px\)/);
   assert.match(filters, /catalog-filter-chip/);
-  assert.match(availability, /<strong>Pronta-entrega<\/strong>/);
+  assert.match(availability, /compactStatus\(note,card,'ready','Pronta-entrega'/);
+  assert.match(availability, /product-card--unavailable \.card-actions \[data-add-carrinho\]\{display:none\}/);
+  assert.match(availability, /product-card--confirmation \.card-actions \.btn-outline\{display:none\}/);
+  assert.match(availability, /Consultar disponibilidade/);
   assert.match(technical, /data-reset-catalog-filters/);
 });
