@@ -220,7 +220,7 @@
 
   function enhanceHomepageContact() {
     const cells = Array.from(document.querySelectorAll('.store-cell'));
-    const attendance = cells.find(cell => /atendimento/i.test(cell.querySelector('h4')?.textContent || ''));
+    const attendance = cells.find(cell => /^fale conosco$/i.test(String(cell.querySelector('h4')?.textContent || '').trim()));
     const paragraph = attendance?.querySelector('p');
     if (!paragraph || paragraph.dataset.contactChannels === '1') return;
     paragraph.dataset.contactChannels = '1';
