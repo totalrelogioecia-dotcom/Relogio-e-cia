@@ -69,9 +69,75 @@ test('feed Merchant gera RSS 2.0 com dados obrigatórios e estoque real', () => 
     assert.match(xml, /<g:availability>out_of_stock<\/g:availability>/);
     assert.match(xml, /<g:price>129\.90 BRL<\/g:price>/);
     assert.match(xml, /<g:brand>Casio<\/g:brand>/);
+    assert.match(xml, /<g:gender>unisex<\/g:gender>/);
+    assert.match(xml, /<g:age_group>adult<\/g:age_group>/);
     assert.match(xml, /<g:mpn>F-91W-1<\/g:mpn>/);
     assert.match(xml, /<g:color>Preto<\/g:color>/);
     assert.doesNotMatch(xml, /OCULTO/);
+  } finally {
+    cleanup();
+  }
+});
+
+test('feed classifica gênero por texto explícito sem adivinhar os demais modelos', () => {
+  const products = [
+    {
+      id: 1,
+      nome: 'Casio Vintage Feminino',
+      marca: 'Casio',
+      categoria: 'Relógios',
+      preco: 200,
+      sku: 'FEM-1',
+      desc: 'Relógio digital feminino.',
+      fotos: ['https://images.example.com/fem.jpg'],
+      ativo: true
+    },
+    {
+      id: 2,
+      nome: 'Relógio Masculino',
+      marca: 'Technos',
+      categoria: 'Relógios',
+      preco: 300,
+      sku: 'MASC-1',
+      desc: 'Modelo masculino clássico.',
+      fotos: ['https://images.example.com/masc.jpg'],
+      ativo: true
+    },
+    {
+      id: 3,
+      nome: 'G-Shock GA-100',
+      marca: 'G-Shock',
+      categoria: 'Relógios',
+      preco: 500,
+      sku: 'GA-100',
+      desc: 'Relógio resistente a choques.',
+      fotos: ['https://images.example.com/unisex.jpg'],
+      ativo: true
+    }
+  ];
+  const { seo, cleanup } = loadSeoModule(products);
+
+  try {
+    assert.equal(seo.merchantGender(products[0]), 'female');
+    assert.equal(seo.merchantGender(products[1]), 'male');
+    assert.equal(seo.merchantGender(products[2]), 'unisex');
+    const xml = seo.merchantFeedXml(products, {}, 'https://loja.exemplo.com');
+    assert.match(xml, /<g:id>relogio-1<\/g:id>[\s\S]*?<g:gender>female<\/g:gender>/);
+    assert.match(xml, /<g:id>relogio-2<\/g:id>[\s\S]*?<g:gender>male<\/g:gender>/);
+    assert.match(xml, /<g:id>relogio-3<\/g:id>[\s\S]*?<g:gender>unisex<\/g:gender>/);
+  } finally {
+    cleanup();
+  }
+});
+
+test('feed usa idade adulta por padrão e kids quando o produto é explicitamente infantil', () => {
+  const adult = { nome: 'Casio F-91W', desc: 'Relógio digital', categoria: 'Relógios' };
+  const kids = { nome: 'Relógio infantil', desc: 'Modelo para crianças', categoria: 'Relógios' };
+  const { seo, cleanup } = loadSeoModule([]);
+
+  try {
+    assert.equal(seo.merchantAgeGroup(adult), 'adult');
+    assert.equal(seo.merchantAgeGroup(kids), 'kids');
   } finally {
     cleanup();
   }
