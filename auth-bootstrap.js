@@ -25,7 +25,7 @@ const { registerAvailabilityRequestRoutes } = require('./availability-requests')
 const { registerReviewRoutes } = require('./product-reviews');
 const { registerFavoriteRoutes } = require('./favorites');
 const { registerAdminDashboardRoutes } = require('./admin-dashboard-data');
-const { registerSeoRoutes, enhanceProductHtml, enhanceCatalogHtml } = require('./seo-routes');
+const { registerSeoRoutes, enhanceProductHtml, enhanceCatalogHtml, enhanceInstitutionalHtml, productPageState } = require('./seo-routes');
 const { queueOrderReceivedEmail } = require('./order-email');
 const { startOperationalEmailWatcher } = require('./operational-email-watcher');
 const { createCheckoutRateLimit } = require('./checkout-rate-limit');
@@ -43,6 +43,21 @@ const originalExpress = express;
 if (!originalExpress.__relogioAuthPatched) {
   const wrappedExpress = function (...args) {
     const app = originalExpress(...args);
+
+    const privatePagePaths = new Set([
+      '/admin.html',
+      '/carrinho.html',
+      '/conta.html',
+      '/enderecos.html',
+      '/pagamento.html',
+      '/pagamento-pix.html'
+    ]);
+    app.use((req, res, next) => {
+      if (privatePagePaths.has(req.path)) {
+        res.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+      }
+      next();
+    });
 
     function injectScript(html, source) {
       const clean = String(source).split('?')[0];
@@ -75,17 +90,30 @@ if (!originalExpress.__relogioAuthPatched) {
       try {
         const file = path.join(__dirname, page);
         let html = fs.readFileSync(file, 'utf8');
-        if (page === 'produto.html') html = enhanceProductHtml(req, html);
+        let status = 200;
+        if (page === 'produto.html') {
+          const state = productPageState(req);
+          if (state.kind === 'redirect') return res.redirect(state.status, state.location);
+          status = state.status;
+          html = enhanceProductHtml(req, html);
+        }
         if (page === 'produtos.html') html = enhanceCatalogHtml(req, html);
+        if (page === 'index.html' || page === 'sobre.html') {
+          html = enhanceInstitutionalHtml(req, html, page);
+        }
         html = injectLegalFooterScript(html);
         html = injectExperienceScripts(html, page);
-        res.type('html').send(html);
+        res.status(status).type('html').send(html);
       } catch (error) {
         next(error);
       }
     }
 
-    app.get(['/', '/index.html'], (req, res, next) => serveEnhancedPage('index.html', req, res, next));
+    app.get('/index.html', (req, res) => {
+      const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+      res.redirect(301, `/${query}`);
+    });
+    app.get('/', (req, res, next) => serveEnhancedPage('index.html', req, res, next));
 
     app.get('/carrinho.html', (req, res, next) => {
       try {

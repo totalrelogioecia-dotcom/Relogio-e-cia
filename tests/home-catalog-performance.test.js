@@ -70,7 +70,8 @@ test('a Home usa a rota leve e as demais páginas preservam a rota completa', ()
   const home = fs.readFileSync(path.join(root, 'home-enhancements.js'), 'utf8');
 
   assert.match(server, /app\.get\('\/api\/products\/home'/);
-  assert.match(server, /buildHomeCatalog\(getProducts\(\)\)/);
+  assert.match(server, /buildHomeCatalog\(withPublicProductList\(getProducts\(\)\)\)/);
+  assert.match(server, /withPublicProductList\(getProducts\(\)\.filter/);
   assert.match(client, /document\.querySelector\('#marcas \.brand-index'\)/);
   assert.match(client, /\? '\/api\/products\/home'/);
   assert.match(client, /: '\/api\/products'/);

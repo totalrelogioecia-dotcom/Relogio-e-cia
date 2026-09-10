@@ -4,6 +4,7 @@ const path = require('path');
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
 const DETAILS = path.join(DATA, 'product-details.json');
+const { productPhotoSources, productImagePath } = require('./public-product-media');
 
 function readJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
@@ -48,13 +49,119 @@ function findVisibleProduct(id) {
 }
 
 function firstPhotoRaw(product) {
-  if (Array.isArray(product?.fotos)) return String(product.fotos.find(Boolean) || '').trim();
-  return String(product?.foto || '').trim();
+  return String(productPhotoSources(product)[0] || '').trim();
 }
 
 function firstPhotos(product, origin) {
-  const raw = Array.isArray(product?.fotos) ? product.fotos : [product?.foto];
-  return raw.map(value => absoluteUrl(origin, value)).filter(Boolean).slice(0, 8);
+  return productPhotoSources(product)
+    .map((value, index) => /^data:image\//i.test(value)
+      ? absoluteUrl(origin, productImagePath(product.id, index))
+      : absoluteUrl(origin, value))
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function productPageState(req) {
+  const rawId = req.query?.id;
+  if (rawId === undefined || rawId === null || String(rawId).trim() === '') {
+    return { kind: 'redirect', status: 302, location: '/produtos.html', product: null };
+  }
+
+  const id = Number(rawId);
+  if (!Number.isInteger(id) || id <= 0) {
+    return { kind: 'not-found', status: 404, product: null };
+  }
+
+  const product = findVisibleProduct(id);
+  return product
+    ? { kind: 'ok', status: 200, product }
+    : { kind: 'not-found', status: 404, product: null };
+}
+
+function institutionalJsonLd(origin) {
+  const organizationId = `${origin}/#organization`;
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': organizationId,
+        name: 'Relógio e Cia',
+        legalName: 'Albernard Comércio de Relógios Ltda.',
+        taxID: '05.583.329/0001-46',
+        url: `${origin}/`,
+        logo: `${origin}/assets/logo-relogio-cia-mark.svg`,
+        email: 'totalrelogioecia@gmail.com',
+        telephone: '+55 51 9631-1864'
+      },
+      {
+        '@type': 'Store',
+        '@id': `${origin}/#store`,
+        name: 'Relógio e Cia',
+        url: `${origin}/`,
+        image: `${origin}/assets/loja-vitrine.webp`,
+        telephone: '+55 51 9631-1864',
+        email: 'totalrelogioecia@gmail.com',
+        parentOrganization: { '@id': organizationId },
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Av. Cristóvão Colombo, 545',
+          addressLocality: 'Porto Alegre',
+          addressRegion: 'RS',
+          postalCode: '90035-153',
+          addressCountry: 'BR'
+        },
+        openingHoursSpecification: [
+          {
+            '@type': 'OpeningHoursSpecification',
+            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            opens: '10:00',
+            closes: '22:00'
+          },
+          {
+            '@type': 'OpeningHoursSpecification',
+            dayOfWeek: 'Sunday',
+            opens: '14:00',
+            closes: '20:00'
+          }
+        ]
+      }
+    ]
+  };
+}
+
+function enhanceInstitutionalHtml(req, html, page) {
+  const origin = requestOrigin(req);
+  const isHome = page === 'index.html';
+  const title = isHome
+    ? 'Relógio e Cia — Relógios e Acessórios | Technos, Casio, G-Shock, Citizen, Orient'
+    : 'Sobre nós — Relógio e Cia Relojoaria';
+  const description = isHome
+    ? 'Há mais de 20 anos vendendo relógios e acessórios das melhores marcas. Loja física e online. Technos, Casio, G-Shock, Citizen e Orient.'
+    : 'Conheça a história da Relógio e Cia: mais de 20 anos vendendo relógios e acessórios, com loja física e atendimento especializado.';
+  const canonical = isHome ? `${origin}/` : `${origin}/sobre.html`;
+  const image = `${origin}/assets/${isHome ? 'loja-vitrine.webp' : 'loja-entrada.webp'}`;
+  const jsonLd = isHome
+    ? JSON.stringify(institutionalJsonLd(origin)).replace(/</g, '\\u003c')
+    : '';
+
+  const seo = [
+    '<meta name="robots" content="index,follow,max-image-preview:large">',
+    `<link rel="canonical" href="${htmlEscape(canonical)}">`,
+    '<meta property="og:type" content="website">',
+    '<meta property="og:site_name" content="Relógio e Cia">',
+    `<meta property="og:title" content="${htmlEscape(title)}">`,
+    `<meta property="og:description" content="${htmlEscape(description)}">`,
+    `<meta property="og:url" content="${htmlEscape(canonical)}">`,
+    `<meta property="og:image" content="${htmlEscape(image)}">`,
+    '<meta name="twitter:card" content="summary_large_image">',
+    `<meta name="twitter:title" content="${htmlEscape(title)}">`,
+    `<meta name="twitter:description" content="${htmlEscape(description)}">`,
+    `<meta name="twitter:image" content="${htmlEscape(image)}">`,
+    jsonLd ? `<script type="application/ld+json" id="local-business-structured-data">${jsonLd}</script>` : ''
+  ].filter(Boolean).join('\n');
+
+  return html.replace('</head>', `${seo}\n</head>`);
 }
 
 function productDescription(product) {
@@ -124,11 +231,10 @@ function productJsonLd(product, origin) {
 }
 
 function enhanceProductHtml(req, html) {
-  const id = Number(req.query?.id);
-  if (!Number.isFinite(id) || id <= 0) return html;
-  const product = findVisibleProduct(id);
+  const state = productPageState(req);
+  const product = state.product;
   if (!product) {
-    return html.replace('</head>', '<meta name="robots" content="noindex,follow">\n</head>');
+    return html.replace('</head>', '<meta name="robots" content="noindex,nofollow,noarchive">\n</head>');
   }
 
   const origin = requestOrigin(req);
@@ -151,6 +257,10 @@ function enhanceProductHtml(req, html) {
     `<meta property="og:description" content="${htmlEscape(description)}">`,
     `<meta property="og:url" content="${htmlEscape(canonical)}">`,
     images[0] ? `<meta property="og:image" content="${htmlEscape(images[0])}">` : '',
+    '<meta name="twitter:card" content="summary_large_image">',
+    `<meta name="twitter:title" content="${htmlEscape(title)}">`,
+    `<meta name="twitter:description" content="${htmlEscape(description)}">`,
+    images[0] ? `<meta name="twitter:image" content="${htmlEscape(images[0])}">` : '',
     `<meta property="product:price:amount" content="${Math.max(0, Number(product.preco) || 0).toFixed(2)}">`,
     '<meta property="product:price:currency" content="BRL">',
     `<script type="application/ld+json" id="product-structured-data">${jsonLd}</script>`
@@ -181,9 +291,22 @@ function enhanceCatalogHtml(req, html) {
   const origin = requestOrigin(req);
   const canonical = `${origin}/produtos.html`;
   const jsonLd = JSON.stringify(catalogItemListJsonLd(products, origin)).replace(/</g, '\\u003c');
+  const title = 'Produtos — Relógio e Cia Relojoaria';
+  const description = 'Relógios e acessórios Technos, Casio, G-Shock, Citizen e Orient. Encontre o modelo ideal por marca, estilo e faixa de preço.';
+  const image = `${origin}/assets/loja-vitrine.webp`;
   const headSeo = [
     '<meta name="robots" content="index,follow,max-image-preview:large">',
     `<link rel="canonical" href="${htmlEscape(canonical)}">`,
+    '<meta property="og:type" content="website">',
+    '<meta property="og:site_name" content="Relógio e Cia">',
+    `<meta property="og:title" content="${htmlEscape(title)}">`,
+    `<meta property="og:description" content="${htmlEscape(description)}">`,
+    `<meta property="og:url" content="${htmlEscape(canonical)}">`,
+    `<meta property="og:image" content="${htmlEscape(image)}">`,
+    '<meta name="twitter:card" content="summary_large_image">',
+    `<meta name="twitter:title" content="${htmlEscape(title)}">`,
+    `<meta name="twitter:description" content="${htmlEscape(description)}">`,
+    `<meta name="twitter:image" content="${htmlEscape(image)}">`,
     `<script type="application/ld+json" id="catalog-itemlist-structured-data">${jsonLd}</script>`
   ].join('\n');
 
@@ -324,6 +447,19 @@ function registerSeoRoutes(app) {
     return res.send(image.bytes);
   });
 
+  app.get('/product-image/:id/:index', (req, res) => {
+    const product = findVisibleProduct(req.params.id);
+    const index = Number(req.params.index);
+    if (!product || !Number.isInteger(index) || index < 0) return res.status(404).end();
+    const raw = productPhotoSources(product)[index];
+    const image = decodeDataImage(raw);
+    if (!image) return res.status(404).end();
+    res.set('Content-Type', image.type);
+    res.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+    res.set('X-Content-Type-Options', 'nosniff');
+    return res.send(image.bytes);
+  });
+
   app.get('/sitemap.xml', (req, res) => {
     const origin = requestOrigin(req);
     const staticUrls = [
@@ -346,6 +482,9 @@ module.exports = {
   requestOrigin,
   productJsonLd,
   catalogItemListJsonLd,
+  institutionalJsonLd,
+  enhanceInstitutionalHtml,
+  productPageState,
   enhanceProductHtml,
   enhanceCatalogHtml,
   merchantImageLink,

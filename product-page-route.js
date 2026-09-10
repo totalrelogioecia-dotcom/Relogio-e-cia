@@ -4,6 +4,7 @@ const path = require('path');
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
 const DETAILS = path.join(DATA, 'product-details.json');
+const { withPublicProductMedia } = require('./public-product-media');
 
 function readJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
@@ -31,7 +32,7 @@ function publicRelated(product, products) {
     })
     .sort((a, b) => b.score - a.score || Number(a.item.id) - Number(b.item.id))
     .slice(0, 6)
-    .map(({ item }) => ({
+    .map(({ item }) => withPublicProductMedia({
       id: Number(item.id),
       nome: String(item.nome || ''),
       marca: String(item.marca || ''),
@@ -58,12 +59,12 @@ function registerProductPageRoute(app) {
 
     res.set('Cache-Control', 'no-store');
     res.json({
-      product: {
+      product: withPublicProductMedia({
         ...product,
         detalhes: details && typeof details === 'object' && !Array.isArray(details)
           ? (details[String(id)] || {})
           : {}
-      },
+      }),
       related: publicRelated(product, products)
     });
   });

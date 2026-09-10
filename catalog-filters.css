@@ -322,6 +322,8 @@
   width:min(86%, 360px);
   height:min(86%, 320px);
   padding:12px;
+  scale:var(--photo-normalize-scale, 1);
+  transform-origin:center;
 }
 .card-photo-link:focus-visible{
   outline:3px solid var(--red);

@@ -8,6 +8,8 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const {
   productJsonLd,
   enhanceProductHtml,
+  productPageState,
+  institutionalJsonLd,
   registerSeoRoutes,
   visibleProducts
 } = require('../seo-routes');
@@ -75,8 +77,25 @@ test('produto inexistente recebe noindex em vez de markup comercial', () => {
   const html = '<html><head><title>Produto</title></head><body></body></html>';
   const req = { query: { id: '999999999' }, protocol: 'https', get: () => 'example.com' };
   const output = enhanceProductHtml(req, html);
-  assert.match(output, /name="robots" content="noindex,follow"/);
+  assert.match(output, /name="robots" content="noindex,nofollow,noarchive"/);
   assert.doesNotMatch(output, /application\/ld\+json/);
+});
+
+test('produto sem ID redireciona ao catálogo e produto ausente responde como não encontrado', () => {
+  assert.deepEqual(
+    productPageState({ query: {} }),
+    { kind: 'redirect', status: 302, location: '/produtos.html', product: null }
+  );
+  assert.equal(productPageState({ query: { id: '999999999' } }).status, 404);
+});
+
+test('dados institucionais usam somente informações reais da loja', () => {
+  const data = institutionalJsonLd('https://example.com');
+  assert.equal(data['@context'], 'https://schema.org');
+  assert.equal(data['@graph'][0].legalName, 'Albernard Comércio de Relógios Ltda.');
+  assert.equal(data['@graph'][0].taxID, '05.583.329/0001-46');
+  assert.equal(data['@graph'][1].address.postalCode, '90035-153');
+  assert.equal(data['@graph'][1].address.addressLocality, 'Porto Alegre');
 });
 
 test('sitemap inclui somente produtos visíveis', () => {

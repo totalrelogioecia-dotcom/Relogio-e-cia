@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { registerStockAlertRoutes, queueStockAvailableEmails } = require('./stock-alerts');
 const { createPublicStaticGuard } = require('./public-static-policy');
 const { buildHomeCatalog } = require('./home-catalog');
+const { withPublicProductList } = require('./public-product-media');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -140,12 +141,12 @@ app.get('/healthz', (req, res) => res.json({ ok: true }));
 
 app.get('/api/products/home', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json(buildHomeCatalog(getProducts()));
+  res.json(buildHomeCatalog(withPublicProductList(getProducts())));
 });
 
 app.get('/api/products', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json(getProducts().filter(p => p.ativo !== false));
+  res.json(withPublicProductList(getProducts().filter(p => p.ativo !== false)));
 });
 
 // Busca oficial Casio/G-Shock por referência. Usa a página pública brasileira da Casio,
