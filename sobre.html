@@ -39,7 +39,7 @@
   .about-hero-layout{
     display:grid;
     grid-template-columns:minmax(0, 780px) minmax(280px, 360px);
-    align-items:center;
+    align-items:start;
     justify-content:start;
     gap:clamp(36px, 4vw, 72px);
     padding:0 40px 56px 36px;
@@ -68,10 +68,11 @@
   }
   .about-hero-card img{
     display:block;
-    width:100%;
-    aspect-ratio:4 / 5;
+    width:100% !important;
+    height:420px !important;
+    max-height:420px;
     object-fit:cover;
-    object-position:center 30%;
+    object-position:center 22%;
   }
   .about-hero-caption{
     display:grid;
@@ -138,6 +139,10 @@
       width:min(100%, 340px);
       justify-self:start;
     }
+    .about-hero-card img{
+      height:380px !important;
+      max-height:380px;
+    }
   }
   @media (max-width:560px){
     .store-photo-row{
@@ -147,6 +152,10 @@
     }
   }
   @media (max-width:380px){
+    .about-hero-card img{
+      height:340px !important;
+      max-height:340px;
+    }
     .about-hero-caption{
       grid-template-columns:1fr;
       gap:10px;
