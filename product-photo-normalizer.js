@@ -3,24 +3,31 @@
 
   const SELECTOR = '#marcas .home-watch-photo img, #product-grid .card-photo img';
   const watched = new WeakSet();
+  document.documentElement.dataset.photoNormalizer = 'loaded';
 
   function clamp(value, minimum, maximum) {
     return Math.min(maximum, Math.max(minimum, value));
   }
 
   function backgroundSample(pixels, size) {
-    const points = [
-      [1, 1], [size - 2, 1], [1, size - 2], [size - 2, size - 2]
-    ];
-    const total = points.reduce((sum, [x, y]) => {
-      const offset = (y * size + x) * 4;
-      sum[0] += pixels[offset];
-      sum[1] += pixels[offset + 1];
-      sum[2] += pixels[offset + 2];
-      sum[3] += pixels[offset + 3];
-      return sum;
-    }, [0, 0, 0, 0]);
-    return total.map(value => value / points.length);
+    const total = [0, 0, 0, 0];
+    let samples = 0;
+    const starts = [[0, 0], [size - 4, 0], [0, size - 4], [size - 4, size - 4]];
+
+    starts.forEach(([startX, startY]) => {
+      for (let y = startY; y < startY + 4; y += 1) {
+        for (let x = startX; x < startX + 4; x += 1) {
+          const offset = (y * size + x) * 4;
+          total[0] += pixels[offset];
+          total[1] += pixels[offset + 1];
+          total[2] += pixels[offset + 2];
+          total[3] += pixels[offset + 3];
+          samples += 1;
+        }
+      }
+    });
+
+    return total.map(value => value / Math.max(1, samples));
   }
 
   function contentBounds(pixels, size, background) {
@@ -57,7 +64,7 @@
     if (count < 40) return null;
     const trim = Math.max(1, Math.floor(count * 0.006));
 
-    function quantileBoundary(counts, reverse = false) {
+    function boundary(counts, reverse = false) {
       let accumulated = 0;
       if (reverse) {
         for (let index = counts.length - 1; index >= 0; index -= 1) {
@@ -74,11 +81,16 @@
     }
 
     return {
-      left: quantileBoundary(xCounts),
-      right: quantileBoundary(xCounts, true),
-      top: quantileBoundary(yCounts),
-      bottom: quantileBoundary(yCounts, true)
+      left: boundary(xCounts),
+      right: boundary(xCounts, true),
+      top: boundary(yCounts),
+      bottom: boundary(yCounts, true)
     };
+  }
+
+  function setScale(image, scale, state) {
+    image.style.setProperty('--photo-normalize-scale', Number(scale).toFixed(3));
+    image.dataset.photoNormalized = state;
   }
 
   function normalizePhoto(image) {
@@ -90,38 +102,51 @@
       canvas.width = size;
       canvas.height = size;
       const context = canvas.getContext('2d', { willReadFrequently: true });
-      if (!context) return;
+      if (!context) {
+        setScale(image, 1, 'fallback');
+        return;
+      }
 
       context.clearRect(0, 0, size, size);
       context.drawImage(image, 0, 0, size, size);
       const pixels = context.getImageData(0, 0, size, size).data;
       const bounds = contentBounds(pixels, size, backgroundSample(pixels, size));
-      if (!bounds) return;
+      if (!bounds) {
+        setScale(image, 1, 'fallback');
+        return;
+      }
 
       const occupied = Math.max(
         (bounds.right - bounds.left + 1) / size,
         (bounds.bottom - bounds.top + 1) / size
       );
-      if (!Number.isFinite(occupied) || occupied < 0.12) return;
+      if (!Number.isFinite(occupied) || occupied < 0.12) {
+        setScale(image, 1, 'fallback');
+        return;
+      }
 
       const isHome = Boolean(image.closest('#marcas'));
       const target = isHome ? 0.78 : 0.76;
       const maximum = isHome ? 1.42 : 1.32;
       let scale = clamp(target / occupied, 0.88, maximum);
       if (Math.abs(scale - 1) < 0.035) scale = 1;
-
-      image.style.setProperty('--photo-normalize-scale', scale.toFixed(3));
-      image.dataset.photoNormalized = 'true';
+      setScale(image, scale, 'true');
     } catch {
-      // Fotos externas sem CORS continuam com o enquadramento CSS seguro.
+      setScale(image, 1, 'fallback');
     }
+  }
+
+  function runWhenDecoded(image) {
+    const run = () => window.requestAnimationFrame(() => normalizePhoto(image));
+    if (typeof image.decode === 'function') image.decode().then(run).catch(run);
+    else run();
   }
 
   function watch(image) {
     if (!(image instanceof HTMLImageElement) || watched.has(image)) return;
     watched.add(image);
-    if (image.complete) normalizePhoto(image);
-    else image.addEventListener('load', () => normalizePhoto(image), { once: true });
+    if (image.complete && image.naturalWidth) runWhenDecoded(image);
+    else image.addEventListener('load', () => runWhenDecoded(image), { once: true });
   }
 
   function scan(root) {
