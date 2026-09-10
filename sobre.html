@@ -36,9 +36,50 @@
     transform:translateY(-180%);
   }
   .about-skip-link:focus{ transform:translateY(0); }
+  .store-gallery{
+    display:grid;
+    grid-template-columns:minmax(0, 16fr) minmax(220px, 9fr);
+    gap:14px;
+    margin:0 0 32px;
+  }
+  .store-gallery figure{
+    margin:0;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.2);
+    background:#171717;
+  }
+  .store-gallery img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .store-gallery__vitrine img{ aspect-ratio:4 / 3; }
+  .store-gallery__entrada img{ aspect-ratio:3 / 4; }
+  .store-gallery__interior{
+    grid-column:1 / -1;
+  }
+  .store-gallery__interior img{
+    aspect-ratio:16 / 9;
+    object-position:center 42%;
+  }
   .store-cell .store-action{
     justify-content:center;
     margin-top:20px;
+  }
+  @media (max-width:780px){
+    .store-gallery{
+      grid-template-columns:minmax(0, 16fr) minmax(160px, 9fr);
+      gap:8px;
+      margin-bottom:24px;
+    }
+  }
+  @media (max-width:560px){
+    .store-gallery{ grid-template-columns:1fr; }
+    .store-gallery figure,
+    .store-gallery__interior{ grid-column:1; }
+    .store-gallery img{ height:auto; }
+    .store-gallery__interior img{ aspect-ratio:4 / 3; }
   }
   @media (max-width:640px){
     .store-cell .store-action{ width:100%; }
@@ -147,6 +188,17 @@
         <div class="section-head">
           <h2>Nossa loja física</h2>
           <p>Visite-nos pessoalmente para conhecer nossa vitrine completa.</p>
+        </div>
+        <div class="store-gallery" aria-label="Fotos da loja física">
+          <figure class="store-gallery__vitrine">
+            <img src="assets/loja-vitrine.webp" width="1280" height="960" loading="lazy" decoding="async" alt="Vitrine da Relógio e Cia com relógios das marcas comercializadas">
+          </figure>
+          <figure class="store-gallery__entrada">
+            <img src="assets/loja-entrada.webp" width="900" height="1200" loading="lazy" decoding="async" alt="Entrada da loja física Relógio e Cia em Porto Alegre">
+          </figure>
+          <figure class="store-gallery__interior">
+            <img src="assets/loja-interior.webp" width="1280" height="960" loading="lazy" decoding="async" alt="Interior da Relógio e Cia com balcão de atendimento e relógios de parede">
+          </figure>
         </div>
         <h3 class="about-a11y-only">Informações para visitar a loja</h3>
         <div class="store-grid">
