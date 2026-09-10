@@ -105,26 +105,6 @@
     white-space:nowrap;
   }
   .about-hero-map:hover{ color:var(--red); }
-  .store-photo-row{
-    display:grid;
-    grid-template-columns:repeat(2, minmax(0, 400px));
-    justify-content:center;
-    gap:12px;
-    max-width:812px;
-    margin:0 auto 28px;
-  }
-  .store-photo-row figure{
-    margin:0;
-    overflow:hidden;
-    border:1px solid rgba(255,255,255,.22);
-    background:#171717;
-  }
-  .store-photo-row img{
-    display:block;
-    width:100%;
-    aspect-ratio:4 / 3;
-    object-fit:cover;
-  }
   .timeline-scale{
     margin-top:32px;
     padding-top:0;
@@ -174,13 +154,6 @@
     .about-hero-card img{
       height:380px !important;
       max-height:380px;
-    }
-  }
-  @media (max-width:560px){
-    .store-photo-row{
-      grid-template-columns:repeat(2, minmax(0, 1fr));
-      gap:8px;
-      margin-bottom:22px;
     }
   }
   @media (max-width:380px){
@@ -320,14 +293,6 @@
         <div class="section-head">
           <h2>Nossa loja física</h2>
           <p>Visite-nos pessoalmente para conhecer nossa vitrine completa.</p>
-        </div>
-        <div class="store-photo-row" aria-label="Vitrine e interior da loja física">
-          <figure>
-            <img src="assets/loja-vitrine.webp" width="1280" height="960" loading="lazy" decoding="async" alt="Vitrine da Relógio e Cia com relógios das marcas comercializadas">
-          </figure>
-          <figure>
-            <img src="assets/loja-interior.webp" width="1280" height="960" loading="lazy" decoding="async" alt="Interior da Relógio e Cia com balcão de atendimento e relógios de parede">
-          </figure>
         </div>
         <h3 class="about-a11y-only">Informações para visitar a loja</h3>
         <div class="store-grid">
