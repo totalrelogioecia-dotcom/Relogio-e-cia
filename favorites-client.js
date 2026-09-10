@@ -52,14 +52,27 @@
     return statePromise;
   }
 
-  function loginRedirect(){
+  async function loginRedirect(){
     const back=location.pathname+location.search;
-    if(confirm('Entre na sua conta para salvar relógios nos favoritos. Ir para a conta agora?'))location.href=`conta.html?voltar=${encodeURIComponent(back)}`;
+    const accountUrl=`conta.html?voltar=${encodeURIComponent(back)}`;
+    if(!window.relojaDialog?.open){
+      location.href=accountUrl;
+      return;
+    }
+    const action=await window.relojaDialog.open({
+      kicker:'Favoritos',
+      title:'Entre para salvar este relógio',
+      message:'Entre na sua conta para guardar este relógio e acessar sua seleção novamente quando quiser.',
+      detail:'Depois do acesso, você volta para esta página.',
+      primaryLabel:'Entrar na conta',
+      secondaryLabel:'Continuar navegando'
+    });
+    if(action==='primary')location.href=accountUrl;
   }
 
   async function toggle(id,button){
     if(!stateLoaded)await loadFavoriteState();
-    if(!loggedIn){loginRedirect();return}
+    if(!loggedIn){await loginRedirect();return}
     button.disabled=true;
     try{
       if(favoriteIds.has(id)){await api(`/api/favorites/${id}`,{method:'DELETE'});favoriteIds.delete(id)}
@@ -67,7 +80,7 @@
       renderAllHearts();
       if(location.pathname.split('/').pop()==='conta.html')renderAccountFavorites();
     }catch(e){
-      if(e.status===401){loggedIn=false;loginRedirect()}else alert(e.message)
+      if(e.status===401){loggedIn=false;await loginRedirect()}else alert(e.message)
     }finally{button.disabled=false}
   }
 

@@ -209,5 +209,83 @@
     }
   });
 </script>
+
+<script>
+(() => {
+  'use strict';
+
+  function installCatalogFooterJump(){
+    const footer=document.querySelector('footer');
+    const catalogStart=document.querySelector('.section-content');
+    if(!footer||!catalogStart||document.getElementById('catalog-footer-jump'))return;
+
+    footer.id=footer.id||'site-footer';
+    catalogStart.id=catalogStart.id||'catalog-start';
+
+    const button=document.createElement('button');
+    button.type='button';
+    button.id='catalog-footer-jump';
+    button.className='catalog-footer-jump';
+    button.dataset.direction='down';
+    button.innerHTML='<span class="catalog-footer-jump__label">Informações</span><span class="catalog-footer-jump__arrow" aria-hidden="true">↓</span>';
+    document.body.appendChild(button);
+
+    const label=button.querySelector('.catalog-footer-jump__label');
+    const arrow=button.querySelector('.catalog-footer-jump__arrow');
+    const prefersReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function setDirection(isAtFooter){
+      const target=isAtFooter?catalogStart:footer;
+      const action=isAtFooter?'Voltar ao catálogo':'Ir para as informações no rodapé';
+      button.dataset.direction=isAtFooter?'up':'down';
+      label.textContent=isAtFooter?'Voltar ao catálogo':'Informações';
+      arrow.textContent=isAtFooter?'↑':'↓';
+      button.setAttribute('aria-label',action);
+      button.setAttribute('title',action);
+      button.setAttribute('aria-controls',target.id);
+    }
+
+    function footerIsVisible(){
+      const rect=footer.getBoundingClientRect();
+      return rect.top<window.innerHeight&&rect.bottom>0;
+    }
+
+    button.addEventListener('click',()=>{
+      const isAtFooter=button.dataset.direction==='up';
+      const target=isAtFooter?catalogStart:footer;
+      target.scrollIntoView({
+        behavior:prefersReducedMotion.matches?'auto':'smooth',
+        block:'start'
+      });
+    });
+
+    if('IntersectionObserver' in window){
+      const observer=new IntersectionObserver(entries=>{
+        setDirection(Boolean(entries[0]?.isIntersecting));
+      },{threshold:0.01});
+      observer.observe(footer);
+    }else{
+      let ticking=false;
+      const update=()=>{
+        ticking=false;
+        setDirection(footerIsVisible());
+      };
+      window.addEventListener('scroll',()=>{
+        if(ticking)return;
+        ticking=true;
+        window.requestAnimationFrame(update);
+      },{passive:true});
+    }
+
+    setDirection(footerIsVisible());
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',installCatalogFooterJump,{once:true});
+  }else{
+    installCatalogFooterJump();
+  }
+})();
+</script>
 </body>
 </html>
