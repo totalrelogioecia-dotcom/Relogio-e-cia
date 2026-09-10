@@ -62,6 +62,35 @@ function productDescription(product) {
   return (text || `${product?.nome || 'Relógio'} da ${product?.marca || 'Relógio e Cia'}.`).slice(0, 300);
 }
 
+function normalizedSearchText(product, detail = {}) {
+  return [
+    product?.nome,
+    product?.desc,
+    product?.categoria,
+    detail?.genero,
+    detail?.publico,
+    detail?.idade
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function merchantGender(product, detail = {}) {
+  const text = normalizedSearchText(product, detail);
+  if (/\b(feminino|feminina|feminine|mulher|women|woman|dama)\b/.test(text)) return 'female';
+  if (/\b(masculino|masculina|masculine|homem|men|man)\b/.test(text)) return 'male';
+  return 'unisex';
+}
+
+function merchantAgeGroup(product, detail = {}) {
+  const text = normalizedSearchText(product, detail);
+  if (/\b(infantil|crianca|criancas|kids?|juvenil)\b/.test(text)) return 'kids';
+  return 'adult';
+}
+
 function productJsonLd(product, origin) {
   const url = `${origin}/produto.html?id=${encodeURIComponent(product.id)}`;
   const images = firstPhotos(product, origin);
@@ -225,6 +254,8 @@ function merchantFeedXml(products, details, origin) {
     const link = `${origin}/produto.html?id=${encodeURIComponent(id)}`;
     const availability = Math.max(0, Number(product.estoque) || 0) > 0 ? 'in_stock' : 'out_of_stock';
     const description = productDescription(product).slice(0, 5000);
+    const gender = merchantGender(product, detail);
+    const ageGroup = merchantAgeGroup(product, detail);
 
     return [
       '    <item>',
@@ -237,6 +268,8 @@ function merchantFeedXml(products, details, origin) {
       `      <g:availability>${availability}</g:availability>`,
       `      <g:price>${price.toFixed(2)} BRL</g:price>`,
       `      <g:brand>${xmlEscape(brand)}</g:brand>`,
+      `      <g:gender>${gender}</g:gender>`,
+      `      <g:age_group>${ageGroup}</g:age_group>`,
       sku ? `      <g:mpn>${xmlEscape(sku)}</g:mpn>` : '',
       color ? `      <g:color>${xmlEscape(color)}</g:color>` : '',
       category ? `      <g:product_type>${xmlEscape(`${category} > ${brand}`)}</g:product_type>` : '',
@@ -316,6 +349,8 @@ module.exports = {
   enhanceProductHtml,
   enhanceCatalogHtml,
   merchantImageLink,
+  merchantGender,
+  merchantAgeGroup,
   merchantFeedXml,
   decodeDataImage,
   registerSeoRoutes,
