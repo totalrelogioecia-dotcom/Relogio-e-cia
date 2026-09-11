@@ -57,6 +57,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'product-reviews-client.js',
   'produto-gallery-enhancements.js',
   'produto.js',
+  'product-photo-normalizer.js',
   'recuperar-senha-interface.js',
   'return-request-form.js',
   'script.js',
