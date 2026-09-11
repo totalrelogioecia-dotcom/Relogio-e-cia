@@ -71,6 +71,9 @@ body{
    Fechado = altura zero. Aberto = cresce apenas para baixo.
 */
 #marcas .brand-showcase{
+  /* Uma única medida para todos os quadros de foto do mostruário.
+     Assim, nomes com mais linhas não diminuem apenas a própria foto. */
+  --home-watch-photo-height:190px;
   position:relative;
   left:auto;
   right:auto;
@@ -205,7 +208,7 @@ body{
   transform:none;
   scroll-snap-align:none;
   display:grid;
-  grid-template-rows:minmax(0, 1fr) auto;
+  grid-template-rows:var(--home-watch-photo-height) minmax(0, 1fr);
 }
 
 #marcas .home-watch-card:hover{
@@ -217,6 +220,7 @@ body{
 
 #marcas .home-watch-photo{
   position:relative;
+  height:var(--home-watch-photo-height);
   min-height:0;
   aspect-ratio:auto;
   padding:0;
@@ -333,6 +337,10 @@ body{
 }
 
 @media (max-width:900px){
+  #marcas .brand-showcase{
+    --home-watch-photo-height:176px;
+  }
+
   #marcas .brand-showcase.is-open{
     height:390px;
     max-height:390px;
@@ -346,6 +354,10 @@ body{
 }
 
 @media (max-width:640px){
+  #marcas .brand-showcase{
+    --home-watch-photo-height:172px;
+  }
+
   #marcas .brand-showcase.is-open{
     height:410px;
     max-height:410px;
