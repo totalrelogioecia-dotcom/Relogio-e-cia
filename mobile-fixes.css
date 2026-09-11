@@ -24,6 +24,34 @@
   flex:0 0 38px;
 }
 
+/*
+ * Rodapé: no desktop, os quatro títulos começam em quatro faixas iguais.
+ * Isso prioriza o alinhamento visual de Relógio e Cia / Navegação / Marcas /
+ * Atendimento, independentemente da largura diferente dos textos abaixo.
+ */
+@media (min-width:1121px){
+  footer .footer-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    justify-content:stretch !important;
+    column-gap:48px !important;
+    align-items:start !important;
+  }
+
+  footer .footer-grid > div{
+    width:100%;
+    min-width:0;
+  }
+}
+
+footer .footer-grid h5{
+  margin:0 0 20px !important;
+}
+
+/* O WhatsApp já tem um botão próprio no rodapé; evita repetir o mesmo número em Atendimento. */
+footer .footer-grid li:has(> a[href^="https://wa.me/"]){
+  display:none !important;
+}
+
 @media (max-width:640px){
   .brand-mark .brand-symbol{
     width:32px !important;
