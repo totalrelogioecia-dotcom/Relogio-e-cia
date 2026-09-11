@@ -37,6 +37,13 @@
       .cart-legal-summary a{font-weight:600;text-underline-offset:2px}
       html.reloja-dark .cart-summary .cart-legal-summary{background:transparent!important;color:var(--muted)!important;border:0!important}
       html.reloja-high-contrast .cart-summary .cart-legal-summary{background:#fff!important;color:#000!important;border:0!important}
+      footer .footer-grid{grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}
+      footer .footer-grid>div{min-width:0}
+      footer .footer-grid h5{margin-bottom:18px}
+      footer .footer-company-identity{margin:0!important;max-width:28ch!important;font-size:.82rem!important;line-height:1.6!important}
+      footer .footer-contact-buttons{margin-top:16px!important}
+      @media(max-width:900px){footer .footer-grid{grid-template-columns:1fr 1fr}}
+      @media(max-width:640px){footer .footer-grid{grid-template-columns:1fr}}
     `;
     document.head.appendChild(style);
   }
@@ -86,15 +93,26 @@
     list.appendChild(li);
   }
 
+  function removeFooterIntro(grid) {
+    const firstColumn = grid?.children?.[0];
+    if (!firstColumn) return;
+
+    Array.from(firstColumn.children).forEach(child => {
+      if (child.tagName !== 'P' || child.classList.contains('footer-company-identity')) return;
+      const text = String(child.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      if (text.startsWith('relógios e acessórios das melhores marcas')) child.remove();
+    });
+  }
+
   function ensureCompanyIdentity(grid) {
     const firstColumn = grid?.children?.[0];
     if (!firstColumn || firstColumn.querySelector('.footer-company-identity')) return;
 
     const identity = document.createElement('p');
     identity.className = 'footer-company-identity';
-    identity.style.marginTop = '12px';
-    identity.style.fontSize = '12px';
-    identity.style.lineHeight = '1.55';
+    identity.style.marginTop = '0';
+    identity.style.fontSize = '13px';
+    identity.style.lineHeight = '1.6';
     identity.style.opacity = '.82';
 
     const tradeName = document.createElement('span');
@@ -171,7 +189,7 @@
     wrap.style.display = 'flex';
     wrap.style.flexWrap = 'wrap';
     wrap.style.gap = '8px';
-    wrap.style.marginTop = '14px';
+    wrap.style.marginTop = '16px';
 
     const instagram = makeFooterButton({
       className: 'footer-instagram-link',
@@ -332,6 +350,7 @@
     ensureCartLegalSummary();
 
     document.querySelectorAll('footer .footer-grid').forEach(grid => {
+      removeFooterIntro(grid);
       ensureCompanyIdentity(grid);
       ensureContactButtons(grid);
       replaceAttendancePhone(grid);
