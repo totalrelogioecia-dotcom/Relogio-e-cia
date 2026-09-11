@@ -126,9 +126,9 @@
       }
 
       const isHome = Boolean(image.closest('#marcas'));
-      const target = isHome ? 0.78 : 0.76;
+      const target = isHome ? 0.92 : 0.76;\n      const minimum = isHome ? 0.92 : 0.88;
       const maximum = isHome ? 1.42 : 1.32;
-      let scale = clamp(target / occupied, 0.88, maximum);
+      let scale = clamp(target / occupied, minimum, maximum);
       if (Math.abs(scale - 1) < 0.035) scale = 1;
       setScale(image, scale, 'true');
     } catch {
