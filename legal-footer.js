@@ -127,6 +127,10 @@
     link.setAttribute('aria-label', ariaLabel);
     link.style.display = 'inline-flex';
     link.style.alignItems = 'center';
+    link.style.justifyContent = 'center';
+    link.style.width = '220px';
+    link.style.maxWidth = '100%';
+    link.style.boxSizing = 'border-box';
     link.style.gap = '8px';
     link.style.padding = '8px 11px';
     link.style.border = '1px solid rgba(255,255,255,.24)';
