@@ -37,13 +37,16 @@
       .cart-legal-summary a{font-weight:600;text-underline-offset:2px}
       html.reloja-dark .cart-summary .cart-legal-summary{background:transparent!important;color:var(--muted)!important;border:0!important}
       html.reloja-high-contrast .cart-summary .cart-legal-summary{background:#fff!important;color:#000!important;border:0!important}
-      footer .footer-grid{grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}
-      footer .footer-grid>div{min-width:0}
-      footer .footer-grid h5{margin-bottom:18px}
-      footer .footer-company-identity{margin:0!important;max-width:28ch!important;font-size:.82rem!important;line-height:1.6!important}
-      footer .footer-contact-buttons{margin-top:16px!important}
-      @media(max-width:900px){footer .footer-grid{grid-template-columns:1fr 1fr}}
-      @media(max-width:640px){footer .footer-grid{grid-template-columns:1fr}}
+      footer .footer-grid{grid-template-columns:max-content max-content max-content max-content;justify-content:space-between;column-gap:clamp(32px,4vw,72px);row-gap:36px;align-items:start}
+      footer .footer-grid>div{min-width:0;display:flex;flex-direction:column;align-items:flex-start}
+      footer .footer-grid h5{margin:0 0 20px}
+      footer .footer-grid ul{display:flex;flex-direction:column;gap:12px}
+      footer .footer-grid li{margin:0}
+      footer .footer-company-identity{margin:0!important;max-width:22ch!important;font-size:.82rem!important;line-height:1.55!important}
+      footer .footer-contact-buttons{margin-top:18px!important;display:flex!important;flex-direction:column;align-items:flex-start;gap:10px!important;width:100%}
+      footer .footer-contact-buttons a{width:220px!important;max-width:100%}
+      @media(max-width:1120px){footer .footer-grid{grid-template-columns:1fr 1fr;justify-content:stretch;column-gap:56px;row-gap:36px}}
+      @media(max-width:640px){footer .footer-grid{grid-template-columns:1fr;column-gap:0;row-gap:32px}}
     `;
     document.head.appendChild(style);
   }
@@ -112,7 +115,7 @@
     identity.className = 'footer-company-identity';
     identity.style.marginTop = '0';
     identity.style.fontSize = '13px';
-    identity.style.lineHeight = '1.6';
+    identity.style.lineHeight = '1.55';
     identity.style.opacity = '.82';
 
     const tradeName = document.createElement('span');
@@ -187,9 +190,11 @@
     const wrap = document.createElement('div');
     wrap.className = 'footer-contact-buttons';
     wrap.style.display = 'flex';
-    wrap.style.flexWrap = 'wrap';
-    wrap.style.gap = '8px';
-    wrap.style.marginTop = '16px';
+    wrap.style.flexDirection = 'column';
+    wrap.style.alignItems = 'flex-start';
+    wrap.style.width = '100%';
+    wrap.style.gap = '10px';
+    wrap.style.marginTop = '18px';
 
     const instagram = makeFooterButton({
       className: 'footer-instagram-link',
