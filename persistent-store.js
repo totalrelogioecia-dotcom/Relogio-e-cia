@@ -29,6 +29,7 @@ const PRODUCT_BACKUP_KEY = 'products_backup_before_restore_1055198_2026_08_25';
 let pool = null;
 let patched = false;
 let ready = false;
+let activeProvider = 'local-files';
 const queues = new Map();
 
 function jsonFromContent(content) {
@@ -133,6 +134,7 @@ async function initPersistentStore() {
   }
 
   if (!candidates.length) {
+    activeProvider = 'local-files';
     console.warn('DATABASE_URL ausente: usando arquivos locais temporários. Configure PostgreSQL antes de produção.');
     patchFileWrites();
     return { persistent: false, provider: 'local-files' };
@@ -156,6 +158,7 @@ async function initPersistentStore() {
       pool = candidatePool;
       connectionString = candidate.connectionString;
       selectedProvider = candidate.provider;
+      activeProvider = candidate.provider;
       process.env.DATABASE_URL = candidate.connectionString;
       console.log('Banco PostgreSQL selecionado:', selectedProvider);
       break;
@@ -252,12 +255,14 @@ async function closePersistentStore() {
     pool = null;
     await current.end().catch(() => {});
   }
+  ready = false;
+  activeProvider = 'local-files';
 }
 
 function storageStatus() {
   return {
     persistent: Boolean(pool && ready),
-    provider: pool && ready ? 'postgresql' : 'local-files',
+    provider: pool && ready ? activeProvider : 'local-files',
     pendingWrites: queues.size
   };
 }

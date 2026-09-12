@@ -120,3 +120,12 @@ test('produção usa Node 24, lockfile e instalação reproduzível', () => {
   assert.match(read('Dockerfile'), /FROM node:24-alpine/);
   assert.match(read('.github/workflows/mercadopago-clean-check.yml'), /node-version: '24'/);
 });
+
+test('Supabase é preferido sem remover o fallback e aparece no diagnóstico', () => {
+  const persistence = read('persistent-store.js');
+  assert.match(read('.env.example'), /SUPABASE_DATABASE_URL=/);
+  assert.match(persistence, /process\.env\.SUPABASE_DATABASE_URL/);
+  assert.match(persistence, /provider: 'supabase'/);
+  assert.match(persistence, /provider: 'render-postgresql'/);
+  assert.match(persistence, /provider: pool && ready \? activeProvider : 'local-files'/);
+});
