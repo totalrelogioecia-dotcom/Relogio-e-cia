@@ -122,23 +122,52 @@ function patchFileWrites() {
 
 async function initPersistentStore() {
   fs.mkdirSync(DATA, { recursive: true });
-  const connectionString = String(process.env.DATABASE_URL || '').trim();
 
-  if (!connectionString) {
+  const preferredConnection = String(process.env.SUPABASE_DATABASE_URL || '').trim();
+  const fallbackConnection = String(process.env.DATABASE_URL || '').trim();
+  const candidates = [];
+
+  if (preferredConnection) candidates.push({ connectionString: preferredConnection, provider: 'supabase' });
+  if (fallbackConnection && fallbackConnection !== preferredConnection) {
+    candidates.push({ connectionString: fallbackConnection, provider: 'render-postgresql' });
+  }
+
+  if (!candidates.length) {
     console.warn('DATABASE_URL ausente: usando arquivos locais temporários. Configure PostgreSQL antes de produção.');
     patchFileWrites();
     return { persistent: false, provider: 'local-files' };
   }
 
-  pool = new Pool({
-    connectionString,
-    ssl: databaseSsl(connectionString),
-    max: Math.max(2, Number(process.env.DATABASE_POOL_MAX || 5)),
-    idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 10_000
-  });
+  let connectionString = '';
+  let selectedProvider = '';
+  let lastError = null;
 
-  await pool.query('SELECT 1');
+  for (const candidate of candidates) {
+    const candidatePool = new Pool({
+      connectionString: candidate.connectionString,
+      ssl: databaseSsl(candidate.connectionString),
+      max: Math.max(2, Number(process.env.DATABASE_POOL_MAX || 5)),
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 10_000
+    });
+
+    try {
+      await candidatePool.query('SELECT 1');
+      pool = candidatePool;
+      connectionString = candidate.connectionString;
+      selectedProvider = candidate.provider;
+      process.env.DATABASE_URL = candidate.connectionString;
+      console.log('Banco PostgreSQL selecionado:', selectedProvider);
+      break;
+    } catch (error) {
+      lastError = error;
+      await candidatePool.end().catch(() => {});
+      console.error('Falha ao conectar no banco candidato:', { provider: candidate.provider, message: error.message });
+    }
+  }
+
+  if (!pool) throw lastError || new Error('Nenhuma conexão PostgreSQL disponível.');
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS relogio_state (
       key TEXT PRIMARY KEY,
@@ -208,7 +237,7 @@ async function initPersistentStore() {
   patchFileWrites();
   ready = true;
   console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio, pós-venda, reposição, disponibilidade, anexos fiscais, auditoria administrativa, avaliações de clientes e migrações administrativas.');
-  return { persistent: true, provider: 'postgresql' };
+  return { persistent: true, provider: selectedProvider || 'postgresql' };
 }
 
 async function flushPersistentStore() {
