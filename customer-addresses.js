@@ -4,14 +4,12 @@
 (function () {
   'use strict';
 
-  const TOKEN_KEY = 'reloja_auth_token';
   const SESSION_KEY = 'reloja_sessao';
   let addresses = [];
   let editingId = '';
 
   const digits = value => String(value || '').replace(/\D/g, '');
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c]));
-  const token = () => localStorage.getItem(TOKEN_KEY) || '';
 
   function formatCep(value) {
     const n = digits(value).slice(0, 8);
@@ -19,9 +17,7 @@
   }
 
   function authHeaders(extra = {}) {
-    const headers = { 'Content-Type': 'application/json', Accept: 'application/json', ...extra };
-    if (token()) headers.Authorization = `Bearer ${token()}`;
-    return headers;
+    return { 'Content-Type': 'application/json', Accept: 'application/json', ...extra };
   }
 
   async function api(url, options = {}) {
@@ -246,7 +242,6 @@
   }
 
   async function load() {
-    if (!token()) return;
     try {
       const data = await api('/api/auth/addresses', { method: 'GET', headers: {} });
       addresses = data.addresses || [];

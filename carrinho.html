@@ -22,6 +22,7 @@
 (function () {
   const originalFetch = window.fetch.bind(window);
   function formatarPrecoCarrinho(valor) { return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+  function escaparHtmlCarrinho(valor) { return String(valor ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[c])); }
   function sincronizarPrecos(produtos) {
     if (!Array.isArray(produtos)) return;
     let itens;
@@ -67,7 +68,7 @@
     const alteracoes = event.detail?.alteracoes || [];
     const aviso = document.getElementById('cart-price-warning');
     if (!aviso || !alteracoes.length) return;
-    const detalhes = alteracoes.slice(0, 4).map(a => `<div>${a.nome}: ${formatarPrecoCarrinho(a.anterior)} → <strong>${formatarPrecoCarrinho(a.atual)}</strong></div>`).join('');
+    const detalhes = alteracoes.slice(0, 4).map(a => `<div>${escaparHtmlCarrinho(a.nome)}: ${formatarPrecoCarrinho(a.anterior)} → <strong>${formatarPrecoCarrinho(a.atual)}</strong></div>`).join('');
     const restante = alteracoes.length > 4 ? `<div>+ ${alteracoes.length - 4} outro(s) item(ns) atualizado(s).</div>` : '';
     aviso.innerHTML = `<strong>Preço atualizado</strong><br>O preço de um ou mais produtos mudou desde que foram adicionados ao carrinho. O novo valor é aplicado antes do pagamento.<div style="margin-top:7px;">${detalhes}${restante}</div>`;
     aviso.style.display = 'block';

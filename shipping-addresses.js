@@ -5,13 +5,11 @@
 (function () {
   'use strict';
 
-  const TOKEN_KEY = 'reloja_auth_token';
   const ADDRESS_KEY = 'reloja_endereco_entrega_id';
   let addresses = [];
   let currentId = '';
 
   const digits = value => String(value || '').replace(/\D/g, '');
-  const token = () => localStorage.getItem(TOKEN_KEY) || '';
 
   function sessionAddress() {
     try {
@@ -22,9 +20,7 @@
   }
 
   function authHeaders() {
-    const headers = { Accept: 'application/json' };
-    if (token()) headers.Authorization = `Bearer ${token()}`;
-    return headers;
+    return { Accept: 'application/json' };
   }
 
   function formatCep(value) {
@@ -158,10 +154,14 @@
       return;
     }
 
-    select.innerHTML = addresses.map(address => {
+    select.replaceChildren();
+    addresses.forEach(address => {
       const suffix = address.principal ? ' · principal' : '';
-      return `<option value="${String(address.id).replace(/"/g, '&quot;')}">${String(address.label || 'Endereço').replace(/</g, '&lt;')} · ${formatCep(address.zip_code)}${suffix}</option>`;
-    }).join('');
+      const option = document.createElement('option');
+      option.value = String(address.id);
+      option.textContent = `${String(address.label || 'Endereço')} · ${formatCep(address.zip_code)}${suffix}`;
+      select.appendChild(option);
+    });
 
     const saved = sessionStorage.getItem(ADDRESS_KEY) || '';
     const initial = addresses.find(address => address.id === saved) || addresses.find(address => address.principal) || addresses[0];

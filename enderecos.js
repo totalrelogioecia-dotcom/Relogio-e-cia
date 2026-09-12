@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-  const TOKEN_KEY = 'reloja_auth_token';
   const SESSION_KEY = 'reloja_sessao';
   let addresses = [];
   let editingId = '';
@@ -17,10 +16,7 @@
   }
 
   function headers() {
-    const result = { 'Content-Type': 'application/json', Accept: 'application/json' };
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) result.Authorization = 'Bearer ' + token;
-    return result;
+    return { 'Content-Type': 'application/json', Accept: 'application/json' };
   }
 
   async function api(url, options = {}) {
@@ -205,11 +201,6 @@
   }
 
   async function start() {
-    if (!localStorage.getItem(TOKEN_KEY)) {
-      location.replace('conta.html');
-      return;
-    }
-
     field('address-new').addEventListener('click', () => openForm());
     field('address-cancel').addEventListener('click', closeForm);
     field('address-cancel-top').addEventListener('click', closeForm);

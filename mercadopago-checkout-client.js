@@ -6,7 +6,6 @@
 (() => {
   const CART_KEY = 'reloja_carrinho';
   const SESSION_KEY = 'reloja_sessao';
-  const TOKEN_KEY = 'reloja_auth_token';
   const SHIPPING_KEY = 'reloja_frete_selecionado';
   const SDK_URL = 'https://sdk.mercadopago.com/js/v2';
   const SECURITY_URL = 'https://www.mercadopago.com/v2/security.js';
@@ -149,12 +148,11 @@
 
       try {
         const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
-        const token = localStorage.getItem(TOKEN_KEY);
-        if (token) headers.Authorization = `Bearer ${token}`;
 
         const response = await fetch('/api/auth/checkout-profile', {
           method: 'POST',
           headers,
+          credentials: 'same-origin',
           body: JSON.stringify({ cpf })
         });
         const data = await response.json().catch(() => ({}));
@@ -333,12 +331,10 @@
         'Content-Type': 'application/json',
         Accept: 'application/json'
       };
-      const authToken = String(localStorage.getItem(TOKEN_KEY) || '').trim();
-      if (authToken) checkoutHeaders.Authorization = `Bearer ${authToken}`;
-
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: checkoutHeaders,
+        credentials: 'same-origin',
         body: JSON.stringify({
           items: items.map(item => ({ id: item.id, qtd: item.qtd })),
           payer: { nome: user.nome, email: user.email },

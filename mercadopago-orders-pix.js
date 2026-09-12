@@ -6,11 +6,13 @@ const { WebhookSignatureValidator } = require('mercadopago');
 const { resolveSelectedShipping, isConfigured } = require('./shipping-service');
 const { flushPersistentStore } = require('./persistent-store');
 const { assertPickupAllowed } = require('./pickup-policy');
+const { webhookSecret } = require('./mercadopago-core');
+const { customerCanAccessOrder, sendOrderNotFound } = require('./order-access');
 const {
   readDetails,
-  validateCheckoutAvailability,
-  shouldApplyPhysicalStock
+  validateCheckoutAvailability
 } = require('./product-availability-service');
+const { applyPaidOrderStock, registerStockResult } = require('./inventory-service');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const PRODUCTS = path.join(DATA, 'products.json');
@@ -159,13 +161,9 @@ async function applyOrder(mpOrder) {
 
   if (order.status === 'paid' && !order.stock_applied) {
     const products = read(PRODUCTS, []);
-    for (const item of order.items || []) {
-      if (!shouldApplyPhysicalStock(item)) continue;
-      const p = products.find(product => Number(product.id) === Number(item.id));
-      if (p) p.estoque = Math.max(0, Number(p.estoque || 0) - Number(item.quantidade || 0));
-    }
-    write(PRODUCTS, products);
-    order.stock_applied = true;
+    const stockResult = applyPaidOrderStock(products, order.items);
+    if (stockResult.applied) write(PRODUCTS, stockResult.products);
+    registerStockResult(order, stockResult);
   }
   orders[index] = order;
   await persist(orders);
@@ -235,22 +233,67 @@ function registerMercadoPagoOrdersPix(app) {
     }
   });
 
-  app.post('/api/mercadopago/webhook', express.json({ limit: '1mb' }), (req, res, next) => {
+  app.post('/api/mercadopago/webhook', express.json({ limit: '1mb' }), async (req, res, next) => {
     const type = String(req.body?.type || req.query?.type || '').trim().toLowerCase();
     if (type !== 'order' && type !== 'orders') return next();
 
     const orderId = String(req.query?.['data.id'] || req.body?.data?.id || '').trim();
-    console.log('Mercado Pago Orders: evento order reconhecido e ignorado', {
-      orderId: orderId || null
-    });
-    return res.sendStatus(200);
+    if (!orderId) return res.sendStatus(200);
+
+    const secret = webhookSecret();
+    if (!secret) {
+      console.warn('Mercado Pago Orders: webhook recebido sem MERCADOPAGO_WEBHOOK_SECRET configurado.');
+      return res.sendStatus(503);
+    }
+
+    try {
+      WebhookSignatureValidator.validate({
+        xSignature: req.headers['x-signature'],
+        xRequestId: req.headers['x-request-id'],
+        dataId: orderId,
+        secret
+      });
+    } catch (error) {
+      console.warn('Mercado Pago Orders: assinatura do webhook inválida', {
+        orderId,
+        message: error.message
+      });
+      return res.sendStatus(401);
+    }
+
+    try {
+      await applyOrder(await fetchOrder(orderId));
+      return res.sendStatus(200);
+    } catch (error) {
+      if (Number(error.status) === 404) {
+        console.warn('Mercado Pago Orders: webhook válido, pedido não encontrado', { orderId });
+        return res.sendStatus(200);
+      }
+      console.error('Mercado Pago Orders: falha ao processar webhook', {
+        orderId,
+        message: error.message,
+        status: error.status || 502
+      });
+      return res.sendStatus(500);
+    }
   });
 
   app.get('/api/order/:id', async (req, res, next) => {
     let order = read(ORDERS, []).find(item => item.id === req.params.id);
     if (!order || order.metodo !== 'pix' || !order.mp_order_id) return next();
-    if (!['paid', 'rejected', 'cancelled', 'refunded'].includes(order.status)) {
+    if (!customerCanAccessOrder(req, order)) return sendOrderNotFound(res);
+    if (!['paid', 'rejected', 'cancelled', 'refunded'].includes(order.status) || order.stock_conflict) {
       try { order = await applyOrder(await fetchOrder(order.mp_order_id)) || order; } catch (error) { console.warn('Mercado Pago Orders: sincronização PIX falhou', { orderId: order.id, message: error.message }); }
+    }
+    res.set('Cache-Control', 'no-store');
+    return res.json({ id: order.id, status: order.status, payment_status: order.payment_status, payment_id: order.payment_id || null, mp_order_id: order.mp_order_id || null, metodo: 'pix', pix: order.pix || null, payment_detail: order.payment_detail || null, checkout_error: order.checkout_error || null, updated_at: order.updated_at || null });
+  });
+
+  app.get('/api/admin/order/:id/sync', async (req, res, next) => {
+    let order = read(ORDERS, []).find(item => item.id === req.params.id);
+    if (!order || order.metodo !== 'pix' || !order.mp_order_id) return next();
+    if (!['paid', 'rejected', 'cancelled', 'refunded'].includes(order.status) || order.stock_conflict) {
+      try { order = await applyOrder(await fetchOrder(order.mp_order_id)) || order; } catch (error) { console.warn('Mercado Pago Orders: sincronização administrativa do PIX falhou', { orderId: order.id, message: error.message }); }
     }
     res.set('Cache-Control', 'no-store');
     return res.json({ id: order.id, status: order.status, payment_status: order.payment_status, payment_id: order.payment_id || null, mp_order_id: order.mp_order_id || null, metodo: 'pix', pix: order.pix || null, payment_detail: order.payment_detail || null, checkout_error: order.checkout_error || null, updated_at: order.updated_at || null });

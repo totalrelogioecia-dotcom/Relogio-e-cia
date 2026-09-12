@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const express = require('express');
 const { maxInstallmentsForAmount } = require('./installment-policy');
 const { resolveSelectedShipping, isConfigured } = require('./shipping-service');
-const { validateCoupon, consumeCoupon } = require('./coupon-service');
+const { validateCoupon, reserveCoupon, consumeCoupon, releaseCoupon } = require('./coupon-service');
 const { flushPersistentStore } = require('./persistent-store');
 const { assertPickupAllowed } = require('./pickup-policy');
 const {
@@ -193,6 +193,8 @@ function registerCouponCheckout(app) {
     if (!couponCode) return next();
 
     let orderId = null;
+    let couponReserved = false;
+    let externalPaymentCreated = false;
     try {
       const body = req.body || {};
       const payer = body.payer || {};
@@ -222,6 +224,13 @@ function registerCouponCheckout(app) {
       }
 
       orderId = `PED-${Date.now()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+      await reserveCoupon({
+        couponId: validation.coupon.id,
+        email: payer.email,
+        orderId,
+        subtotal
+      });
+      couponReserved = true;
       const freeShipping = shipping
         ? {
             ...shipping,
@@ -287,6 +296,7 @@ function registerCouponCheckout(app) {
           error.status = 502;
           throw error;
         }
+        externalPaymentCreated = true;
 
         localOrder.payment_id = String(data.id);
         localOrder.payment_status = String(data.status || 'pending');
@@ -298,7 +308,10 @@ function registerCouponCheckout(app) {
         };
         localOrder.updated_at = new Date().toISOString();
         await persistOrder(localOrder);
-        await consumeCoupon(validation.coupon.id, payer.email, orderId);
+        if (data.status === 'approved') {
+          await consumeCoupon(validation.coupon.id, payer.email, orderId);
+          couponReserved = false;
+        }
 
         const redirectUrl = `${base}/pagamento-pix.html?pedido=${encodeURIComponent(orderId)}`;
         console.log('Checkout PIX com cupom criado:', {
@@ -361,13 +374,13 @@ function registerCouponCheckout(app) {
       if (!pref?.id) {
         throw new Error('O Mercado Pago não retornou o ID da preferência.');
       }
+      externalPaymentCreated = true;
 
       localOrder.status = 'pending';
       localOrder.payment_status = 'pending';
       localOrder.preference_id = String(pref.id);
       localOrder.updated_at = new Date().toISOString();
       await persistOrder(localOrder);
-      await consumeCoupon(validation.coupon.id, payer.email, orderId);
 
       console.log('Checkout Pro com cupom criado:', {
         orderId,
@@ -384,6 +397,7 @@ function registerCouponCheckout(app) {
         coupon: localOrder.coupon
       });
     } catch (error) {
+      if (couponReserved && !externalPaymentCreated && orderId) await releaseCoupon(orderId).catch(() => {});
       console.error('Checkout com cupom de frete grátis falhou:', {
         orderId,
         message: error?.message || null,

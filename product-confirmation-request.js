@@ -1,7 +1,6 @@
 /* RELÓGIO E CIA — envia pedido mediante confirmação para o painel administrativo */
 (function () {
   'use strict';
-  const TOKEN_KEY = 'reloja_auth_token';
   const dialog = options => window.relojaDialog?.open(options) || Promise.resolve('dismiss');
 
   function confirmationButton(target) {
@@ -27,13 +26,11 @@
     button.textContent = 'Enviando...';
 
     try {
-      const token = localStorage.getItem(TOKEN_KEY) || '';
       const response = await fetch('/api/availability-requests', {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ product_id: productId, source: 'product_page' })
       });

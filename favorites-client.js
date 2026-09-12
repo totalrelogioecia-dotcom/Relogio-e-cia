@@ -3,7 +3,6 @@
   if(window.__relogioFavoritesClientLoaded)return;
   window.__relogioFavoritesClientLoaded=true;
 
-  const TOKEN_KEY='reloja_auth_token';
   const $=s=>document.querySelector(s);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -11,7 +10,6 @@
 
   function headers(body=false){
     const h={Accept:'application/json'};
-    try{const token=localStorage.getItem(TOKEN_KEY);if(token)h.Authorization=`Bearer ${token}`}catch{}
     if(body)h['Content-Type']='application/json';
     return h;
   }

@@ -2,7 +2,6 @@
 (function(){
   'use strict';
   let details={};
-  const TOKEN_KEY='reloja_auth_token';
   function info(p){
     if(!p)return{type:'pronta_entrega',days:0};
     const d=details[String(p.id)]||{};
@@ -75,10 +74,9 @@
     const original=btn.textContent;
     btn.disabled=true;btn.textContent='Enviando...';
     try{
-      const token=localStorage.getItem(TOKEN_KEY)||'';
       const response=await fetch('/api/availability-requests',{
         method:'POST',credentials:'same-origin',
-        headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({product_id:p.id,source:'catalog'})
       });
       const data=await response.json().catch(()=>({}));

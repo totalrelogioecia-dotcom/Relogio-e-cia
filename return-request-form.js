@@ -5,6 +5,9 @@
   let attachments = [];
 
   const $ = s => document.querySelector(s);
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+  })[char]);
 
   function statusLabel(value) {
     return ({
@@ -81,7 +84,7 @@
   function renderFiles() {
     const host = $('#return-files-list');
     if (!host) return;
-    host.innerHTML = attachments.map((item, index) => `<span>${item.name}<button type="button" data-remove-file="${index}" aria-label="Remover ${item.name}">×</button></span>`).join('');
+    host.innerHTML = attachments.map((item, index) => `<span>${esc(item.name)}<button type="button" data-remove-file="${index}" aria-label="Remover ${esc(item.name)}">×</button></span>`).join('');
     host.querySelectorAll('[data-remove-file]').forEach(button => {
       button.onclick = () => {
         attachments.splice(Number(button.dataset.removeFile), 1);
@@ -161,7 +164,7 @@
       if (!response.ok) throw Object.assign(new Error(data.error || 'Não foi possível enviar a solicitação.'), { data });
 
       const request = data.request;
-      feedback.innerHTML = `<strong>Solicitação registrada e recebida.</strong><br>Seu protocolo é <strong>${request.protocol}</strong>. Guarde esse número para acompanhar o atendimento.`;
+      feedback.innerHTML = `<strong>Solicitação registrada e recebida.</strong><br>Seu protocolo é <strong>${esc(request.protocol)}</strong>. Guarde esse número para acompanhar o atendimento.`;
       feedback.className = 'return-feedback success';
       $('#return-protocol').value = request.protocol;
       $('#return-status-email').value = body.email;
@@ -171,7 +174,7 @@
       renderFiles();
     } catch (error) {
       const protocol = error.data?.protocol;
-      feedback.innerHTML = protocol ? `${error.message}<br>Protocolo: <strong>${protocol}</strong>` : error.message;
+      feedback.innerHTML = protocol ? `${esc(error.message)}<br>Protocolo: <strong>${esc(protocol)}</strong>` : esc(error.message);
       feedback.className = 'return-feedback error';
     } finally {
       button.disabled = false;
@@ -191,7 +194,7 @@
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Não foi possível consultar o protocolo.');
       const request = data.request;
-      feedback.innerHTML = `<strong>${request.protocol}</strong><br>Pedido: ${request.order_id}<br>Tipo: ${typeLabel(request.type)}<br>Status: <strong>${statusLabel(request.status)}</strong>${request.admin_note ? `<br>Observação: ${request.admin_note}` : ''}`;
+      feedback.innerHTML = `<strong>${esc(request.protocol)}</strong><br>Pedido: ${esc(request.order_id)}<br>Tipo: ${esc(typeLabel(request.type))}<br>Status: <strong>${esc(statusLabel(request.status))}</strong>${request.admin_note ? `<br>Observação: ${esc(request.admin_note)}` : ''}`;
       feedback.className = 'return-status-result success';
     } catch (error) {
       feedback.textContent = error.message;

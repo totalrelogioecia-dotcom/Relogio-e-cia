@@ -7,7 +7,6 @@
    O catálogo é carregado do backend; carrinho e sessão do cliente ficam no navegador.
    ========================================================= */
 const CHAVE_CARRINHO = 'reloja_carrinho';
-const CHAVE_USUARIOS = 'reloja_usuarios';
 const CHAVE_SESSAO = 'reloja_sessao';
 
 function obterCarrinho() {
@@ -46,7 +45,7 @@ function totalItensCarrinho() {
   return obterCarrinho().reduce((s, i) => s + i.qtd, 0);
 }
 function totalCarrinho() {
-  return obterCarrinho().reduce((s, i) => s + i.qtd * i.preco, 0);
+  return obterCarrinho().reduce((s, i) => s + (Number(i.qtd) || 0) * (Number(i.preco) || 0), 0);
 }
 function atualizarBadgeCarrinho() {
   document.querySelectorAll('.cart-badge').forEach(b => {
@@ -56,40 +55,10 @@ function atualizarBadgeCarrinho() {
   });
 }
 
-/* ---------- Contas de usuário (simuladas, sem backend) ---------- */
-function obterUsuarios() {
-  try { return JSON.parse(localStorage.getItem(CHAVE_USUARIOS)) || []; }
-  catch { return []; }
-}
-function cadastrarUsuario(nome, email, senha) {
-  const usuarios = obterUsuarios();
-  const emailNorm = email.trim().toLowerCase();
-  if (usuarios.some(u => u.email === emailNorm)) {
-    return { ok: false, msg: 'Já existe uma conta com esse e-mail.' };
-  }
-  usuarios.push({ nome: nome.trim(), email: emailNorm, senha });
-  localStorage.setItem(CHAVE_USUARIOS, JSON.stringify(usuarios));
-  iniciarSessao({ nome: nome.trim(), email: emailNorm });
-  return { ok: true };
-}
-function autenticarUsuario(email, senha) {
-  const emailNorm = email.trim().toLowerCase();
-  const usuario = obterUsuarios().find(u => u.email === emailNorm && u.senha === senha);
-  if (!usuario) return { ok: false, msg: 'E-mail ou senha incorretos.' };
-  iniciarSessao({ nome: usuario.nome, email: usuario.email });
-  return { ok: true };
-}
-function iniciarSessao(usuario) {
-  localStorage.setItem(CHAVE_SESSAO, JSON.stringify(usuario));
-  atualizarLinkConta();
-}
+/* ---------- Estado visual da conta (a autenticação real fica no servidor) ---------- */
 function sessaoAtual() {
   try { return JSON.parse(localStorage.getItem(CHAVE_SESSAO)); }
   catch { return null; }
-}
-function encerrarSessao() {
-  localStorage.removeItem(CHAVE_SESSAO);
-  atualizarLinkConta();
 }
 function atualizarLinkConta() {
   const link = document.getElementById('nav-conta-link');
@@ -116,9 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartHref = utility?.querySelector('a[href*="carrinho"]')?.getAttribute('href') || 'carrinho.html';
 
     links.insertAdjacentHTML('beforeend', `
-      <li class="nav-mobile-only nav-mobile-account"><a href="${accountHref}">Minha conta</a></li>
-      <li class="nav-mobile-only"><a href="${cartHref}">Carrinho <span class="cart-badge" data-zero="1">0</span></a></li>
-      <li class="nav-mobile-only"><a href="${catalog?.getAttribute('href') || 'produtos.html'}">Ver catálogo</a></li>
+      <li class="nav-mobile-only nav-mobile-account"><a href="${escaparHtmlSeguro(accountHref)}">Minha conta</a></li>
+      <li class="nav-mobile-only"><a href="${escaparHtmlSeguro(cartHref)}">Carrinho <span class="cart-badge" data-zero="1">0</span></a></li>
+      <li class="nav-mobile-only"><a href="${escaparHtmlSeguro(catalog?.getAttribute('href') || 'produtos.html')}">Ver catálogo</a></li>
     `);
     atualizarBadgeCarrinho();
   }
@@ -255,7 +224,25 @@ document.addEventListener('DOMContentLoaded', iniciarCronometro);
 
 /* ---------- Utilitário: formatação de preço em BRL ---------- */
 function formatarPreco(v) {
-  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const amount = Number(v);
+  return (Number.isFinite(amount) ? amount : 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function escaparHtmlSeguro(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  })[char]);
+}
+
+function urlImagemSegura(value) {
+  const raw = String(value || '').trim();
+  if (/^data:image\/(?:avif|gif|jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(raw)) return raw;
+  try {
+    const url = new URL(raw, location.origin);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
 }
 
 /* ---------- Utilitário: fallback quando uma foto não carrega ---------- */
@@ -501,25 +488,29 @@ function iniciarPaginaProdutos() {
     }
 
     grid.innerHTML = lista.map(p => {
-      const primeiraFoto = (p.fotos && p.fotos[0]) || p.foto;
-      const productUrl = `produto.html?id=${encodeURIComponent(p.id)}`;
+      const id = Number(p.id);
+      if (!Number.isSafeInteger(id) || id <= 0) return '';
+      const primeiraFoto = urlImagemSegura((p.fotos && p.fotos[0]) || p.foto);
+      const productUrl = `produto.html?id=${id}`;
+      const nome = escaparHtmlSeguro(p.nome);
+      const marca = escaparHtmlSeguro(p.marca);
       return `
-      <article class="product-card" data-product-id="${p.id}">
+      <article class="product-card" data-product-id="${id}">
         <div class="card-photo">
           <a class="card-photo-link" href="${productUrl}">
             ${primeiraFoto
-              ? `<img src="${primeiraFoto}" alt="${p.nome}" loading="lazy" onerror="tratarErroFoto(this)">`
+              ? `<img src="${escaparHtmlSeguro(primeiraFoto)}" alt="${nome}" loading="lazy" onerror="tratarErroFoto(this)">`
               : `<span class="card-photo-placeholder">Foto em breve</span>`}
           </a>
         </div>
         <div class="card-top">
-          <span class="brand-chip">${p.marca}</span>
+          <span class="brand-chip">${marca}</span>
         </div>
-        <h4><a class="product-title-link" href="${productUrl}">${p.nome}</a></h4>
+        <h4><a class="product-title-link" href="${productUrl}">${nome}</a></h4>
         <p class="price">${formatarPreco(p.preco)}</p>
         <div class="card-actions">
           <a class="btn btn-outline" href="${productUrl}">Ver detalhes</a>
-          <button class="btn btn-primary" type="button" data-add-carrinho="${p.id}">Adicionar</button>
+          <button class="btn btn-primary" type="button" data-add-carrinho="${id}">Adicionar</button>
         </div>
       </article>
     `;
@@ -617,7 +608,7 @@ function iniciarPaginaCarrinho() {
   const mensagem = document.getElementById('cart-msg');
 
   function desconto(itens, forma) {
-    const subtotal = itens.reduce((s, i) => s + i.qtd * i.preco, 0);
+    const subtotal = itens.reduce((s, i) => s + (Number(i.qtd) || 0) * (Number(i.preco) || 0), 0);
     return forma === 'pix' ? subtotal * 0.05 : 0;
   }
 
@@ -635,24 +626,31 @@ function iniciarPaginaCarrinho() {
     }
     document.getElementById('cart-summary-box').style.display = 'block';
 
-    lista.innerHTML = itens.map(i => `
+    lista.innerHTML = itens.map(i => {
+      const id = Number(i.id);
+      if (!Number.isSafeInteger(id) || id <= 0) return '';
+      const qtd = Math.max(1, Math.min(99, Math.floor(Number(i.qtd) || 1)));
+      const preco = Math.max(0, Number(i.preco) || 0);
+      const foto = urlImagemSegura(i.foto);
+      return `
       <div class="cart-item">
         <div class="cart-item-photo">
-          ${i.foto ? `<img src="${i.foto}" alt="${i.nome}" onerror="tratarErroFoto(this)">` : ''}
+          ${foto ? `<img src="${escaparHtmlSeguro(foto)}" alt="${escaparHtmlSeguro(i.nome)}" onerror="tratarErroFoto(this)">` : ''}
         </div>
         <div class="cart-item-info">
-          <h4>${i.nome}</h4>
-          <p class="sku">Ref. ${i.sku} · ${formatarPreco(i.preco)}</p>
-          <button class="cart-item-remove" type="button" data-remover="${i.id}">Remover</button>
+          <h4>${escaparHtmlSeguro(i.nome)}</h4>
+          <p class="sku">Ref. ${escaparHtmlSeguro(i.sku)} · ${formatarPreco(preco)}</p>
+          <button class="cart-item-remove" type="button" data-remover="${id}">Remover</button>
         </div>
         <div class="qty-stepper">
-          <button type="button" data-menos="${i.id}">−</button>
-          <span>${i.qtd}</span>
-          <button type="button" data-mais="${i.id}">+</button>
+          <button type="button" data-menos="${id}">−</button>
+          <span>${qtd}</span>
+          <button type="button" data-mais="${id}">+</button>
         </div>
-        <strong>${formatarPreco(i.qtd * i.preco)}</strong>
+        <strong>${formatarPreco(qtd * preco)}</strong>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     const forma = (formasPagamento.querySelector('input[name="pagamento"]:checked') || {}).value || 'pix';
     const subtotal = totalCarrinho();
@@ -729,86 +727,3 @@ function iniciarPaginaCarrinho() {
   render();
 }
 document.addEventListener('DOMContentLoaded', () => quandoCatalogoPronto(iniciarPaginaCarrinho));
-
-/* =========================================================
-   Página: conta.html
-   ========================================================= */
-function iniciarPaginaConta() {
-  const box = document.getElementById('account-box');
-  if (!box) return;
-
-  function renderLogado(sessao) {
-    box.innerHTML = `
-      <div class="account-profile">
-        <p>Você está conectado como</p>
-        <p><strong>${sessao.nome}</strong></p>
-        <p>${sessao.email}</p>
-      </div>
-      <button class="btn btn-outline" style="width:100%; justify-content:center; margin-top:10px;" id="btn-sair">Sair da conta</button>
-      <a class="btn btn-primary" style="width:100%; justify-content:center; margin-top:10px;" href="carrinho.html">Ir para o carrinho</a>
-    `;
-    document.getElementById('btn-sair').addEventListener('click', () => {
-      encerrarSessao();
-      renderDeslogado();
-    });
-  }
-
-  function renderDeslogado() {
-    box.innerHTML = `
-      <div class="account-tabs">
-        <button type="button" class="active" data-tab="login">Entrar</button>
-        <button type="button" data-tab="cadastro">Criar conta</button>
-      </div>
-      <div id="tab-login">
-        <p class="form-error" id="erro-login" style="display:none;"></p>
-        <div class="form-field"><label for="login-email">E-mail</label><input type="email" id="login-email" required></div>
-        <div class="form-field"><label for="login-senha">Senha</label><input type="password" id="login-senha" required></div>
-        <button class="btn btn-primary" type="button" id="btn-login" style="width:100%; justify-content:center;">Entrar</button>
-      </div>
-      <div id="tab-cadastro" style="display:none;">
-        <p class="form-error" id="erro-cadastro" style="display:none;"></p>
-        <div class="form-field"><label for="cad-nome">Nome completo</label><input type="text" id="cad-nome" required></div>
-        <div class="form-field"><label for="cad-email">E-mail</label><input type="email" id="cad-email" required></div>
-        <div class="form-field"><label for="cad-senha">Senha</label><input type="password" id="cad-senha" minlength="4" required></div>
-        <p class="form-note">Seus dados ficam salvos apenas neste navegador (não há envio a servidores externos).</p>
-        <button class="btn btn-primary" type="button" id="btn-cadastro" style="width:100%; justify-content:center;">Criar conta</button>
-      </div>
-    `;
-
-    const tabs = box.querySelectorAll('.account-tabs button');
-    tabs.forEach(t => t.addEventListener('click', () => {
-      tabs.forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      document.getElementById('tab-login').style.display = t.dataset.tab === 'login' ? 'block' : 'none';
-      document.getElementById('tab-cadastro').style.display = t.dataset.tab === 'cadastro' ? 'block' : 'none';
-    }));
-
-    document.getElementById('btn-login').addEventListener('click', () => {
-      const email = document.getElementById('login-email').value;
-      const senha = document.getElementById('login-senha').value;
-      const erro = document.getElementById('erro-login');
-      const r = autenticarUsuario(email, senha);
-      if (!r.ok) { erro.textContent = r.msg; erro.style.display = 'block'; return; }
-      renderLogado(sessaoAtual());
-    });
-
-    document.getElementById('btn-cadastro').addEventListener('click', () => {
-      const nome = document.getElementById('cad-nome').value.trim();
-      const email = document.getElementById('cad-email').value.trim();
-      const senha = document.getElementById('cad-senha').value;
-      const erro = document.getElementById('erro-cadastro');
-      if (!nome || !email || senha.length < 4) {
-        erro.textContent = 'Preencha nome, e-mail e uma senha com pelo menos 4 caracteres.';
-        erro.style.display = 'block';
-        return;
-      }
-      const r = cadastrarUsuario(nome, email, senha);
-      if (!r.ok) { erro.textContent = r.msg; erro.style.display = 'block'; return; }
-      renderLogado(sessaoAtual());
-    });
-  }
-
-  const sessao = sessaoAtual();
-  if (sessao) renderLogado(sessao); else renderDeslogado();
-}
-document.addEventListener('DOMContentLoaded', iniciarPaginaConta);

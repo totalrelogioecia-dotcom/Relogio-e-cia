@@ -8,6 +8,7 @@ const { registerStockAlertRoutes, queueStockAvailableEmails } = require('./stock
 const { createPublicStaticGuard } = require('./public-static-policy');
 const { buildHomeCatalog } = require('./home-catalog');
 const { withPublicProductList } = require('./public-product-media');
+const { fetchAllowedImage } = require('./remote-image');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -151,7 +152,7 @@ app.get('/api/products', (req, res) => {
 
 // Busca oficial Casio/G-Shock por referência. Usa a página pública brasileira da Casio,
 // que é mais estável para ficha técnica do que depender do mecanismo interno do Portal Casio.
-app.get('/api/casio-enrichment', async (req, res) => {
+app.get('/api/admin/casio-enrichment', async (req, res) => {
   res.set('Cache-Control', 'no-store');
   const candidates = casioSkuCandidates(req.query.sku);
   if (!candidates.length) return res.status(400).json({ error: 'Informe a referência do relógio.' });
@@ -195,14 +196,23 @@ app.get('/api/casio-enrichment', async (req, res) => {
 
 app.get('/api/casio-image', async (req, res) => {
   try {
-    const url = new URL(String(req.query.url || ''));
-    if (url.protocol !== 'https:' || !/(^|\.)casio\./i.test(url.hostname)) return res.status(400).end();
-    const r = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0', referer: 'https://www.casio.com/' }, signal: AbortSignal.timeout(15000) });
-    if (!r.ok) return res.status(404).end();
-    const type = r.headers.get('content-type') || 'image/jpeg';
-    if (!type.startsWith('image/')) return res.status(415).end();
-    res.set('Content-Type', type); res.set('Cache-Control', 'public, max-age=86400');
-    const buf = Buffer.from(await r.arrayBuffer()); res.send(buf);
+    const raw = String(req.query.url || '').trim();
+    const isAllowed = value => {
+      try {
+        const url = new URL(value);
+        return url.protocol === 'https:' && url.hostname === 'www.casio.com' && url.pathname.startsWith('/content/dam/casio/');
+      } catch { return false; }
+    };
+    if (!isAllowed(raw)) return res.status(403).end();
+    const image = await fetchAllowedImage(raw, {
+      isAllowed,
+      headers: { 'user-agent': 'Mozilla/5.0', referer: 'https://www.casio.com/' },
+      timeoutMs: 8000
+    });
+    if (!image) return res.status(404).end();
+    res.set('Content-Type', image.type); res.set('Cache-Control', 'public, max-age=86400');
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.send(image.bytes);
   } catch { res.status(404).end(); }
 });
 
@@ -270,6 +280,7 @@ app.patch('/api/admin/orders/:id/invoice', admin, (req, res) => {
     const order = orders[index];
     const requestedStatus = String(req.body?.status || order.invoice?.status || 'pending').trim().toLowerCase();
     if (requestedStatus === 'emitted' && !isPaidOrder(order)) return res.status(409).json({ error: 'A NF-e só pode ser registrada como emitida após a confirmação do pagamento.' });
+    if (requestedStatus === 'emitted' && order.stock_conflict) return res.status(409).json({ error: 'Revise o conflito de estoque antes de registrar a NF-e como emitida.' });
     order.invoice = normalizeInvoiceInput(req.body, order.invoice || null); order.updated_at = new Date().toISOString(); orders[index] = order; write(ORDERS, orders);
     console.log('Nota fiscal atualizada:', { orderId, invoice_status: order.invoice.status, invoice_number: order.invoice.number || null }); res.json(order);
   } catch (error) {

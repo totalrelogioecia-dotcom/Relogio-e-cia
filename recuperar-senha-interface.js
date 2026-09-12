@@ -11,9 +11,6 @@
 
   async function api(url, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-    const token = localStorage.getItem('reloja_auth_token');
-    if (token) headers.Authorization = `Bearer ${token}`;
-
     const resposta = await fetch(url, { ...options, headers, credentials: 'same-origin' });
     const dados = resposta.status === 204 ? {} : await resposta.json().catch(() => ({}));
     if (!resposta.ok) throw new Error(dados.error || 'Não foi possível concluir a operação.');

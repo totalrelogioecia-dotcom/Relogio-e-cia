@@ -1,7 +1,7 @@
 /* =========================================================
    RELÓGIO E CIA — sincronização de pedidos pendentes
    Ao abrir/atualizar Pedidos, consulta o Mercado Pago pelo endpoint
-   público do próprio servidor e grava status/status_detail no pedido.
+   administrativo do próprio servidor e grava status/status_detail no pedido.
    ========================================================= */
 (function () {
   const TOKEN_KEY = 'reloja_admin_token';
@@ -29,8 +29,9 @@
   }
 
   async function syncOrder(order) {
-    const response = await fetch(`/api/order/${encodeURIComponent(order.id)}`, {
+    const response = await fetch(`/api/admin/order/${encodeURIComponent(order.id)}/sync`, {
       headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
       cache: 'no-store'
     });
     if (!response.ok) return null;

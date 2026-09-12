@@ -113,6 +113,7 @@ function customerOrder(order) {
     id: String(order?.id || ''),
     status: String(order?.status || ''),
     payment_status: String(order?.payment_status || ''),
+    stock_conflict: Boolean(order?.stock_conflict),
     metodo: String(order?.metodo || ''),
     subtotal,
     desconto_pix: Number(order?.desconto_pix || 0),

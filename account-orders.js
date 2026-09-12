@@ -2,7 +2,6 @@
 (function () {
   'use strict';
 
-  const TOKEN_KEY = 'reloja_auth_token';
   let loading = false;
   let scheduled = false;
 
@@ -22,6 +21,7 @@
 
   function statusLabel(order) {
     if (order?.cancellation?.status === 'refunded') return 'Cancelado pela loja · reembolsado';
+    if (order?.stock_conflict) return 'Pagamento aprovado · disponibilidade em revisão';
     const status = String(order?.payment_status || order?.status || '').toLowerCase();
     if (status === 'approved' || status === 'paid' || status === 'processed') return 'Pagamento aprovado';
     if (status === 'refunded') return 'Reembolsado';
@@ -235,17 +235,12 @@
   }
 
   async function loadOrders() {
-    const token = localStorage.getItem(TOKEN_KEY) || '';
     const box = document.getElementById('account-box');
     if (!box) return;
-    if (!token) {
-      document.getElementById('account-orders-panel')?.remove();
-      return;
-    }
     if (loading) return;
     loading = true;
     try {
-      const response = await fetch('/api/auth/orders', { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+      const response = await fetch('/api/auth/orders', { credentials: 'same-origin', headers: { Accept: 'application/json' }, cache: 'no-store' });
       if (response.status === 401) {
         document.getElementById('account-orders-panel')?.remove();
         return;
@@ -273,6 +268,7 @@
       }).observe(box, { childList: true, subtree: true });
     }
     setTimeout(scheduleLoad, 250);
-    window.addEventListener('storage', event => { if (event.key === TOKEN_KEY) scheduleLoad(); });
+    window.addEventListener('storage', event => { if (event.key === 'reloja_sessao') scheduleLoad(); });
+    window.addEventListener('reloja:auth-changed', scheduleLoad);
   });
 })();

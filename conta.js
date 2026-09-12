@@ -3,7 +3,6 @@
    Cadastro, login, endereço por CEP e redefinição de senha
    ========================================================= */
 (function () {
-  const TOKEN_KEY = 'reloja_auth_token';
   const SESSION_KEY = 'reloja_sessao';
   const LEGACY_USERS_KEY = 'reloja_usuarios';
 
@@ -34,9 +33,7 @@
 
   async function api(url, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(url, { ...options, headers, credentials: 'same-origin' });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       const err = new Error(data.error || 'Não foi possível concluir a operação.');
@@ -46,16 +43,18 @@
     return data;
   }
 
-  function saveSession(token, user) {
-    if (token) localStorage.setItem(TOKEN_KEY, token);
+  function saveSession(user) {
+    localStorage.removeItem('reloja_auth_token');
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     if (typeof atualizarLinkConta === 'function') atualizarLinkConta();
+    window.dispatchEvent(new Event('reloja:auth-changed'));
   }
 
   function clearSession() {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('reloja_auth_token');
     localStorage.removeItem(SESSION_KEY);
     if (typeof atualizarLinkConta === 'function') atualizarLinkConta();
+    window.dispatchEvent(new Event('reloja:auth-changed'));
   }
 
   function getBox() { return document.getElementById('account-box'); }
@@ -109,9 +108,10 @@
       <button class="btn btn-outline" id="btn-sair" style="width:100%;justify-content:center;margin-top:10px;">Sair da conta</button>
       <a class="btn btn-primary" href="carrinho.html" style="width:100%;justify-content:center;margin-top:10px;">Ir para o carrinho</a>
     `;
-    document.getElementById('btn-sair').addEventListener('click', () => {
-      clearSession();
-      renderDeslogado();
+      document.getElementById('btn-sair').addEventListener('click', async () => {
+        try { await api('/api/auth/logout', { method: 'POST', body: '{}' }); } catch (_) {}
+        clearSession();
+        renderDeslogado();
     });
   }
 
@@ -142,7 +142,7 @@
       }
       try {
         const data = await api('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, senha }) });
-        saveSession(data.token, data.user);
+        saveSession(data.user);
         history.replaceState({}, '', location.pathname);
         renderLogado(data.user);
       } catch (e) {
@@ -200,7 +200,7 @@
       const senha = document.getElementById('login-senha').value;
       try {
         const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, senha }) });
-        saveSession(data.token, data.user);
+        saveSession(data.user);
         renderLogado(data.user);
       } catch (e) {
         error.textContent = e.message;
@@ -258,7 +258,7 @@
           endereco
         };
         const data = await api('/api/auth/register', { method: 'POST', body: JSON.stringify(body) });
-        saveSession(data.token, data.user);
+        saveSession(data.user);
         localStorage.removeItem(LEGACY_USERS_KEY);
         renderLogado(data.user);
       } catch (e) {
@@ -274,24 +274,31 @@
     catch { legacy = []; }
     if (!Array.isArray(legacy) || !legacy.length) return;
 
-    for (const old of legacy) {
-      try {
-        const senha = String(old.senha || '');
-        if (senha.length < 8 || !old.email || !old.nome || !old.telefone?.number || !old.endereco?.zip_code) continue;
-        await api('/api/auth/register', {
-          method: 'POST',
-          body: JSON.stringify({
-            nome: old.nome,
-            email: old.email,
-            senha,
-            telefone: old.telefone,
-            identificacao: old.identificacao || null,
-            endereco: old.endereco
-          })
-        });
-      } catch (e) {
-        if (e.status !== 409) console.warn('Não foi possível migrar uma conta antiga:', old.email, e.message);
+    try {
+      for (const old of legacy) {
+        try {
+          const senha = String(old.senha || '');
+          if (senha.length < 8 || !old.email || !old.nome || !old.telefone?.number || !old.endereco?.zip_code) continue;
+          await api('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({
+              nome: old.nome,
+              email: old.email,
+              senha,
+              telefone: old.telefone,
+              identificacao: old.identificacao || null,
+              endereco: old.endereco
+            })
+          });
+        } catch (e) {
+          if (e.status !== 409) console.warn('Não foi possível migrar uma conta antiga:', old.email, e.message);
+        }
       }
+    } finally {
+      // A implementação antiga guardava senhas em texto no navegador. A conta
+      // atual usa hash no servidor e cookie HttpOnly, então o legado deve sumir
+      // mesmo quando um cadastro já existe ou não pode ser reaproveitado.
+      localStorage.removeItem(LEGACY_USERS_KEY);
     }
   }
 
@@ -307,16 +314,14 @@
 
     await migrarContaAntiga();
 
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) {
-      try {
-        const data = await api('/api/auth/me');
-        saveSession(token, data.user);
-        renderLogado(data.user);
-        return;
-      } catch {
-        clearSession();
-      }
+    localStorage.removeItem('reloja_auth_token');
+    try {
+      const data = await api('/api/auth/me');
+      saveSession(data.user);
+      renderLogado(data.user);
+      return;
+    } catch {
+      clearSession();
     }
 
     renderDeslogado();

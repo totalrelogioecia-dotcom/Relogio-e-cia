@@ -6,11 +6,13 @@ const { maxInstallmentsForAmount } = require('./installment-policy');
 const { resolveSelectedShipping, isConfigured } = require('./shipping-service');
 const { flushPersistentStore } = require('./persistent-store');
 const { assertPickupAllowed } = require('./pickup-policy');
+const { customerCanAccessOrder, sendOrderNotFound } = require('./order-access');
+const { consumeCoupon, releaseCoupon } = require('./coupon-service');
 const {
   readDetails,
-  validateCheckoutAvailability,
-  shouldApplyPhysicalStock
+  validateCheckoutAvailability
 } = require('./product-availability-service');
+const { applyPaidOrderStock, registerStockResult } = require('./inventory-service');
 const {
   WebhookSignatureValidator,
   clients,
@@ -215,10 +217,21 @@ async function applyPayment(payment) {
   const orderId = String(payment?.external_reference || '').trim();
   if (!orderId) return null;
 
+  const initialOrder = read(ORDERS, []).find(order => order.id === orderId);
+  if (!initialOrder) return null;
+  if (initialOrder.coupon?.id) {
+    if (payment?.status === 'approved') {
+      await consumeCoupon(initialOrder.coupon.id, initialOrder.payer?.email, initialOrder.id);
+    } else if (['rejected', 'cancelled', 'canceled', 'refunded'].includes(String(payment?.status || '').toLowerCase())) {
+      await releaseCoupon(initialOrder.id);
+    }
+  }
+
+  // Releia depois de qualquer operação assíncrona para não sobrescrever uma
+  // atualização concorrente de outro pedido no arquivo persistido.
   const orders = read(ORDERS, []);
   const index = orders.findIndex(order => order.id === orderId);
   if (index < 0) return null;
-
   const order = orders[index];
   order.payment_id = payment?.id ? String(payment.id) : null;
   order.payment_status = String(payment?.status || 'pending');
@@ -228,20 +241,9 @@ async function applyPayment(payment) {
 
   if (payment?.status === 'approved' && !order.stock_applied) {
     const products = read(PRODUCTS, []);
-    for (const item of order.items || []) {
-      if (!shouldApplyPhysicalStock(item)) continue;
-      const productIndex = products.findIndex(
-        product => Number(product.id) === Number(item.id)
-      );
-      if (productIndex >= 0) {
-        products[productIndex].estoque = Math.max(
-          0,
-          Number(products[productIndex].estoque || 0) - Number(item.quantidade || 0)
-        );
-      }
-    }
-    write(PRODUCTS, products);
-    order.stock_applied = true;
+    const stockResult = applyPaidOrderStock(products, order.items);
+    if (stockResult.applied) write(PRODUCTS, stockResult.products);
+    registerStockResult(order, stockResult);
   }
 
   orders[index] = order;
@@ -283,7 +285,7 @@ async function findPaymentByOrder(orderId) {
 }
 
 async function syncOrder(order) {
-  if (!order || order.status === 'paid' || order.payment_status === 'approved') return order;
+  if (!order || ((order.status === 'paid' || order.payment_status === 'approved') && !order.stock_conflict)) return order;
   if (order.status === 'checkout_error') return order;
 
   try {
@@ -569,11 +571,39 @@ function registerMercadoPagoClean(app) {
 
   app.get('/api/order/:id', async (req, res) => {
     let order = read(ORDERS, []).find(item => item.id === req.params.id);
-    if (!order) return res.status(404).json({ error: 'Pedido não encontrado.' });
+    if (!order || !customerCanAccessOrder(req, order)) return sendOrderNotFound(res);
 
     if (
       ['creating', 'pending'].includes(order.status) ||
-      ['creating', 'pending'].includes(order.payment_status)
+      ['creating', 'pending'].includes(order.payment_status) ||
+      Boolean(order.stock_conflict)
+    ) {
+      order = await syncOrder(order);
+    }
+
+    res.set('Cache-Control', 'no-store');
+    return res.json({
+      id: order.id,
+      status: order.status,
+      payment_status: order.payment_status,
+      payment_id: order.payment_id || null,
+      metodo: order.metodo || null,
+      pix: order.pix || null,
+      preference_id: order.preference_id || null,
+      payment_detail: order.payment_detail || null,
+      checkout_error: order.checkout_error || null,
+      updated_at: order.updated_at || null
+    });
+  });
+
+  app.get('/api/admin/order/:id/sync', async (req, res) => {
+    let order = read(ORDERS, []).find(item => item.id === req.params.id);
+    if (!order) return sendOrderNotFound(res);
+
+    if (
+      ['creating', 'pending'].includes(order.status) ||
+      ['creating', 'pending'].includes(order.payment_status) ||
+      Boolean(order.stock_conflict)
     ) {
       order = await syncOrder(order);
     }

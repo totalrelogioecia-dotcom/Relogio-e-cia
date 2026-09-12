@@ -10,12 +10,15 @@
     "test:payments": "node --test tests/payment-integration.test.js tests/mercadopago-official.test.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24 <25"
   },
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
     "mercadopago": "3.5.1",
-    "pg": "^8.13.3"
+    "pg": "^8.23.0"
+  },
+  "overrides": {
+    "qs": "6.16.0"
   }
 }

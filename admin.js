@@ -135,6 +135,7 @@ function paidOrder(o){return String(o?.status||'').toLowerCase()==='paid'||Strin
 function invoiceStatus(o){return String(o?.invoice?.status||'pending').toLowerCase();}
 function invoiceLabel(status){return ({pending:'Pendente',emitted:'Emitida',cancelled:'Cancelada'})[status]||'Pendente';}
 function invoiceCell(o){
+  if(o?.stock_conflict)return '<span class="invoice-status waiting">Revisar estoque</span>';
   if(!paidOrder(o))return '<span class="invoice-status waiting">Aguardando pagamento</span>';
   const st=invoiceStatus(o),inv=o.invoice||{};
   const number=inv.number?`<small>NF ${esc(inv.number)}</small>`:'';
@@ -207,7 +208,7 @@ async function saveInvoice(){
 async function loadOrders(){
   try{
     const os=await api('/api/admin/orders');
-    $('#orders-list').innerHTML=`<table class="admin-table orders-table"><thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Pagamento</th><th>Nota fiscal</th><th>Data</th><th>Ações</th></tr></thead><tbody>${os.map(o=>`<tr><td><strong>${esc(o.id)}</strong></td><td>${esc(o.payer?.nome||'')}<br><small>${esc(o.payer?.email||'')}</small></td><td>${brl(o.total)}</td><td><span class="status ${escAttr(o.status)}">${esc(o.payment_status||o.status)}</span></td><td>${invoiceCell(o)}</td><td>${new Date(o.created_at).toLocaleString('pt-BR')}</td><td><div class="admin-actions">${paidOrder(o)?`<button data-invoice="${escAttr(o.id)}">${invoiceStatus(o)==='pending'?'Registrar NF-e':'Editar NF-e'}</button>`:'<button disabled title="Aguarde a confirmação do pagamento">Registrar NF-e</button>'}</div></td></tr>`).join('')||'<tr><td colspan="7">Nenhum pedido ainda.</td></tr>'}</tbody></table>`;
+    $('#orders-list').innerHTML=`<table class="admin-table orders-table"><thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Pagamento</th><th>Nota fiscal</th><th>Data</th><th>Ações</th></tr></thead><tbody>${os.map(o=>`<tr><td><strong>${esc(o.id)}</strong></td><td>${esc(o.payer?.nome||'')}<br><small>${esc(o.payer?.email||'')}</small></td><td>${brl(o.total)}</td><td><span class="status ${escAttr(o.status)}">${esc(o.payment_status||o.status)}</span>${o.stock_conflict?'<br><small class="form-error">Estoque insuficiente — revisar antes de faturar</small>':''}</td><td>${invoiceCell(o)}</td><td>${new Date(o.created_at).toLocaleString('pt-BR')}</td><td><div class="admin-actions">${paidOrder(o)&&!o.stock_conflict?`<button data-invoice="${escAttr(o.id)}">${invoiceStatus(o)==='pending'?'Registrar NF-e':'Editar NF-e'}</button>`:`<button disabled title="${o.stock_conflict?'Revise o estoque ou cancele e estorne o pedido':'Aguarde a confirmação do pagamento'}">Registrar NF-e</button>`}</div></td></tr>`).join('')||'<tr><td colspan="7">Nenhum pedido ainda.</td></tr>'}</tbody></table>`;
     os.forEach(o=>{const b=document.querySelector(`[data-invoice="${CSS.escape(String(o.id))}"]`);if(b)b.onclick=()=>openInvoiceModal(o);});
   }catch(e){msg(e.message);}
 }

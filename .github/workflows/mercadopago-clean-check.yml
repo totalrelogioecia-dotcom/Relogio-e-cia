@@ -20,10 +20,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Check JavaScript syntax
         run: |
@@ -54,8 +58,17 @@ jobs:
           node --check mercadopago-orders-pix.js
           node --check mercadopago-checkout-client.js
           node --check coupon-checkout.js
+          node --check coupon-service.js
           node --check checkout-rate-limit.js
+          node --check auth-rate-limit.js
+          node --check auth.js
           node --check auth-bootstrap.js
+          node --check order-access.js
+          node --check inventory-service.js
+          node --check remote-image.js
+          node --check remote-text.js
+          node --check image-proxy.js
+          node --check orient-enrichment.js
           node --check resend-client.js
           node --check operational-email-watcher.js
           node --check order-email.js

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
+const { createAuthRateLimit } = require('./auth-rate-limit');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const USERS = path.join(DATA, 'users.json');
@@ -45,7 +46,11 @@ function cleanUser(user) {
 function authToken(user) {
   const secret = String(process.env.AUTH_SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || '').trim();
   if (!secret) throw new Error('AUTH_SESSION_SECRET não configurado.');
-  const body = Buffer.from(JSON.stringify({ sub: user.id, exp: Date.now() + 7 * 24 * 60 * 60 * 1000 })).toString('base64url');
+  const body = Buffer.from(JSON.stringify({
+    sub: user.id,
+    ver: Number(user.session_version || 0),
+    exp: Date.now() + 7 * 24 * 60 * 60 * 1000
+  })).toString('base64url');
   const sig = crypto.createHmac('sha256', secret).update(body).digest('base64url');
   return `${body}.${sig}`;
 }
@@ -61,7 +66,9 @@ function validAuthToken(token) {
     if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
     if (!payload.sub || payload.exp <= Date.now()) return null;
-    return read(USERS, []).find(u => u.id === payload.sub) || null;
+    const user = read(USERS, []).find(u => u.id === payload.sub) || null;
+    if (!user || Number(user.session_version || 0) !== Number(payload.ver || 0)) return null;
+    return user;
   } catch { return null; }
 }
 
@@ -87,20 +94,21 @@ function userFromRequest(req) {
 }
 
 function setAuthCookie(res, token) {
-  const secure = String(process.env.PUBLIC_URL || '').startsWith('https://');
+  const secure = String(process.env.PUBLIC_URL || '').startsWith('https://') || process.env.NODE_ENV === 'production';
   const parts = [
     `reloja_auth=${encodeURIComponent(token)}`,
     'Path=/',
     'HttpOnly',
     'SameSite=Lax',
-    'Max-Age=604800'
+    'Max-Age=604800',
+    'Priority=High'
   ];
   if (secure) parts.push('Secure');
   res.setHeader('Set-Cookie', parts.join('; '));
 }
 
 function clearAuthCookie(res) {
-  const secure = String(process.env.PUBLIC_URL || '').startsWith('https://');
+  const secure = String(process.env.PUBLIC_URL || '').startsWith('https://') || process.env.NODE_ENV === 'production';
   const parts = ['reloja_auth=', 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'];
   if (secure) parts.push('Secure');
   res.setHeader('Set-Cookie', parts.join('; '));
@@ -143,10 +151,19 @@ function tooSoon(email) {
   return false;
 }
 
+const registerRateLimit = createAuthRateLimit({ name: 'register', max: 8, windowMs: 60 * 60 * 1000 });
+const loginRateLimit = createAuthRateLimit({ name: 'login', max: 20, windowMs: 15 * 60 * 1000 });
+const forgotRateLimit = createAuthRateLimit({ name: 'forgot_password', max: 10, windowMs: 60 * 60 * 1000 });
+const resetRateLimit = createAuthRateLimit({ name: 'reset_password', max: 10, windowMs: 60 * 60 * 1000 });
+
 function registerAuthRoutes(app) {
   app.use('/api/auth', express.json({ limit: '1mb' }));
+  app.use('/api/auth', (req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+  });
 
-  app.post('/api/auth/register', (req, res) => {
+  app.post('/api/auth/register', registerRateLimit, (req, res) => {
     try {
       const { nome, email, senha, telefone, identificacao, endereco } = req.body || {};
       const normalizedEmail = String(email || '').trim().toLowerCase();
@@ -177,6 +194,7 @@ function registerAuthRoutes(app) {
           state_code: String(endereco.state_code).trim().slice(0, 2).toUpperCase(),
           country_name: 'Brasil'
         },
+        session_version: 0,
         created_at: new Date().toISOString()
       };
       users.push(user);
@@ -184,14 +202,14 @@ function registerAuthRoutes(app) {
       console.log('Conta criada no servidor:', { id: user.id, email: user.email });
       const token = authToken(user);
       setAuthCookie(res, token);
-      res.status(201).json({ token, user: cleanUser(user) });
+      res.status(201).json({ user: cleanUser(user) });
     } catch (error) {
       console.error('Erro /api/auth/register:', error);
       res.status(500).json({ error: error.message || 'Erro ao criar conta.' });
     }
   });
 
-  app.post('/api/auth/login', (req, res) => {
+  app.post('/api/auth/login', loginRateLimit, (req, res) => {
     try {
       const email = String(req.body?.email || '').trim().toLowerCase();
       const senha = String(req.body?.senha || '');
@@ -199,7 +217,7 @@ function registerAuthRoutes(app) {
       if (!user || !verifyPassword(senha, user.password_hash)) return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
       const token = authToken(user);
       setAuthCookie(res, token);
-      res.json({ token, user: cleanUser(user) });
+      res.json({ user: cleanUser(user) });
     } catch (error) {
       res.status(500).json({ error: error.message || 'Erro ao entrar.' });
     }
@@ -216,7 +234,7 @@ function registerAuthRoutes(app) {
     res.json({ user: cleanUser(user) });
   });
 
-  app.post('/api/auth/forgot-password', async (req, res) => {
+  app.post('/api/auth/forgot-password', forgotRateLimit, async (req, res) => {
     const email = String(req.body?.email || '').trim().toLowerCase();
     const generic = { message: 'Se existir uma conta com esse e-mail, enviaremos um link para redefinir a senha.' };
     if (!email) return res.status(400).json({ error: 'Informe seu e-mail.' });
@@ -248,7 +266,7 @@ function registerAuthRoutes(app) {
     }
   });
 
-  app.post('/api/auth/reset-password', (req, res) => {
+  app.post('/api/auth/reset-password', resetRateLimit, (req, res) => {
     try {
       const token = String(req.body?.token || '').trim();
       const senha = String(req.body?.senha || '');
@@ -261,12 +279,13 @@ function registerAuthRoutes(app) {
       const userIndex = users.findIndex(u => u.id === tokens[index].user_id);
       if (userIndex < 0) return res.status(400).json({ error: 'Conta não encontrada.' });
       users[userIndex].password_hash = hashPassword(senha);
+      users[userIndex].session_version = Number(users[userIndex].session_version || 0) + 1;
       users[userIndex].updated_at = new Date().toISOString();
       write(USERS, users);
       write(RESET_TOKENS, tokens.filter(t => t.user_id !== users[userIndex].id));
       const newToken = authToken(users[userIndex]);
       setAuthCookie(res, newToken);
-      res.json({ token: newToken, user: cleanUser(users[userIndex]) });
+      res.json({ user: cleanUser(users[userIndex]) });
     } catch (error) {
       console.error('Erro /api/auth/reset-password:', error);
       res.status(500).json({ error: 'Não foi possível redefinir a senha.' });

@@ -52,7 +52,9 @@ test('checkout usa a sessão e servidor bloqueia chamadas anônimas', () => {
   const client = read('mercadopago-checkout-client.js');
   const bootstrap = read('auth-bootstrap.js');
 
-  assert.match(client, /checkoutHeaders\.Authorization\s*=\s*`Bearer/);
+  assert.match(client, /credentials:\s*['"]same-origin['"]/);
+  assert.doesNotMatch(client, /reloja_auth_token/);
+  assert.doesNotMatch(client, /checkoutHeaders\.Authorization/);
   assert.match(bootstrap, /if\s*\(!user\)\s*\{/);
   assert.match(bootstrap, /code:\s*['"]authentication_required['"]/);
   assert.match(bootstrap, /code:\s*['"]checkout_account_validation_failed['"]/);

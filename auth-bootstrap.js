@@ -44,6 +44,20 @@ if (!originalExpress.__relogioAuthPatched) {
   const wrappedExpress = function (...args) {
     const app = originalExpress(...args);
 
+    app.disable('x-powered-by');
+    app.set('trust proxy', 1);
+    app.use((req, res, next) => {
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+      res.set('X-Frame-Options', 'SAMEORIGIN');
+      res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+      res.set('Origin-Agent-Cluster', '?1');
+      if (req.secure || process.env.NODE_ENV === 'production') {
+        res.set('Strict-Transport-Security', 'max-age=31536000');
+      }
+      next();
+    });
+
     const privatePagePaths = new Set([
       '/admin.html',
       '/carrinho.html',

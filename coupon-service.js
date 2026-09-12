@@ -41,11 +41,38 @@ async function ensureSchema() {
         coupon_id BIGINT NOT NULL REFERENCES relogio_coupons(id) ON DELETE CASCADE,
         customer_email TEXT,
         order_id TEXT NOT NULL UNIQUE,
+        status TEXT NOT NULL DEFAULT 'approved',
+        expires_at TIMESTAMPTZ,
+        approved_at TIMESTAMPTZ,
         used_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+    await client.query("ALTER TABLE relogio_coupon_uses ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'approved'");
+    await client.query('ALTER TABLE relogio_coupon_uses ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ');
+    await client.query('ALTER TABLE relogio_coupon_uses ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ');
+    await client.query("UPDATE relogio_coupon_uses SET status='approved' WHERE status IS NULL");
+    await client.query("UPDATE relogio_coupon_uses SET approved_at=COALESCE(approved_at, used_at) WHERE status='approved' AND approved_at IS NULL");
+    await client.query("ALTER TABLE relogio_coupon_uses ALTER COLUMN status SET DEFAULT 'approved'");
+    await client.query('ALTER TABLE relogio_coupon_uses ALTER COLUMN status SET NOT NULL');
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'relogio_coupon_uses_status_check'
+            AND conrelid = 'relogio_coupon_uses'::regclass
+        ) THEN
+          ALTER TABLE relogio_coupon_uses
+            ADD CONSTRAINT relogio_coupon_uses_status_check
+            CHECK (status IN ('reserved','approved'));
+        END IF;
+      END
+      $$
+    `);
     await client.query('CREATE INDEX IF NOT EXISTS relogio_coupon_uses_coupon_idx ON relogio_coupon_uses(coupon_id)');
     await client.query('CREATE INDEX IF NOT EXISTS relogio_coupon_uses_email_idx ON relogio_coupon_uses(coupon_id, customer_email)');
+    await client.query('CREATE INDEX IF NOT EXISTS relogio_coupon_uses_reservation_idx ON relogio_coupon_uses(status, expires_at)');
   })().catch(error => { schemaReady = null; throw error; });
   return schemaReady;
 }
@@ -85,7 +112,7 @@ function publicCoupon(row) {
 async function listCoupons() {
   await ensureSchema();
   const result = await db().query(`
-    SELECT c.*, COUNT(u.id)::int AS uses_count
+    SELECT c.*, COUNT(u.id) FILTER (WHERE u.status='approved')::int AS uses_count
     FROM relogio_coupons c
     LEFT JOIN relogio_coupon_uses u ON u.coupon_id = c.id
     GROUP BY c.id
@@ -114,7 +141,7 @@ async function saveCoupon(input, id = null) {
       result = await db().query(`INSERT INTO relogio_coupons(code,active,min_order_value,max_uses,per_customer_limit,starts_at,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`, values);
     }
     const row = result.rows[0];
-    const count = await db().query('SELECT COUNT(*)::int AS n FROM relogio_coupon_uses WHERE coupon_id=$1', [row.id]);
+    const count = await db().query("SELECT COUNT(*)::int AS n FROM relogio_coupon_uses WHERE coupon_id=$1 AND status='approved'", [row.id]);
     return publicCoupon({ ...row, uses_count: count.rows[0]?.n || 0 });
   } catch (error) {
     if (error.code === '23505') throw Object.assign(new Error('Já existe um cupom com esse código.'), { status: 409 });
@@ -134,7 +161,11 @@ async function validateCoupon({ code, subtotal, shippingCost, email }) {
   const normalized = normalizeCode(code);
   if (!normalized) return { valid: false, error: 'Informe um cupom.' };
   const result = await db().query(`
-    SELECT c.*, COUNT(u.id)::int AS uses_count
+    SELECT c.*,
+      COUNT(u.id) FILTER (WHERE u.status='approved')::int AS uses_count,
+      COUNT(u.id) FILTER (
+        WHERE u.status='approved' OR (u.status='reserved' AND u.expires_at > NOW())
+      )::int AS active_uses_count
     FROM relogio_coupons c
     LEFT JOIN relogio_coupon_uses u ON u.coupon_id=c.id
     WHERE c.code=$1
@@ -146,10 +177,15 @@ async function validateCoupon({ code, subtotal, shippingCost, email }) {
   if (row.starts_at && new Date(row.starts_at).getTime() > now) return { valid: false, error: 'Este cupom ainda não está disponível.' };
   if (row.expires_at && new Date(row.expires_at).getTime() < now) return { valid: false, error: 'Este cupom expirou.' };
   if (Number(subtotal || 0) < Number(row.min_order_value || 0)) return { valid: false, error: `Este cupom exige compra mínima de R$ ${Number(row.min_order_value).toFixed(2).replace('.', ',')}.` };
-  if (row.max_uses != null && Number(row.uses_count) >= Number(row.max_uses)) return { valid: false, error: 'Este cupom atingiu o limite de usos.' };
+  if (row.max_uses != null && Number(row.active_uses_count) >= Number(row.max_uses)) return { valid: false, error: 'Este cupom atingiu o limite de usos.' };
   const normalizedEmail = String(email || '').trim().toLowerCase();
   if (row.per_customer_limit != null && normalizedEmail) {
-    const count = await db().query('SELECT COUNT(*)::int AS n FROM relogio_coupon_uses WHERE coupon_id=$1 AND customer_email=$2', [row.id, normalizedEmail]);
+    const count = await db().query(`
+      SELECT COUNT(*)::int AS n
+      FROM relogio_coupon_uses
+      WHERE coupon_id=$1 AND customer_email=$2
+        AND (status='approved' OR (status='reserved' AND expires_at > NOW()))
+    `, [row.id, normalizedEmail]);
     if (Number(count.rows[0]?.n || 0) >= Number(row.per_customer_limit)) return { valid: false, error: 'Você já atingiu o limite de usos deste cupom.' };
   }
   return {
@@ -161,9 +197,78 @@ async function validateCoupon({ code, subtotal, shippingCost, email }) {
   };
 }
 
-async function consumeCoupon(couponId, email, orderId) {
-  await ensureSchema();
-  await db().query(`INSERT INTO relogio_coupon_uses(coupon_id,customer_email,order_id) VALUES($1,$2,$3) ON CONFLICT(order_id) DO NOTHING`, [Number(couponId), String(email || '').trim().toLowerCase() || null, String(orderId)]);
+function reservationMinutes() {
+  const configured = Number(process.env.COUPON_RESERVATION_MINUTES || 60);
+  return Number.isFinite(configured) ? Math.max(10, Math.min(1440, Math.floor(configured))) : 60;
 }
 
-module.exports = { normalizeCode, listCoupons, saveCoupon, deleteCoupon, validateCoupon, consumeCoupon };
+async function reserveCoupon({ couponId, email, orderId, subtotal }) {
+  await ensureSchema();
+  const client = await db().connect();
+  const normalizedEmail = String(email || '').trim().toLowerCase() || null;
+  try {
+    await client.query('BEGIN');
+    const result = await client.query('SELECT * FROM relogio_coupons WHERE id=$1 FOR UPDATE', [Number(couponId)]);
+    const coupon = result.rows[0];
+    if (!coupon || !coupon.active) throw Object.assign(new Error('Cupom inválido ou inativo.'), { status: 400 });
+
+    const now = Date.now();
+    if (coupon.starts_at && new Date(coupon.starts_at).getTime() > now) throw Object.assign(new Error('Este cupom ainda não está disponível.'), { status: 400 });
+    if (coupon.expires_at && new Date(coupon.expires_at).getTime() < now) throw Object.assign(new Error('Este cupom expirou.'), { status: 400 });
+    if (Number(subtotal || 0) < Number(coupon.min_order_value || 0)) throw Object.assign(new Error(`Este cupom exige compra mínima de R$ ${Number(coupon.min_order_value).toFixed(2).replace('.', ',')}.`), { status: 400 });
+
+    await client.query(
+      "DELETE FROM relogio_coupon_uses WHERE coupon_id=$1 AND status='reserved' AND expires_at <= NOW()",
+      [Number(couponId)]
+    );
+    const totals = await client.query(`
+      SELECT
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE customer_email=$2)::int AS customer_total
+      FROM relogio_coupon_uses
+      WHERE coupon_id=$1 AND (status='approved' OR (status='reserved' AND expires_at > NOW()))
+    `, [Number(couponId), normalizedEmail]);
+    const total = Number(totals.rows[0]?.total || 0);
+    const customerTotal = Number(totals.rows[0]?.customer_total || 0);
+    if (coupon.max_uses != null && total >= Number(coupon.max_uses)) throw Object.assign(new Error('Este cupom atingiu o limite de usos.'), { status: 400 });
+    if (coupon.per_customer_limit != null && normalizedEmail && customerTotal >= Number(coupon.per_customer_limit)) throw Object.assign(new Error('Você já atingiu o limite de usos deste cupom.'), { status: 400 });
+
+    await client.query(`
+      INSERT INTO relogio_coupon_uses(coupon_id,customer_email,order_id,status,expires_at)
+      VALUES($1,$2,$3,'reserved',NOW() + ($4 * INTERVAL '1 minute'))
+      ON CONFLICT(order_id) DO NOTHING
+    `, [Number(couponId), normalizedEmail, String(orderId), reservationMinutes()]);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function consumeCoupon(couponId, email, orderId) {
+  await ensureSchema();
+  await db().query(`
+    INSERT INTO relogio_coupon_uses(coupon_id,customer_email,order_id,status,expires_at,approved_at)
+    VALUES($1,$2,$3,'approved',NULL,NOW())
+    ON CONFLICT(order_id) DO UPDATE SET
+      status='approved', expires_at=NULL, approved_at=COALESCE(relogio_coupon_uses.approved_at,NOW())
+  `, [Number(couponId), String(email || '').trim().toLowerCase() || null, String(orderId)]);
+}
+
+async function releaseCoupon(orderId) {
+  await ensureSchema();
+  await db().query("DELETE FROM relogio_coupon_uses WHERE order_id=$1 AND status='reserved'", [String(orderId)]);
+}
+
+module.exports = {
+  normalizeCode,
+  listCoupons,
+  saveCoupon,
+  deleteCoupon,
+  validateCoupon,
+  reserveCoupon,
+  consumeCoupon,
+  releaseCoupon
+};

@@ -2,5 +2,6 @@ services:
   - type: web
     name: relogio-e-cia
     env: node
-    buildCommand: npm install
+    buildCommand: npm ci --omit=dev --ignore-scripts
     startCommand: npm start
+    healthCheckPath: /healthz
