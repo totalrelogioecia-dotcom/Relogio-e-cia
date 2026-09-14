@@ -2,6 +2,88 @@
   'use strict';
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const TOKEN_KEY='reloja_admin_token';
+  const root=document.documentElement;
+  let stabilitySequence=0;
+
+  function hasSessionMarker(){try{return Boolean(localStorage.getItem(TOKEN_KEY))}catch{return false}}
+  function dashboardVisible(){const dashboard=document.getElementById('dashboard');return Boolean(dashboard&&getComputedStyle(dashboard).display!=='none')}
+  function finalAccessibilityReady(){return Boolean(document.querySelector('.nav-actions-cluster .reloja-a11y-trigger .reloja-a11y-symbol'))}
+
+  function installStabilityStyles(){
+    if(document.getElementById('admin-layout-stability-style'))return;
+    const style=document.createElement('style');
+    style.id='admin-layout-stability-style';
+    style.textContent=`
+      html.admin-header-stabilizing .site-header .nav>:not(.brand-mark){visibility:hidden!important}
+      html.admin-ui-stabilizing #dashboard{visibility:hidden!important;pointer-events:none!important}
+      html.admin-ui-stabilizing #login-screen{visibility:hidden!important}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function waitForFinalHeader(){
+    root.classList.add('admin-header-stabilizing');
+    const started=performance.now();
+    const check=()=>{
+      if(finalAccessibilityReady()||performance.now()-started>2500){
+        root.classList.remove('admin-header-stabilizing');
+        return;
+      }
+      requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  }
+
+  async function stabilizeDashboard(){
+    if(!dashboardVisible())return;
+    const sequence=++stabilitySequence;
+    root.classList.add('admin-ui-stabilizing');
+    const started=performance.now();
+    let session=null;
+    try{
+      const response=await fetch('/api/admin/session',{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+      session=await response.json().catch(()=>null);
+    }catch{}
+    if(sequence!==stabilitySequence)return;
+    if(session&&!session.authenticated){
+      root.classList.remove('admin-ui-stabilizing');
+      return;
+    }
+
+    const accessLevel=session?.admin?.access_level||'';
+    let stableFrames=0;
+    const check=()=>{
+      if(sequence!==stabilitySequence)return;
+      const hubCards=document.querySelectorAll('#admin-hub .admin-hub-card').length;
+      const badge=document.getElementById('admin-user-badge');
+      const badgeReady=Boolean(badge&&String(badge.textContent||'').trim());
+      const ownerCardReady=accessLevel!=='owner'||Boolean(document.querySelector('#admin-hub [data-hub-tab="usuarios-admin"]'));
+      const ready=dashboardVisible()&&hubCards>0&&badgeReady&&ownerCardReady&&finalAccessibilityReady();
+      stableFrames=ready?stableFrames+1:0;
+      if(stableFrames>=3||performance.now()-started>2800){
+        root.classList.remove('admin-ui-stabilizing');
+        return;
+      }
+      requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  }
+
+  function installStabilityGuard(){
+    installStabilityStyles();
+    waitForFinalHeader();
+    const dashboard=document.getElementById('dashboard');
+    if(!dashboard)return;
+    if(hasSessionMarker()&&dashboardVisible())stabilizeDashboard();
+    new MutationObserver(()=>{
+      if(dashboardVisible())stabilizeDashboard();
+      else root.classList.remove('admin-ui-stabilizing');
+    }).observe(dashboard,{attributes:true,attributeFilter:['style']});
+  }
+
+  installStabilityGuard();
+
   const HUB_ITEMS=[
     {tab:'pedidos',icon:'🛒',title:'Pedidos',text:'Pagamentos, NF-e, envio e acompanhamento de pedidos.'},
     {tab:'produtos',icon:'⌚',title:'Produtos',text:'Catálogo, fotos, preços, estoque e fichas dos relógios.'},
