@@ -57,7 +57,7 @@ test('checkout usa a sessão e servidor bloqueia chamadas anônimas', () => {
   assert.doesNotMatch(client, /checkoutHeaders\.Authorization/);
   assert.match(bootstrap, /if\s*\(!user\)\s*\{/);
   assert.match(bootstrap, /code:\s*['"]authentication_required['"]/);
-  assert.match(bootstrap, /code:\s*['"]checkout_account_validation_failed['"]/);
+  assert.match(bootstrap, /error\.code\s*\|\|\s*['"]checkout_account_validation_failed['"]/);
 });
 
 test('auth bootstrap não modifica classes do SDK Mercado Pago', () => {

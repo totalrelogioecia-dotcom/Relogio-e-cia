@@ -29,6 +29,16 @@ const { registerSeoRoutes, enhanceProductHtml, enhanceCatalogHtml, enhanceInstit
 const { queueOrderReceivedEmail } = require('./order-email');
 const { startOperationalEmailWatcher } = require('./operational-email-watcher');
 const { createCheckoutRateLimit } = require('./checkout-rate-limit');
+const {
+  customerAuthorization,
+  claimPurchases,
+  rebindClaims,
+  releaseClaimsForOrder
+} = require('./confirmation-purchase-service');
+const {
+  createCheckoutContext,
+  runCheckoutContext
+} = require('./checkout-confirmation-context');
 
 startOperationalEmailWatcher();
 
@@ -195,7 +205,9 @@ if (!originalExpress.__relogioAuthPatched) {
 
     app.use('/api/checkout', createCheckoutRateLimit(userFromRequest));
 
-    app.use('/api/checkout', express.json({ limit: '1mb' }), (req, res, next) => {
+    app.use('/api/checkout', express.json({ limit: '1mb' }), async (req, res, next) => {
+      let checkoutContext = null;
+      let claimSettled = true;
       try {
         const user = userFromRequest(req);
         if (!user) {
@@ -243,25 +255,66 @@ if (!originalExpress.__relogioAuthPatched) {
             code: 'cpf_required'
           });
         }
+
+        checkoutContext = createCheckoutContext(user);
+        const confirmationItems = (Array.isArray(req.body.items) ? req.body.items : []).flatMap(raw => {
+          const authorization = customerAuthorization(raw?.id, user);
+          if (!authorization) return [];
+          return [{
+            id: Number(raw?.id || 0),
+            nome: 'Produto mediante confirmação',
+            quantidade: Math.max(1, Math.min(99, Number(raw?.qtd) || 1)),
+            disponibilidade: 'mediante_confirmacao',
+            confirmation_request_id: authorization.id
+          }];
+        });
+
+        if (confirmationItems.length) {
+          await claimPurchases(confirmationItems, user, checkoutContext.attempt_id);
+          claimSettled = false;
+        }
       } catch (error) {
+        if (checkoutContext?.attempt_id) {
+          await releaseClaimsForOrder(checkoutContext.attempt_id).catch(() => {});
+        }
         console.error('Não foi possível validar a conta no checkout:', error.message);
-        return res.status(500).json({
-          error: 'Não foi possível validar sua conta para o pagamento. Tente novamente.',
-          code: 'checkout_account_validation_failed'
+        const status = Number(error.status || 500);
+        return res.status(status >= 400 && status < 500 ? status : 500).json({
+          error: status >= 400 && status < 500
+            ? error.message
+            : 'Não foi possível validar sua conta para o pagamento. Tente novamente.',
+          code: error.code || 'checkout_account_validation_failed'
         });
       }
 
       const originalJson = res.json.bind(res);
       res.json = payload => {
-        const response = originalJson(payload);
         if (payload && typeof payload === 'object' && payload.order_id) {
+          if (!claimSettled && checkoutContext?.attempt_id) {
+            claimSettled = true;
+            rebindClaims(checkoutContext.attempt_id, payload.order_id).catch(error => {
+              console.error('Não foi possível vincular a confirmação ao pedido:', error.message);
+            });
+          }
           // Compatibilidade: a fila antiga agora só envia quando o pagamento está aprovado.
           queueOrderReceivedEmail(payload.order_id);
+        } else if (res.statusCode >= 400 && !claimSettled && checkoutContext?.attempt_id) {
+          claimSettled = true;
+          releaseClaimsForOrder(checkoutContext.attempt_id).catch(error => {
+            console.error('Não foi possível liberar a reserva da confirmação:', error.message);
+          });
         }
-        return response;
+        return originalJson(payload);
       };
 
-      return next();
+      res.once('finish', () => {
+        if (res.statusCode >= 400 && !claimSettled && checkoutContext?.attempt_id) {
+          claimSettled = true;
+          releaseClaimsForOrder(checkoutContext.attempt_id).catch(() => {});
+        }
+      });
+
+      return runCheckoutContext(checkoutContext, () => next());
     });
 
     registerCouponCheckout(app);

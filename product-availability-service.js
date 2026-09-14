@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const { customerAuthorization } = require('./confirmation-purchase-service');
+const { currentCheckoutContext } = require('./checkout-confirmation-context');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const DETAILS = path.join(DATA, 'product-details.json');
@@ -53,14 +55,35 @@ function availabilityForProduct(product, detailsMap = null) {
   };
 }
 
-function validateCheckoutAvailability(product, quantity, detailsMap = null) {
+function validateCheckoutAvailability(product, quantity, detailsMap = null, customer = null) {
   const availability = availabilityForProduct(product, detailsMap);
 
   if (availability.type === MEDIANTE_CONFIRMACAO) {
-    const error = new Error(`${product?.nome || 'Este produto'} precisa de confirmação de disponibilidade antes do pagamento.`);
-    error.status = 409;
-    error.code = 'product_confirmation_required';
-    throw error;
+    const context = currentCheckoutContext();
+    const effectiveCustomer = customer || context?.customer || null;
+    const authorization = customerAuthorization(
+      product?.id,
+      effectiveCustomer,
+      '',
+      context?.attempt_id || ''
+    );
+    if (!authorization) {
+      const error = new Error(`${product?.nome || 'Este produto'} precisa de uma liberação de compra válida para esta conta.`);
+      error.status = 409;
+      error.code = 'product_confirmation_required';
+      throw error;
+    }
+    if (Number(quantity || 1) > Number(authorization.quantity || 1)) {
+      const error = new Error(`A confirmação de ${product?.nome || 'este produto'} foi liberada para ${authorization.quantity} unidade(s).`);
+      error.status = 409;
+      error.code = 'confirmation_quantity_exceeded';
+      throw error;
+    }
+    return {
+      ...availability,
+      confirmation_request_id: authorization.id,
+      confirmation_expires_at: authorization.expires_at
+    };
   }
 
   if (availability.type === PRONTA_ENTREGA && Number(product?.estoque || 0) < Number(quantity || 0)) {

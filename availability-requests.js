@@ -4,6 +4,11 @@ const crypto = require('crypto');
 const express = require('express');
 const { flushPersistentStore } = require('./persistent-store');
 const {
+  customerPurchases,
+  releasePurchase,
+  revokePurchase
+} = require('./confirmation-purchase-service');
+const {
   MEDIANTE_CONFIRMACAO,
   readDetails,
   availabilityForProduct
@@ -85,13 +90,28 @@ function phoneDigits(user) {
   return `${area}${number}`.slice(0, 20);
 }
 
+function purchaseState(request) {
+  const purchase = request?.purchase_authorization;
+  if (!purchase || typeof purchase !== 'object') return 'not_released';
+  if (purchase.revoked_at) return 'revoked';
+  if (purchase.completed_at) return 'completed';
+  const expiresAt = new Date(purchase.expires_at || 0).getTime();
+  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return 'expired';
+  if (purchase.claimed_order_id) return 'claimed';
+  return 'active';
+}
+
 function requestSnapshot(request) {
+  const purchase = request?.purchase_authorization || null;
+  const state = purchaseState(request);
+  const token = purchase && ['active', 'claimed'].includes(state) ? String(purchase.token || '') : '';
+  const productId = Number(request?.product?.id || 0);
   return {
     id: String(request?.id || ''),
     status: String(request?.status || 'pending'),
     status_label: REQUEST_STATUSES[String(request?.status || 'pending')] || String(request?.status || ''),
     product: {
-      id: Number(request?.product?.id || 0),
+      id: productId,
       nome: String(request?.product?.nome || ''),
       marca: String(request?.product?.marca || ''),
       sku: String(request?.product?.sku || ''),
@@ -104,6 +124,17 @@ function requestSnapshot(request) {
     },
     source: String(request?.source || ''),
     admin_note: String(request?.admin_note || ''),
+    purchase: purchase ? {
+      state,
+      active: state === 'active',
+      quantity: Math.max(1, Number(purchase.quantity || 1)),
+      released_at: purchase.released_at || null,
+      expires_at: purchase.expires_at || null,
+      claimed_order_id: purchase.claimed_order_id || null,
+      completed_at: purchase.completed_at || null,
+      revoked_at: purchase.revoked_at || null,
+      link: token ? `/produto.html?id=${encodeURIComponent(productId)}&confirmacao=${encodeURIComponent(token)}` : null
+    } : null,
     created_at: request?.created_at || null,
     updated_at: request?.updated_at || null
   };
@@ -145,7 +176,6 @@ function injectAdminExtraTabs(html) {
 }
 
 function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
-  // O painel continua usando o HTML original; apenas carregamos o módulo das duas novas abas.
   app.get('/admin.html', (req, res, next) => {
     try {
       const html = injectAdminExtraTabs(fs.readFileSync(ADMIN_HTML, 'utf8'));
@@ -157,9 +187,25 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
 
   app.use('/api/availability-requests', express.json({ limit: '32kb' }));
   app.use('/api/admin/availability-requests', express.json({ limit: '32kb' }));
-
-  // O arquivo contém dados de contato de clientes e nunca deve ser servido pelo express.static.
   app.use('/data/availability-requests.json', (req, res) => res.status(404).end());
+
+  app.get('/api/availability-requests/mine', (req, res) => {
+    if (typeof userFromRequest !== 'function') {
+      return res.status(503).json({ error: 'Consulta de confirmações temporariamente indisponível.' });
+    }
+    const user = userFromRequest(req);
+    if (!user) {
+      return res.status(401).json({
+        error: 'Entre na sua conta para consultar suas confirmações.',
+        code: 'authentication_required'
+      });
+    }
+    const productId = Number(req.query?.product_id || 0);
+    let items = customerPurchases(user);
+    if (productId > 0) items = items.filter(item => Number(item.product_id) === productId);
+    res.set('Cache-Control', 'no-store');
+    return res.json({ items });
+  });
 
   app.post('/api/availability-requests', async (req, res) => {
     if (typeof userFromRequest !== 'function') {
@@ -192,19 +238,23 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
     const email = String(user.email || '').trim().toLowerCase();
     const requests = read(REQUESTS, []);
     const duplicateCutoff = now.getTime() - 24 * 60 * 60 * 1000;
-    const duplicate = requests.find(item =>
-      Number(item?.product?.id) === productId &&
-      String(item?.customer?.email || '').trim().toLowerCase() === email &&
-      ['pending', 'contacted'].includes(String(item?.status || '')) &&
-      new Date(item?.created_at || 0).getTime() >= duplicateCutoff
-    );
+    const duplicate = requests.find(item => {
+      const sameCustomer = Number(item?.product?.id) === productId &&
+        String(item?.customer?.email || '').trim().toLowerCase() === email;
+      if (!sameCustomer) return false;
+      if (purchaseState(item) === 'active') return true;
+      return ['pending', 'contacted'].includes(String(item?.status || '')) &&
+        new Date(item?.created_at || 0).getTime() >= duplicateCutoff;
+    });
 
     if (duplicate) {
       return res.json({
         ok: true,
         duplicate: true,
         request: requestSnapshot(duplicate),
-        message: 'Sua solicitação já está registrada e a loja poderá acompanhar pelo painel.'
+        message: purchaseState(duplicate) === 'active'
+          ? 'Sua compra já foi liberada para esta conta.'
+          : 'Sua solicitação já está registrada e a loja poderá acompanhar pelo painel.'
       });
     }
 
@@ -259,6 +309,35 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
     res.json(requests);
   });
 
+  app.post('/api/admin/availability-requests/:id/release-purchase', admin, async (req, res) => {
+    try {
+      const request = await releasePurchase(req.params.id, {
+        hours: req.body?.hours,
+        quantity: req.body?.quantity
+      });
+      return res.json({
+        ok: true,
+        request: requestSnapshot(request),
+        message: 'Compra liberada somente para este cliente.'
+      });
+    } catch (error) {
+      return res.status(error.status || 500).json({ error: error.message || 'Não foi possível liberar a compra.' });
+    }
+  });
+
+  app.post('/api/admin/availability-requests/:id/revoke-purchase', admin, async (req, res) => {
+    try {
+      const request = await revokePurchase(req.params.id);
+      return res.json({
+        ok: true,
+        request: requestSnapshot(request),
+        message: 'Liberação de compra revogada.'
+      });
+    } catch (error) {
+      return res.status(error.status || 500).json({ error: error.message || 'Não foi possível revogar a liberação.' });
+    }
+  });
+
   app.patch('/api/admin/availability-requests/:id', admin, async (req, res) => {
     const requests = read(REQUESTS, []);
     const index = requests.findIndex(item => String(item?.id || '') === String(req.params.id || ''));
@@ -268,16 +347,39 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
     try { status = normalizeRequestStatus(req.body?.status || requests[index].status); }
     catch (error) { return res.status(error.status || 400).json({ error: error.message }); }
 
-    const note = cleanNote(req.body?.admin_note ?? requests[index].admin_note);
+    const current = requests[index];
+    const currentPurchaseState = purchaseState(current);
+    if (status === 'confirmed_available' && currentPurchaseState !== 'active' && currentPurchaseState !== 'claimed') {
+      return res.status(409).json({
+        error: 'Use “Confirmar e liberar compra” para confirmar a disponibilidade e criar o acesso individual do cliente.'
+      });
+    }
+    if (status !== 'confirmed_available' && currentPurchaseState === 'claimed') {
+      return res.status(409).json({
+        error: 'Este cliente já iniciou a compra. Aguarde o resultado do pagamento antes de alterar esta confirmação.'
+      });
+    }
+
+    const note = cleanNote(req.body?.admin_note ?? current.admin_note);
     const now = new Date().toISOString();
-    const changed = status !== requests[index].status;
+    const changed = status !== current.status;
+    let purchaseAuthorization = current.purchase_authorization;
+    if (changed && status !== 'confirmed_available' && purchaseAuthorization && !purchaseAuthorization.completed_at) {
+      purchaseAuthorization = {
+        ...purchaseAuthorization,
+        revoked_at: now,
+        claimed_order_id: null,
+        claimed_at: null
+      };
+    }
     requests[index] = {
-      ...requests[index],
+      ...current,
       status,
       admin_note: note,
+      purchase_authorization: purchaseAuthorization,
       history: changed
-        ? [...(Array.isArray(requests[index].history) ? requests[index].history : []), { status, at: now }]
-        : requests[index].history,
+        ? [...(Array.isArray(current.history) ? current.history : []), { status, at: now }]
+        : current.history,
       updated_at: now
     };
 
