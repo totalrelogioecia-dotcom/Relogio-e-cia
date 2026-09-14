@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const HUB_ITEMS=[
     {tab:'pedidos',icon:'🛒',title:'Pedidos',text:'Pagamentos, NF-e, envio e acompanhamento de pedidos.'},
