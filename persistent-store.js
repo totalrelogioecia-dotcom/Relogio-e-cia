@@ -20,6 +20,7 @@ const FILES = new Map([
   [path.resolve(path.join(DATA, 'availability-requests.json')), 'availability_requests'],
   [path.resolve(path.join(DATA, 'invoice-files.json')), 'invoice_files'],
   [path.resolve(path.join(DATA, 'admin-audit.json')), 'admin_audit'],
+  [path.resolve(path.join(DATA, 'admin-users.json')), 'admin_users'],
   [path.resolve(path.join(DATA, 'product-reviews.json')), 'product_reviews']
 ]);
 
@@ -239,7 +240,7 @@ async function initPersistentStore() {
 
   patchFileWrites();
   ready = true;
-  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio, pós-venda, reposição, disponibilidade, anexos fiscais, auditoria administrativa, avaliações de clientes e migrações administrativas.');
+  console.log('PostgreSQL persistente ativo para produtos, pedidos, usuários, usuários administrativos, tokens de recuperação, frete, fichas técnicas, OAuth do Melhor Envio, pós-venda, reposição, disponibilidade, anexos fiscais, auditoria administrativa, avaliações de clientes e migrações administrativas.');
   return { persistent: true, provider: selectedProvider || 'postgresql' };
 }
 
