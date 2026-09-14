@@ -27,6 +27,7 @@
       .product-card--preorder .card-actions .btn-outline,
       .product-card--confirmation .card-actions .btn-outline,
       .product-card--confirmation-released .card-actions .btn-outline{display:none}
+      .product-card--confirmation .card-actions .btn-outline{display:none}
       .product-card--unavailable .card-actions [data-add-carrinho]{display:none}
       .product-card [data-add-carrinho]:disabled{opacity:.55;cursor:not-allowed}`;document.head.appendChild(s);
   }
