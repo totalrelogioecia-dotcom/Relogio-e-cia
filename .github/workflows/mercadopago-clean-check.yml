@@ -5,9 +5,11 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - 'fix/**'
   pull_request:
     branches:
       - main
+      - mercadopago-clean-rebuild
   workflow_dispatch:
 
 jobs:
@@ -35,6 +37,9 @@ jobs:
           node --check store-health.js
           node --check store-health-bootstrap.js
           node --check admin-store-health.js
+          node --check admin-security-bootstrap.js
+          node --check admin-users-management.js
+          node --check persistent-store.js
           node --check accessibility-controls.js
           node --check accessibility-panel.js
           node --check accessibility-trigger-enhancement.js
