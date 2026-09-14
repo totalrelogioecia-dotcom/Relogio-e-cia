@@ -5,6 +5,7 @@ on:
     branches:
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
+      - tmp-confirmacao-individual-work
   pull_request:
     branches:
       - main
@@ -65,6 +66,9 @@ jobs:
           node --check auth-bootstrap.js
           node --check order-access.js
           node --check inventory-service.js
+          node --check confirmation-purchase-service.js
+          node --check checkout-confirmation-context.js
+          node --check confirmation-payment-completion.js
           node --check remote-image.js
           node --check remote-text.js
           node --check image-proxy.js
@@ -88,6 +92,7 @@ jobs:
           node --check admin-extra-tabs.js
           node --check admin-extra-tabs-navigation-fix.js
           node --check catalog-availability.js
+          node --check cart-availability.js
           node --check catalog-mobile-filters.js
           node --check product-confirmation-request.js
           node --check customer-address-service.js
