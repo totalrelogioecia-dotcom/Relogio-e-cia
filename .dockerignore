@@ -7,3 +7,6 @@ npm-debug.log
 .github
 *.zip
 *.log
+
+# Dados administrativos gerados em execução
+data/admin-users.json

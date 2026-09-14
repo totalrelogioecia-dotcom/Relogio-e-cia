@@ -244,9 +244,21 @@ async function initPersistentStore() {
   return { persistent: true, provider: selectedProvider || 'postgresql' };
 }
 
+function assertPersistentWrites(results) {
+  const failures = results
+    .filter(result => result.status === 'rejected')
+    .map(result => result.reason instanceof Error ? result.reason : new Error(String(result.reason || 'Falha desconhecida')));
+
+  if (failures.length) {
+    throw new AggregateError(failures, `Falha ao concluir ${failures.length} gravação(ões) no PostgreSQL.`);
+  }
+}
+
 async function flushPersistentStore() {
   const pending = Array.from(queues.values());
-  if (pending.length) await Promise.allSettled(pending);
+  if (!pending.length) return;
+  const results = await Promise.allSettled(pending);
+  assertPersistentWrites(results);
 }
 
 async function closePersistentStore() {
@@ -272,5 +284,6 @@ module.exports = {
   initPersistentStore,
   flushPersistentStore,
   closePersistentStore,
-  storageStatus
+  storageStatus,
+  assertPersistentWrites
 };
