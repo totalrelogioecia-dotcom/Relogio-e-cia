@@ -29,6 +29,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'admin-shipping.js',
   'admin-stock-catalog.js',
   'admin-store-health.js',
+  'admin-users-management.js',
   'admin.js',
   'analytics-client.js',
   'cart-availability.js',
