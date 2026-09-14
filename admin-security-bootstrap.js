@@ -3,18 +3,110 @@ const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
 const { recordAudit, recordRequestAudit, tokenPayload } = require('./admin-audit');
+const { flushPersistentStore } = require('./persistent-store');
 
 const COOKIE_NAME = 'reloja_admin_session';
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_BLOCK_MS = 15 * 60 * 1000;
 const LOGIN_MAX_FAILURES = 5;
+const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
+const ADMIN_USERS_FILE = path.join(DATA, 'admin-users.json');
+const ACCESS_LEVELS = new Set(['owner', 'manager', 'atendimento']);
 const loginAttempts = new Map();
 
 function safeEqual(a, b) {
   const left = Buffer.from(String(a || ''));
   const right = Buffer.from(String(b || ''));
   return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function normalizeName(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 100);
+}
+
+function validEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(value));
+}
+
+function normalizeAccessLevel(value) {
+  const level = String(value || '').trim().toLowerCase();
+  return ACCESS_LEVELS.has(level) ? level : 'atendimento';
+}
+
+function passwordHash(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(String(password || ''), salt, 64).toString('hex');
+  return `scrypt$${salt}$${hash}`;
+}
+
+function passwordMatches(password, encoded) {
+  try {
+    const [scheme, salt, expectedHex] = String(encoded || '').split('$');
+    if (scheme !== 'scrypt' || !salt || !expectedHex) return false;
+    const actual = crypto.scryptSync(String(password || ''), salt, 64);
+    const expected = Buffer.from(expectedHex, 'hex');
+    return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+  } catch {
+    return false;
+  }
+}
+
+function readAdminUsers() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(ADMIN_USERS_FILE, 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeAdminUsers(users) {
+  fs.mkdirSync(DATA, { recursive: true });
+  fs.writeFileSync(ADMIN_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+}
+
+function publicAdminUser(user) {
+  return {
+    id: String(user?.id || ''),
+    name: normalizeName(user?.name) || 'Administrador',
+    email: normalizeEmail(user?.email),
+    access_level: normalizeAccessLevel(user?.access_level),
+    active: user?.active !== false,
+    created_at: user?.created_at || null,
+    updated_at: user?.updated_at || null,
+    last_login_at: user?.last_login_at || null
+  };
+}
+
+function seedEnvOwnerIfNeeded() {
+  const users = readAdminUsers();
+  if (users.length) return users;
+
+  const email = normalizeEmail(process.env.ADMIN_EMAIL);
+  const password = String(process.env.ADMIN_PASSWORD || '');
+  if (!email || !password) return users;
+
+  const now = new Date().toISOString();
+  const owner = {
+    id: crypto.randomUUID(),
+    name: 'Proprietário',
+    email,
+    password_hash: passwordHash(password),
+    access_level: 'owner',
+    active: true,
+    session_version: 1,
+    created_at: now,
+    updated_at: now,
+    last_login_at: null
+  };
+  writeAdminUsers([owner]);
+  console.log('Usuário proprietário do Admin criado a partir das variáveis de ambiente.');
+  return [owner];
 }
 
 function makeToken(payload) {
@@ -25,19 +117,55 @@ function makeToken(payload) {
   return `${body}.${sig}`;
 }
 
-function validToken(value) {
+function authenticatedToken(value) {
   try {
     const [body, sig] = String(value || '').split('.');
-    if (!body || !sig) return false;
+    if (!body || !sig) return null;
     const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
-    if (!secret) return false;
+    if (!secret) return null;
     const expected = crypto.createHmac('sha256', secret).update(body).digest('base64url');
-    if (!safeEqual(sig, expected)) return false;
+    if (!safeEqual(sig, expected)) return null;
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
-    return payload.role === 'admin' && Number(payload.exp) > Date.now();
+    if (payload.role !== 'admin' || Number(payload.exp) <= Date.now()) return null;
+
+    const users = readAdminUsers();
+    if (payload.user_id) {
+      const user = users.find(item => String(item.id) === String(payload.user_id));
+      if (!user || user.active === false) return null;
+      if (Number(user.session_version || 1) !== Number(payload.session_version || 1)) return null;
+      return {
+        ...payload,
+        email: normalizeEmail(user.email),
+        name: normalizeName(user.name) || 'Administrador',
+        access_level: normalizeAccessLevel(user.access_level)
+      };
+    }
+
+    // Compatibilidade temporária com sessões emitidas antes do suporte multiusuário.
+    const legacyUser = users.find(item => normalizeEmail(item.email) === normalizeEmail(payload.email) && item.active !== false);
+    if (legacyUser) {
+      return {
+        ...payload,
+        user_id: legacyUser.id,
+        email: normalizeEmail(legacyUser.email),
+        name: normalizeName(legacyUser.name) || 'Administrador',
+        access_level: normalizeAccessLevel(legacyUser.access_level),
+        session_version: Number(legacyUser.session_version || 1)
+      };
+    }
+
+    const envEmail = normalizeEmail(process.env.ADMIN_EMAIL);
+    if (envEmail && normalizeEmail(payload.email) === envEmail) {
+      return { ...payload, email: envEmail, name: 'Proprietário', access_level: 'owner' };
+    }
+    return null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+function validToken(value) {
+  return Boolean(authenticatedToken(value));
 }
 
 function parseCookies(req) {
@@ -109,6 +237,51 @@ function safeAudit(entry) {
   catch (error) { console.error('Falha ao registrar auditoria administrativa:', error.message); }
 }
 
+function adminPath(req) {
+  return String(req.originalUrl || req.url || '').split('?')[0];
+}
+
+function canAccessAdminRequest(payload, req) {
+  const level = normalizeAccessLevel(payload?.access_level || 'owner');
+  if (level === 'owner') return true;
+
+  const method = String(req.method || 'GET').toUpperCase();
+  const requestPath = adminPath(req);
+  if (requestPath.startsWith('/api/admin/users')) return false;
+
+  if (level === 'manager') {
+    if (method === 'DELETE' && /\/api\/admin\/products\/[^/]+\/permanent$/.test(requestPath)) return false;
+    if (requestPath.startsWith('/api/admin/melhorenvio') && method !== 'GET') return false;
+    return true;
+  }
+
+  if (method === 'GET') {
+    return !requestPath.startsWith('/api/admin/audit')
+      && !requestPath.startsWith('/api/admin/melhorenvio');
+  }
+
+  if (method === 'PATCH') {
+    return /^\/api\/admin\/(?:availability-requests|return-requests|reviews)\//.test(requestPath)
+      || /^\/api\/admin\/orders\/[^/]+\/fulfillment$/.test(requestPath);
+  }
+
+  return false;
+}
+
+function activeOwnerCount(users) {
+  return users.filter(user => user.active !== false && normalizeAccessLevel(user.access_level) === 'owner').length;
+}
+
+function validatePassword(password, required) {
+  const value = String(password || '');
+  if (!value && !required) return '';
+  if (value.length < 10) throw Object.assign(new Error('A senha deve ter pelo menos 10 caracteres.'), { statusCode: 400 });
+  if (value.length > 200) throw Object.assign(new Error('A senha informada é muito longa.'), { statusCode: 400 });
+  return value;
+}
+
+seedEnvOwnerIfNeeded();
+
 const originalExpress = express;
 if (!originalExpress.__relogioAdminSecurityPatched) {
   const wrappedExpress = function (...args) {
@@ -134,6 +307,9 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
         if (!html.includes('accessibility-panel.js')) {
           html = html.replace('</body>', '<script src="accessibility-panel.js?v=1"></script></body>');
         }
+        if (!html.includes('admin-users-management.js')) {
+          html = html.replace('</body>', '<script src="admin-users-management.js?v=1"></script></body>');
+        }
         html = html.replace('admin-order-cancellation.js?v=1', 'admin-order-cancellation.js?v=2');
         res.type('html').send(html);
       } catch (error) {
@@ -141,7 +317,7 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
       }
     });
 
-    app.post('/api/admin/login', originalExpress.json({ limit: '20kb' }), (req, res) => {
+    app.post('/api/admin/login', originalExpress.json({ limit: '20kb' }), async (req, res) => {
       securityHeaders(res);
       const ip = clientIp(req);
       const state = currentAttempt(ip);
@@ -154,17 +330,17 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
       }
 
       try {
-        const email = String(req.body?.email || '').trim().toLowerCase();
+        const email = normalizeEmail(req.body?.email);
         const senha = String(req.body?.senha || '');
-        const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
-        const adminPass = String(process.env.ADMIN_PASSWORD || '');
         const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
+        const users = seedEnvOwnerIfNeeded();
+        const user = users.find(item => normalizeEmail(item.email) === email && item.active !== false);
 
-        if (!adminEmail || !adminPass || !secret) {
+        if (!secret || !users.length) {
           return res.status(503).json({ error: 'Painel administrativo não configurado.' });
         }
 
-        if (!safeEqual(email, adminEmail) || !safeEqual(senha, adminPass)) {
+        if (!user || !passwordMatches(senha, user.password_hash)) {
           const failed = recordFailure(ip);
           console.warn('Tentativa de login administrativo recusada', {
             ip,
@@ -179,11 +355,25 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
         }
 
         loginAttempts.delete(ip);
-        const token = makeToken({ role: 'admin', email: adminEmail, exp: Date.now() + SESSION_MS });
+        const loggedAt = new Date().toISOString();
+        user.last_login_at = loggedAt;
+        user.updated_at = user.updated_at || loggedAt;
+        writeAdminUsers(users);
+        await flushPersistentStore();
+
+        const token = makeToken({
+          role: 'admin',
+          user_id: user.id,
+          email: normalizeEmail(user.email),
+          name: normalizeName(user.name) || 'Administrador',
+          access_level: normalizeAccessLevel(user.access_level),
+          session_version: Number(user.session_version || 1),
+          exp: Date.now() + SESSION_MS
+        });
         res.setHeader('Set-Cookie', sessionCookie(req, token, SESSION_MS / 1000));
-        console.log('Login administrativo autorizado', { ip });
+        console.log('Login administrativo autorizado', { ip, user: user.email });
         safeAudit({
-          actor: adminEmail,
+          actor: user.email,
           action: 'Login administrativo',
           entity: 'sessão',
           method: 'POST',
@@ -194,9 +384,7 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
           user_agent: req.headers['user-agent']
         });
 
-        // O valor retornado ao JavaScript é apenas um marcador de compatibilidade.
-        // O token real fica somente no cookie HttpOnly e não pode ser lido por scripts.
-        return res.json({ token: 'cookie-session', admin: { email: adminEmail } });
+        return res.json({ token: 'cookie-session', admin: publicAdminUser(user) });
       } catch (error) {
         console.error('Erro no login administrativo:', error.message);
         return res.status(500).json({ error: 'Não foi possível entrar no painel.' });
@@ -225,21 +413,158 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
     app.get('/api/admin/session', (req, res) => {
       securityHeaders(res);
       const token = parseCookies(req)[COOKIE_NAME];
-      return res.json({ authenticated: validToken(token) });
+      const payload = authenticatedToken(token);
+      if (!payload) return res.json({ authenticated: false });
+      const users = readAdminUsers();
+      const user = users.find(item => String(item.id) === String(payload.user_id));
+      return res.json({
+        authenticated: true,
+        admin: user ? publicAdminUser(user) : {
+          id: payload.user_id || '',
+          name: payload.name || 'Proprietário',
+          email: payload.email,
+          access_level: payload.access_level || 'owner',
+          active: true
+        }
+      });
     });
 
     app.use('/api/admin', (req, res, next) => {
       securityHeaders(res);
       const token = parseCookies(req)[COOKIE_NAME];
-      if (!validToken(token)) {
+      const payload = authenticatedToken(token);
+      if (!payload) {
         return res.status(401).json({ error: 'Sessão administrativa inválida ou expirada.' });
       }
+      if (!canAccessAdminRequest(payload, req)) {
+        return res.status(403).json({ error: 'Seu usuário não tem permissão para realizar esta ação.' });
+      }
 
-      // Mantém compatibilidade com as rotas administrativas existentes,
-      // que já validam Authorization no servidor. O token nunca vai ao navegador.
+      req.admin = payload;
       req.headers.authorization = `Bearer ${token}`;
-      recordRequestAudit(req, res, token);
+      if (!adminPath(req).startsWith('/api/admin/users')) recordRequestAudit(req, res, token);
       return next();
+    });
+
+    app.get('/api/admin/users', (req, res) => {
+      const users = readAdminUsers().map(publicAdminUser).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+      return res.json(users);
+    });
+
+    app.post('/api/admin/users', originalExpress.json({ limit: '30kb' }), async (req, res) => {
+      try {
+        const users = readAdminUsers();
+        const name = normalizeName(req.body?.name);
+        const email = normalizeEmail(req.body?.email);
+        const password = validatePassword(req.body?.password, true);
+        const accessLevel = normalizeAccessLevel(req.body?.access_level);
+        if (!name) return res.status(400).json({ error: 'Informe o nome do usuário.' });
+        if (!validEmail(email)) return res.status(400).json({ error: 'Informe um e-mail válido.' });
+        if (users.some(item => normalizeEmail(item.email) === email)) {
+          return res.status(409).json({ error: 'Já existe um usuário administrativo com este e-mail.' });
+        }
+
+        const now = new Date().toISOString();
+        const user = {
+          id: crypto.randomUUID(),
+          name,
+          email,
+          password_hash: passwordHash(password),
+          access_level: accessLevel,
+          active: true,
+          session_version: 1,
+          created_at: now,
+          updated_at: now,
+          last_login_at: null
+        };
+        users.push(user);
+        writeAdminUsers(users);
+        await flushPersistentStore();
+        safeAudit({
+          actor: req.admin?.email,
+          action: 'Usuário administrativo criado',
+          entity: 'usuário administrativo',
+          entity_id: email,
+          method: 'POST',
+          path: '/api/admin/users',
+          status_code: 201,
+          success: true,
+          ip: clientIp(req),
+          user_agent: req.headers['user-agent']
+        });
+        return res.status(201).json(publicAdminUser(user));
+      } catch (error) {
+        return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Não foi possível criar o usuário administrativo.' });
+      }
+    });
+
+    app.patch('/api/admin/users/:id', originalExpress.json({ limit: '30kb' }), async (req, res) => {
+      try {
+        const users = readAdminUsers();
+        const index = users.findIndex(item => String(item.id) === String(req.params.id));
+        if (index < 0) return res.status(404).json({ error: 'Usuário administrativo não encontrado.' });
+
+        const current = users[index];
+        const isSelf = String(current.id) === String(req.admin?.user_id);
+        const nextName = req.body?.name === undefined ? normalizeName(current.name) : normalizeName(req.body.name);
+        const nextEmail = req.body?.email === undefined ? normalizeEmail(current.email) : normalizeEmail(req.body.email);
+        const nextAccess = req.body?.access_level === undefined ? normalizeAccessLevel(current.access_level) : normalizeAccessLevel(req.body.access_level);
+        const nextActive = req.body?.active === undefined ? current.active !== false : Boolean(req.body.active);
+        const newPassword = validatePassword(req.body?.password, false);
+
+        if (!nextName) return res.status(400).json({ error: 'Informe o nome do usuário.' });
+        if (!validEmail(nextEmail)) return res.status(400).json({ error: 'Informe um e-mail válido.' });
+        if (users.some((item, itemIndex) => itemIndex !== index && normalizeEmail(item.email) === nextEmail)) {
+          return res.status(409).json({ error: 'Já existe outro usuário administrativo com este e-mail.' });
+        }
+        if (isSelf && nextActive === false) return res.status(400).json({ error: 'Você não pode bloquear o usuário que está usando agora.' });
+        if (isSelf && nextAccess !== normalizeAccessLevel(current.access_level)) {
+          return res.status(400).json({ error: 'Para alterar seu próprio nível de acesso, use outro usuário proprietário.' });
+        }
+        if (isSelf && nextEmail !== normalizeEmail(current.email)) {
+          return res.status(400).json({ error: 'Para alterar seu próprio e-mail, use outro usuário proprietário.' });
+        }
+
+        const now = new Date().toISOString();
+        const sensitiveChanged = nextEmail !== normalizeEmail(current.email)
+          || nextAccess !== normalizeAccessLevel(current.access_level)
+          || nextActive !== (current.active !== false)
+          || Boolean(newPassword);
+        const updated = {
+          ...current,
+          name: nextName,
+          email: nextEmail,
+          access_level: nextAccess,
+          active: nextActive,
+          updated_at: now,
+          session_version: Number(current.session_version || 1) + (sensitiveChanged ? 1 : 0)
+        };
+        if (newPassword) updated.password_hash = passwordHash(newPassword);
+
+        const proposed = users.slice();
+        proposed[index] = updated;
+        if (activeOwnerCount(proposed) < 1) {
+          return res.status(400).json({ error: 'O painel precisa manter pelo menos um proprietário ativo.' });
+        }
+
+        writeAdminUsers(proposed);
+        await flushPersistentStore();
+        safeAudit({
+          actor: req.admin?.email,
+          action: newPassword ? 'Usuário administrativo e senha atualizados' : 'Usuário administrativo atualizado',
+          entity: 'usuário administrativo',
+          entity_id: nextEmail,
+          method: 'PATCH',
+          path: `/api/admin/users/${encodeURIComponent(current.id)}`,
+          status_code: 200,
+          success: true,
+          ip: clientIp(req),
+          user_agent: req.headers['user-agent']
+        });
+        return res.json({ user: publicAdminUser(updated), session_invalidated: isSelf && sensitiveChanged });
+      } catch (error) {
+        return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Não foi possível atualizar o usuário administrativo.' });
+      }
     });
 
     return app;
