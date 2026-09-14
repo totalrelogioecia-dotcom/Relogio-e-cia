@@ -23,3 +23,79 @@ html.reloja-contrast .admin-hide-product-note strong{color:#000!important}
   .admin-hide-product-actions{flex-direction:column}
   .admin-hide-product-actions .btn{width:100%;justify-content:center;min-height:44px}
 }
+
+/* Pedidos mediante confirmação: cards administrativos */
+#confirmations-list.admin-table-wrap{overflow:visible}
+#confirmations-list .admin-table{display:block;width:100%;border-collapse:separate;border-spacing:0;background:transparent}
+#confirmations-list .admin-table thead{display:none}
+#confirmations-list .admin-table tbody{display:grid;gap:18px;width:100%}
+#confirmations-list .admin-table tbody tr{display:grid;grid-template-columns:minmax(180px,.78fr) minmax(240px,1fr) minmax(240px,1fr);grid-template-areas:"protocol product client" "status status purchase" "date action purchase";width:100%;border:1px solid var(--line);background:#fff;box-shadow:0 10px 28px rgba(0,0,0,.04);overflow:hidden}
+#confirmations-list .admin-table td{display:block;min-width:0;padding:20px;border:0;font-size:.92rem;line-height:1.5;vertical-align:top;overflow-wrap:anywhere}
+#confirmations-list .admin-table td::before{display:block;margin:0 0 8px;font-family:var(--font-mono);font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+#confirmations-list .admin-table td:nth-child(1){grid-area:protocol}
+#confirmations-list .admin-table td:nth-child(1)::before{content:"Protocolo"}
+#confirmations-list .admin-table td:nth-child(2){grid-area:product}
+#confirmations-list .admin-table td:nth-child(2)::before{content:"Produto"}
+#confirmations-list .admin-table td:nth-child(3){grid-area:client}
+#confirmations-list .admin-table td:nth-child(3)::before{content:"Cliente"}
+#confirmations-list .admin-table td:nth-child(4){grid-area:status;border-top:1px solid var(--line);background:var(--paper)}
+#confirmations-list .admin-table td:nth-child(4)::before{content:"Status e observação"}
+#confirmations-list .admin-table td:nth-child(5){grid-area:purchase;border-top:1px solid var(--line);border-left:1px solid var(--line);background:var(--paper)}
+#confirmations-list .admin-table td:nth-child(5)::before{content:"Liberação da compra"}
+#confirmations-list .admin-table td:nth-child(6){grid-area:date;border-top:1px solid var(--line);background:var(--paper)}
+#confirmations-list .admin-table td:nth-child(6)::before{content:"Datas"}
+#confirmations-list .admin-table td:nth-child(7){grid-area:action;align-self:stretch;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;border-top:1px solid var(--line);background:var(--paper)}
+#confirmations-list .admin-table td:nth-child(7)::before{content:"Ação";align-self:stretch}
+#confirmations-list .admin-table td[colspan]{grid-column:1/-1;grid-area:auto;background:#fff;text-align:center;padding:28px}
+#confirmations-list .admin-table td[colspan]::before{content:none}
+#confirmations-list .admin-table td>strong{font-family:var(--font-display);font-size:1.05rem}
+#confirmations-list .admin-table small{font-size:.8rem;line-height:1.55;color:var(--ink-soft)}
+#confirmations-list .confirmation-status,#confirmations-list .confirmation-note{width:100%;min-width:0;max-width:none;padding:11px 12px;font:inherit;font-size:.9rem;background:#fff;border:1px solid var(--line-strong)}
+#confirmations-list .confirmation-note{margin-top:4px}
+#confirmations-list .confirmation-contact{margin-top:12px;gap:8px}
+#confirmations-list .confirmation-contact a{min-height:42px;padding:10px 14px;font-size:.78rem}
+#confirmations-list .confirmation-purchase-box{width:100%;min-width:0;max-width:none;font-size:.88rem;line-height:1.55}
+#confirmations-list .confirmation-purchase-box strong{margin-bottom:5px;font-family:var(--font-display);font-size:1rem}
+#confirmations-list .confirmation-purchase-box small{font-size:.8rem}
+#confirmations-list .confirmation-release-fields{display:grid;grid-template-columns:repeat(2,minmax(110px,160px));gap:12px;margin:14px 0}
+#confirmations-list .confirmation-release-fields label{display:grid;gap:5px;font-family:var(--font-mono);font-size:.67rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+#confirmations-list .confirmation-release-fields input{width:100%;min-height:42px;padding:9px 10px;font:inherit;font-size:.9rem;background:#fff;border:1px solid var(--line-strong)}
+#confirmations-list .confirmation-purchase-actions{gap:8px;margin-top:12px}
+#confirmations-list .confirmation-purchase-actions .btn,#confirmations-list [data-release-purchase],#confirmations-list [data-confirmation-save]{min-height:44px;padding:10px 15px;font-size:.78rem}
+#confirmations-list [data-release-purchase]{width:auto;max-width:100%;white-space:normal}
+#confirmations-list [data-confirmation-save]{min-width:110px}
+
+html.reloja-dark #confirmations-list .admin-table tbody tr,
+html.reloja-dark #confirmations-list .admin-table td[colspan]{background:#111;color:#f7f7f5;border-color:#363636}
+html.reloja-dark #confirmations-list .admin-table td:nth-child(4),
+html.reloja-dark #confirmations-list .admin-table td:nth-child(5),
+html.reloja-dark #confirmations-list .admin-table td:nth-child(6),
+html.reloja-dark #confirmations-list .admin-table td:nth-child(7){background:#181818;border-color:#363636}
+html.reloja-dark #confirmations-list .confirmation-status,
+html.reloja-dark #confirmations-list .confirmation-note,
+html.reloja-dark #confirmations-list .confirmation-release-fields input{background:#101010;color:#f7f7f5;border-color:#555}
+
+html.reloja-contrast #confirmations-list .admin-table tbody tr{border:2px solid #000!important;box-shadow:none!important}
+html.reloja-contrast #confirmations-list .admin-table td{background:#fff!important;color:#000!important;border-color:#000!important}
+html.reloja-contrast #confirmations-list .admin-table td::before,
+html.reloja-contrast #confirmations-list .admin-table small{color:#000!important}
+html.reloja-contrast #confirmations-list .confirmation-status,
+html.reloja-contrast #confirmations-list .confirmation-note,
+html.reloja-contrast #confirmations-list .confirmation-release-fields input{background:#fff!important;color:#000!important;border:2px solid #000!important}
+
+@media(max-width:1050px){
+  #confirmations-list .admin-table tbody tr{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"protocol product" "client client" "status status" "purchase purchase" "date action"}
+  #confirmations-list .admin-table td:nth-child(3),#confirmations-list .admin-table td:nth-child(4),#confirmations-list .admin-table td:nth-child(5){border-top:1px solid var(--line)}
+  #confirmations-list .admin-table td:nth-child(5){border-left:0}
+}
+
+@media(max-width:640px){
+  #confirmations-list .admin-table tbody{gap:14px}
+  #confirmations-list .admin-table tbody tr{grid-template-columns:1fr;grid-template-areas:"protocol" "product" "client" "status" "purchase" "date" "action"}
+  #confirmations-list .admin-table td{padding:16px}
+  #confirmations-list .admin-table td+td{border-top:1px solid var(--line)}
+  #confirmations-list .confirmation-release-fields{grid-template-columns:1fr 1fr}
+  #confirmations-list .confirmation-purchase-actions{display:grid;grid-template-columns:1fr}
+  #confirmations-list .confirmation-purchase-actions .btn,#confirmations-list [data-release-purchase],#confirmations-list [data-confirmation-save],#confirmations-list .confirmation-contact a{width:100%;justify-content:center}
+  #confirmations-list .admin-table td:nth-child(7){align-items:stretch}
+}
