@@ -15,6 +15,9 @@ test('novos módulos JavaScript têm sintaxe válida', () => {
     'admin-audit.js',
     'admin-dashboard-data.js',
     'admin-dashboard.js',
+    'admin-security-bootstrap.js',
+    'admin-users-management.js',
+    'persistent-store.js',
     'product-reviews.js',
     'product-reviews-client.js'
   ].forEach(file => {
@@ -55,9 +58,10 @@ test('auditoria classifica ações administrativas sem depender do corpo da requ
   assert.doesNotMatch(read('admin-audit.js'), /req\?*\.body|req\.body/);
 });
 
-test('persistência inclui auditoria e avaliações sem alterar chaves existentes', () => {
+test('persistência inclui auditoria, avaliações e usuários administrativos sem alterar chaves existentes', () => {
   const store = read('persistent-store.js');
   assert.match(store, /'admin_audit'/);
+  assert.match(store, /'admin_users'/);
   assert.match(store, /'product_reviews'/);
   assert.match(store, /'products'/);
   assert.match(store, /'orders'/);
@@ -94,7 +98,7 @@ test('página de produto carrega o módulo de avaliações verificadas', () => {
 
 test('segurança registra auditoria após validar a sessão administrativa', () => {
   const security = read('admin-security-bootstrap.js');
-  const validation = security.indexOf('if (!validToken(token))');
+  const validation = security.indexOf('const payload = authenticatedToken(token);');
   const audit = security.indexOf('recordRequestAudit(req, res, token);');
   assert.ok(validation >= 0 && audit > validation);
   assert.match(security, /HttpOnly/);
