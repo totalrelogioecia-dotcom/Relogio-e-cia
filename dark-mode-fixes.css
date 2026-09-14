@@ -1,0 +1,133 @@
+/* RELÓGIO E CIA — correções complementares do modo escuro.
+   Mantém fotos de produtos em fundo claro para preservar a aparência original. */
+
+/* Busca global */
+html.reloja-dark .site-search-panel{
+  background:var(--bg-soft)!important;
+  color:var(--ink)!important;
+  border-color:var(--line-strong)!important;
+}
+html.reloja-dark .site-search-head,
+html.reloja-dark .site-search-results,
+html.reloja-dark .site-search-result{
+  border-color:var(--line)!important;
+}
+html.reloja-dark .site-search-result:hover,
+html.reloja-dark .site-search-result:focus{
+  background:var(--paper)!important;
+}
+html.reloja-dark .site-search-photo{
+  background:#fff!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+}
+html.reloja-dark .site-search-photo img{
+  background:transparent!important;
+  filter:none!important;
+}
+html.reloja-dark .site-search-photo span{color:#555!important}
+html.reloja-dark .site-search-input-wrap kbd{
+  background:var(--paper)!important;
+  color:var(--ink-soft)!important;
+  border-color:var(--line-strong)!important;
+}
+
+/* Endereços da conta */
+html.reloja-dark .addresses-shell,
+html.reloja-dark .address-card,
+html.reloja-dark .address-form-section{
+  background:var(--bg-soft)!important;
+  color:var(--ink)!important;
+  border-color:var(--line-strong)!important;
+}
+html.reloja-dark .addresses-top,
+html.reloja-dark .addresses-footer-actions{
+  border-color:var(--line)!important;
+}
+html.reloja-dark .address-card p,
+html.reloja-dark .addresses-top p:last-child,
+html.reloja-dark .address-empty{
+  color:var(--ink-soft)!important;
+}
+html.reloja-dark .address-card-actions button{
+  background:var(--bg)!important;
+  color:var(--ink)!important;
+  border-color:var(--line-strong)!important;
+}
+html.reloja-dark .address-card-actions button:hover,
+html.reloja-dark .address-card-actions button:focus-visible{
+  background:var(--ink)!important;
+  color:var(--bg)!important;
+}
+html.reloja-dark .addresses-status{color:#8fe0ae!important}
+html.reloja-dark .addresses-status.error{color:#ffb5b8!important}
+
+/* Favoritos na conta. A foto permanece branca intencionalmente. */
+html.reloja-dark .account-favorites-section,
+html.reloja-dark .account-favorite-card{
+  background:var(--bg-soft)!important;
+  color:var(--ink)!important;
+  border-color:var(--line-strong)!important;
+}
+html.reloja-dark .account-favorite-photo{background:#fff!important}
+html.reloja-dark .account-favorite-photo img{
+  background:transparent!important;
+  filter:none!important;
+}
+html.reloja-dark .account-favorite-copy span,
+html.reloja-dark .account-favorites-head p,
+html.reloja-dark .account-favorites-empty{
+  color:var(--ink-soft)!important;
+}
+html.reloja-dark .account-favorite-actions a,
+html.reloja-dark .account-favorite-actions button{
+  background:var(--bg)!important;
+  color:var(--ink)!important;
+  border-color:var(--line-strong)!important;
+}
+
+/* Histórico de pedidos */
+html.reloja-dark .account-orders-panel{border-color:var(--line)!important}
+html.reloja-dark .account-order-card{
+  background:var(--paper)!important;
+  color:var(--ink)!important;
+  border-color:var(--line-strong)!important;
+}
+html.reloja-dark .account-order-cancel{
+  background:#2b2118!important;
+  color:#ffd7b0!important;
+  border-left-color:#ffad66!important;
+}
+html.reloja-dark .account-order-cancel strong{color:#ffe0c2!important}
+html.reloja-dark .account-order-cancel .account-order-meta{color:#d9b995!important}
+
+/* Carrinho e frete */
+html.reloja-dark #cart-shipping strong{color:#8fe0ae!important}
+html.reloja-dark .shipping-box{
+  border-top-color:var(--line)!important;
+  border-bottom-color:var(--line)!important;
+}
+
+/* Avaliações */
+html.reloja-dark .product-review-message.success{color:#8fe0ae!important}
+html.reloja-dark .product-review-message.error{color:#ffb5b8!important}
+
+/* Trocas, devoluções e estornos */
+html.reloja-dark .return-files-list span{
+  background:var(--paper)!important;
+  color:var(--ink)!important;
+  border:1px solid var(--line)!important;
+}
+html.reloja-dark .return-feedback.success,
+html.reloja-dark .return-status-result.success{
+  background:#13271b!important;
+  color:#a8e5bc!important;
+  border-color:#34794d!important;
+}
+html.reloja-dark .return-feedback.error,
+html.reloja-dark .return-status-result.error{
+  background:#2a1719!important;
+  color:#ffb5b8!important;
+  border-color:#a93a3f!important;
+}
+html.reloja-dark .policy-contact .return-status-result.success{color:#a8e5bc!important}
+html.reloja-dark .policy-contact .return-status-result.error{color:#ffb5b8!important}
