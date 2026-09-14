@@ -57,8 +57,9 @@ function purchaseState(request, now = Date.now()) {
   return { active: true, reason: 'active' };
 }
 
-function customerAuthorization(productId, customer, token = '') {
+function customerAuthorization(productId, customer, token = '', allowedClaimId = '') {
   const normalizedToken = String(token || '').trim();
+  const normalizedClaim = String(allowedClaimId || '').trim();
   const requests = readRequests();
   const matches = requests
     .filter(request => Number(request?.product?.id) === Number(productId))
@@ -67,6 +68,11 @@ function customerAuthorization(productId, customer, token = '') {
     .filter(request => {
       const purchase = request?.purchase_authorization || {};
       if (normalizedToken && String(purchase.token || '') !== normalizedToken) return false;
+      if (normalizedClaim && String(purchase.claimed_order_id || '') === normalizedClaim) {
+        if (purchase.revoked_at || purchase.completed_at) return false;
+        const expiresAt = new Date(purchase.expires_at || 0).getTime();
+        return Number.isFinite(expiresAt) && expiresAt > Date.now();
+      }
       return purchaseState(request).active;
     })
     .sort((a, b) => new Date(b?.purchase_authorization?.released_at || b?.updated_at || 0) - new Date(a?.purchase_authorization?.released_at || a?.updated_at || 0));
@@ -212,7 +218,8 @@ async function claimPurchases(items, customer, orderId) {
   for (const item of targetItems) {
     const requestId = String(item?.confirmation_request_id || '');
     const request = requests.find(candidate => String(candidate?.id || '') === requestId);
-    if (!request || !customerMatches(request, customer) || !purchaseState(request).active) {
+    const sameClaim = request && String(request?.purchase_authorization?.claimed_order_id || '') === String(orderId || '');
+    if (!request || !customerMatches(request, customer) || (!sameClaim && !purchaseState(request).active)) {
       const error = new Error(`${item?.nome || 'Este produto'} não possui mais uma liberação de compra válida para esta conta.`);
       error.status = 409;
       error.code = 'confirmation_purchase_not_available';
@@ -233,12 +240,34 @@ async function claimPurchases(items, customer, orderId) {
     request.purchase_authorization = {
       ...request.purchase_authorization,
       claimed_order_id: String(orderId),
-      claimed_at: nowIso
+      claimed_at: request.purchase_authorization?.claimed_at || nowIso
     };
     request.updated_at = nowIso;
   });
   await persistRequests(requests);
   return claims.map(request => String(request.id));
+}
+
+async function rebindClaims(oldId, newId) {
+  const from = String(oldId || '');
+  const to = String(newId || '');
+  if (!from || !to) return 0;
+  const requests = readRequests();
+  let changed = 0;
+  const nowIso = new Date().toISOString();
+  requests.forEach(request => {
+    const purchase = request?.purchase_authorization;
+    if (!purchase || String(purchase.claimed_order_id || '') !== from || purchase.completed_at) return;
+    request.purchase_authorization = {
+      ...purchase,
+      claimed_order_id: to,
+      claimed_at: purchase.claimed_at || nowIso
+    };
+    request.updated_at = nowIso;
+    changed += 1;
+  });
+  if (changed) await persistRequests(requests);
+  return changed;
 }
 
 async function releaseClaimsForOrder(orderId) {
@@ -293,6 +322,7 @@ module.exports = {
   releasePurchase,
   revokePurchase,
   claimPurchases,
+  rebindClaims,
   releaseClaimsForOrder,
   completeClaimsForOrder
 };
