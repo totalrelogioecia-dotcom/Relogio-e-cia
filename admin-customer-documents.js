@@ -15,11 +15,12 @@
     const style = document.createElement('style');
     style.id = 'admin-cpf-style';
     style.textContent = `
-      .order-cpf { display:flex; align-items:center; gap:7px; margin-top:5px; font-size:12px; color:var(--ink-soft,#666); }
-      .order-cpf button { border:1px solid rgba(0,0,0,.22); background:#fff; padding:2px 7px; font:inherit; font-size:11px; cursor:pointer; }
-      .order-cpf button:hover { border-color:#111; }
-      .order-cpf button:disabled { opacity:.55; cursor:default; }
-      .order-cpf-value { font-family:var(--font-mono,monospace); }
+      .order-cpf { display:flex; align-items:center; gap:7px; flex-wrap:nowrap; margin-top:5px; font-size:12px; color:var(--ink-soft,#666); }
+      .order-cpf button { appearance:none; -webkit-appearance:none; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; min-height:22px; border:1px solid var(--line-strong,rgba(0,0,0,.32)); background:var(--bg,#fff); color:var(--ink,#111); padding:2px 8px; font:inherit; font-size:11px; line-height:1.2; cursor:pointer; transition:background .16s,color .16s,border-color .16s,box-shadow .16s; }
+      .order-cpf button:hover { background:var(--paper,#f7f7f5); border-color:var(--ink,#111); color:var(--ink,#111); }
+      .order-cpf button:focus-visible { outline:2px solid var(--red,#e31e24); outline-offset:2px; border-color:var(--red,#e31e24); }
+      .order-cpf button:disabled { opacity:.55; cursor:default; background:var(--paper,#f7f7f5); color:var(--ink-soft,#666); }
+      .order-cpf-value { font-family:var(--font-mono,monospace); white-space:nowrap; }
     `;
     document.head.appendChild(style);
   }
