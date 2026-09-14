@@ -1,5 +1,5 @@
 const { shouldApplyPhysicalStock } = require('./product-availability-service');
-const { completeClaimsForOrder } = require('./confirmation-purchase-service');
+const { completeConfirmationPurchases } = require('./confirmation-payment-completion');
 
 function physicalRequirements(items) {
   const requirements = new Map();
@@ -43,7 +43,7 @@ function applyPaidOrderStock(products, items) {
 
 function registerStockResult(order, result) {
   if (order?.id) {
-    completeClaimsForOrder(order.id).catch(error => {
+    completeConfirmationPurchases(order).catch(error => {
       console.error('Não foi possível encerrar a confirmação vinculada ao pedido:', error.message);
     });
   }
