@@ -24,6 +24,7 @@
       .cart-item-availability{margin:7px 0 0;font-size:.72rem;line-height:1.4;color:var(--ink-soft)}
       .cart-item-availability strong{font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink)}
       .cart-item-availability.released{color:#245d35}.cart-item-availability.released strong{color:#245d35}
+      html.reloja-dark .cart-item-availability.released,html.reloja-dark .cart-item-availability.released strong{color:#8fe0ae}
       .cart-availability-summary{margin:0 0 16px;padding:12px 13px;border:1px solid var(--line);border-left:3px solid var(--red);background:var(--paper);font-size:.76rem;line-height:1.5}
       .cart-availability-summary strong{display:block;font-family:var(--font-mono);font-size:.64rem;letter-spacing:.09em;text-transform:uppercase;margin-bottom:3px}`;document.head.appendChild(s);
   }
