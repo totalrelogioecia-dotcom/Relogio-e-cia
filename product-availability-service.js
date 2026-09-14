@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { customerAuthorization } = require('./confirmation-purchase-service');
+const { currentCheckoutContext } = require('./checkout-confirmation-context');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const DETAILS = path.join(DATA, 'product-details.json');
@@ -58,7 +59,14 @@ function validateCheckoutAvailability(product, quantity, detailsMap = null, cust
   const availability = availabilityForProduct(product, detailsMap);
 
   if (availability.type === MEDIANTE_CONFIRMACAO) {
-    const authorization = customerAuthorization(product?.id, customer);
+    const context = currentCheckoutContext();
+    const effectiveCustomer = customer || context?.customer || null;
+    const authorization = customerAuthorization(
+      product?.id,
+      effectiveCustomer,
+      '',
+      context?.attempt_id || ''
+    );
     if (!authorization) {
       const error = new Error(`${product?.nome || 'Este produto'} precisa de uma liberação de compra válida para esta conta.`);
       error.status = 409;
