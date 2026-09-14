@@ -70,6 +70,23 @@ function writeAdminUsers(users) {
   fs.writeFileSync(ADMIN_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
 }
 
+function cloneAdminUsers(users) {
+  return users.map(user => ({ ...user }));
+}
+
+async function persistAdminUsers(users, previousUsers) {
+  writeAdminUsers(users);
+  try {
+    await flushPersistentStore();
+  } catch (error) {
+    if (previousUsers) {
+      writeAdminUsers(previousUsers);
+      await flushPersistentStore().catch(() => {});
+    }
+    throw error;
+  }
+}
+
 function publicAdminUser(user) {
   return {
     id: String(user?.id || ''),
@@ -128,37 +145,17 @@ function authenticatedToken(value) {
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
     if (payload.role !== 'admin' || Number(payload.exp) <= Date.now()) return null;
 
+    if (!payload.user_id) return null;
     const users = readAdminUsers();
-    if (payload.user_id) {
-      const user = users.find(item => String(item.id) === String(payload.user_id));
-      if (!user || user.active === false) return null;
-      if (Number(user.session_version || 1) !== Number(payload.session_version || 1)) return null;
-      return {
-        ...payload,
-        email: normalizeEmail(user.email),
-        name: normalizeName(user.name) || 'Administrador',
-        access_level: normalizeAccessLevel(user.access_level)
-      };
-    }
-
-    // Compatibilidade temporária com sessões emitidas antes do suporte multiusuário.
-    const legacyUser = users.find(item => normalizeEmail(item.email) === normalizeEmail(payload.email) && item.active !== false);
-    if (legacyUser) {
-      return {
-        ...payload,
-        user_id: legacyUser.id,
-        email: normalizeEmail(legacyUser.email),
-        name: normalizeName(legacyUser.name) || 'Administrador',
-        access_level: normalizeAccessLevel(legacyUser.access_level),
-        session_version: Number(legacyUser.session_version || 1)
-      };
-    }
-
-    const envEmail = normalizeEmail(process.env.ADMIN_EMAIL);
-    if (envEmail && normalizeEmail(payload.email) === envEmail) {
-      return { ...payload, email: envEmail, name: 'Proprietário', access_level: 'owner' };
-    }
-    return null;
+    const user = users.find(item => String(item.id) === String(payload.user_id));
+    if (!user || user.active === false) return null;
+    if (Number(user.session_version || 1) !== Number(payload.session_version || 1)) return null;
+    return {
+      ...payload,
+      email: normalizeEmail(user.email),
+      name: normalizeName(user.name) || 'Administrador',
+      access_level: normalizeAccessLevel(user.access_level)
+    };
   } catch {
     return null;
   }
@@ -256,8 +253,15 @@ function canAccessAdminRequest(payload, req) {
   }
 
   if (method === 'GET') {
-    return !requestPath.startsWith('/api/admin/audit')
-      && !requestPath.startsWith('/api/admin/melhorenvio');
+    const deniedPrefixes = [
+      '/api/admin/audit',
+      '/api/admin/coupons',
+      '/api/admin/melhorenvio',
+      '/api/admin/product-details',
+      '/api/admin/products',
+      '/api/admin/shipping-products'
+    ];
+    return !deniedPrefixes.some(prefix => requestPath === prefix || requestPath.startsWith(`${prefix}/`));
   }
 
   if (method === 'PATCH') {
@@ -355,11 +359,11 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
         }
 
         loginAttempts.delete(ip);
+        const previousUsers = cloneAdminUsers(users);
         const loggedAt = new Date().toISOString();
         user.last_login_at = loggedAt;
         user.updated_at = user.updated_at || loggedAt;
-        writeAdminUsers(users);
-        await flushPersistentStore();
+        await persistAdminUsers(users, previousUsers);
 
         const token = makeToken({
           role: 'admin',
@@ -477,9 +481,9 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
           updated_at: now,
           last_login_at: null
         };
+        const previousUsers = cloneAdminUsers(users);
         users.push(user);
-        writeAdminUsers(users);
-        await flushPersistentStore();
+        await persistAdminUsers(users, previousUsers);
         safeAudit({
           actor: req.admin?.email,
           action: 'Usuário administrativo criado',
@@ -547,8 +551,7 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
           return res.status(400).json({ error: 'O painel precisa manter pelo menos um proprietário ativo.' });
         }
 
-        writeAdminUsers(proposed);
-        await flushPersistentStore();
+        await persistAdminUsers(proposed, users);
         safeAudit({
           actor: req.admin?.email,
           action: newPassword ? 'Usuário administrativo e senha atualizados' : 'Usuário administrativo atualizado',
