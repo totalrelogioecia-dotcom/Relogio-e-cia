@@ -37,7 +37,8 @@
     style.textContent = `
       .store-cancel-note{margin-top:7px;font-size:.72rem;line-height:1.4;max-width:260px}
       .store-cancel-note.ok{color:#22623b}.store-cancel-note.fail{color:#9d261d}.store-cancel-note.pending{color:#7a5a00}
-      .store-cancel-btn{margin-top:6px;white-space:nowrap}
+      .store-cancel-btn{margin-top:0!important;background:#b4232a!important;color:#fff!important;border-color:#b4232a!important;font-weight:700!important}
+      .store-cancel-btn:hover:not(:disabled),.store-cancel-btn:focus-visible:not(:disabled){background:#8f1820!important;border-color:#8f1820!important;color:#fff!important}
       .store-cancel-modal{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:10000;display:none;align-items:center;justify-content:center;padding:18px}
       .store-cancel-modal.open{display:flex}.store-cancel-card{width:min(580px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid #bbb;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
       .store-cancel-card h3{margin:0 0 8px}.store-cancel-warning{padding:12px 14px;background:#fff4e8;border-left:3px solid #b44b21;margin:16px 0;font-size:.82rem;line-height:1.5}
@@ -164,6 +165,7 @@
       const paymentCell = row.children[3];
       const actions = row.lastElementChild;
       if (!actions) return;
+      const actionList = actions.querySelector('.admin-actions') || actions;
 
       actions.querySelectorAll('.store-cancel-btn').forEach(node => node.remove());
       paymentCell?.querySelectorAll('.store-cancel-note').forEach(node => node.remove());
@@ -177,10 +179,10 @@
 
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'btn btn-outline store-cancel-btn';
+      button.className = 'btn store-cancel-btn';
       button.textContent = canRetry ? 'Tentar estorno' : 'Cancelar pedido';
       button.addEventListener('click', () => openModal(order));
-      actions.appendChild(button);
+      actionList.appendChild(button);
     });
   }
 
