@@ -8,6 +8,20 @@
 
   function $(sel) { return document.querySelector(sel); }
 
+  function garantirCorrecaoModoEscuro() {
+    if ($('#admin-dark-badge-fix')) return;
+    const style = document.createElement('style');
+    style.id = 'admin-dark-badge-fix';
+    style.textContent = `
+      html.reloja-dark #admin-user-badge{background:#1a1a1a!important;color:#f7f7f5!important;border-color:#5d5d5d!important}
+      html.reloja-dark #admin-user-badge *{color:inherit!important}
+      html.reloja-contrast #admin-user-badge{background:#fff!important;color:#000!important;border:2px solid #000!important}
+    `;
+    document.head.appendChild(style);
+  }
+
+  garantirCorrecaoModoEscuro();
+
   function garantirModal() {
     let backdrop = $('#admin-hide-product-modal');
     if (backdrop) return backdrop;
