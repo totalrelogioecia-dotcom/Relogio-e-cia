@@ -2,6 +2,7 @@
 (function(){
   'use strict';
   let details={};
+  let released=new Map();
   function info(p){
     if(!p)return{type:'pronta_entrega',days:0};
     const d=details[String(p.id)]||{};
@@ -14,6 +15,8 @@
   }
   function whatsapp(p){return`https://wa.me/555196311864?text=${encodeURIComponent('Olá! Quero confirmar a disponibilidade do '+p.nome+' (Ref. '+p.sku+').')}`}
   function dialog(options){return window.relojaDialog?.open(options)||Promise.resolve('dismiss')}
+  function releaseFor(id){const item=released.get(Number(id));return item?.purchase?.active?item:null}
+  function shortDate(value){const d=new Date(value||0);return Number.isNaN(d.getTime())?'':d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
   function ensureStyle(){
     if(document.getElementById('catalog-availability-style'))return;
     const s=document.createElement('style');s.id='catalog-availability-style';s.textContent=`
@@ -22,13 +25,14 @@
       .catalog-availability span{padding-left:7px;border-left:1px solid var(--line);color:var(--muted);font-size:.62rem;letter-spacing:.02em;text-transform:none}
       .product-card--ready .card-actions .btn-outline,
       .product-card--preorder .card-actions .btn-outline,
-      .product-card--confirmation .card-actions .btn-outline{display:none}
+      .product-card--confirmation .card-actions .btn-outline,
+      .product-card--confirmation-released .card-actions .btn-outline{display:none}
       .product-card--unavailable .card-actions [data-add-carrinho]{display:none}
       .product-card [data-add-carrinho]:disabled{opacity:.55;cursor:not-allowed}`;document.head.appendChild(s);
   }
   function compactStatus(note,card,state,label,detail,meta){
     const markup=`<strong>${label}</strong>${meta?`<span>${meta}</span>`:''}`;
-    card.classList.remove('product-card--ready','product-card--preorder','product-card--confirmation','product-card--unavailable');
+    card.classList.remove('product-card--ready','product-card--preorder','product-card--confirmation','product-card--confirmation-released','product-card--unavailable');
     card.classList.add(`product-card--${state}`);
     if(note.dataset.availabilityState!==state||note.innerHTML!==markup){
       note.className=`catalog-availability ${state}`;
@@ -51,9 +55,18 @@
         compactStatus(note,card,'preorder','Sob encomenda',`Preparação de ${a.days} dias úteis antes do transporte.`,`${a.days} dias úteis`);
         btn.disabled=false;btn.textContent='Encomendar';
       }else if(a.type==='mediante_confirmacao'){
-        compactStatus(note,card,'confirmation','Pedido mediante confirmação','Envie a solicitação para a loja antes do pagamento.');
-        btn.disabled=false;btn.dataset.confirmAvailability='1';
-        btn.textContent=btn.dataset.confirmRequestSent==='1'?'Enviado ✓ · WhatsApp':'Consultar disponibilidade';
+        const release=releaseFor(p.id);
+        if(release){
+          btn.removeAttribute('data-confirm-request-sent');
+          const until=shortDate(release.purchase?.expires_at);
+          compactStatus(note,card,'confirmation-released','Disponibilidade confirmada','A compra foi liberada somente para a sua conta.',until?`até ${until}`:'compra liberada');
+          btn.disabled=false;
+          if(!/adicionado/i.test(btn.textContent||''))btn.textContent='Adicionar liberado';
+        }else{
+          compactStatus(note,card,'confirmation','Pedido mediante confirmação','Envie a solicitação para a loja antes do pagamento.');
+          btn.disabled=false;btn.dataset.confirmAvailability='1';
+          btn.textContent=btn.dataset.confirmRequestSent==='1'?'Enviado ✓ · WhatsApp':'Consultar disponibilidade';
+        }
       }else if(Number(p.estoque||0)<=0){
         btn.removeAttribute('data-confirm-request-sent');
         compactStatus(note,card,'unavailable','Indisponível','Sem unidade disponível para compra agora.');
@@ -65,6 +78,14 @@
         if(!/adicionado/i.test(btn.textContent||''))btn.textContent='Adicionar';
       }
     });
+  }
+  async function loadReleases(){
+    try{
+      const response=await fetch('/api/availability-requests/mine',{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+      if(!response.ok)return;
+      const data=await response.json().catch(()=>({}));
+      released=new Map((Array.isArray(data.items)?data.items:[]).filter(item=>item?.purchase?.active).map(item=>[Number(item.product_id),item]));
+    }catch{}
   }
   async function requestConfirmation(p,btn){
     if(btn.dataset.confirmRequestSent==='1'){
@@ -93,6 +114,11 @@
         return;
       }
       if(!response.ok)throw new Error(data.error||'Não foi possível registrar a solicitação.');
+      if(data.request?.purchase?.active){
+        await loadReleases();decorate();
+        await dialog({tone:'success',kicker:'Disponibilidade confirmada',title:'Sua compra já está liberada',message:'Este produto já foi confirmado para a sua conta.',detail:'Você já pode adicioná-lo ao carrinho e finalizar a compra.',primaryLabel:'Entendi'});
+        return;
+      }
       btn.dataset.confirmRequestSent='1';
       btn.disabled=false;
       btn.textContent='Enviado ✓ · WhatsApp';
@@ -125,7 +151,10 @@
     requestConfirmation(p,btn);
   },true);
   async function init(){
-    try{const r=await fetch('/api/product-details',{cache:'no-store'});if(r.ok)details=await r.json()}catch{}
+    try{
+      const [d]=await Promise.all([fetch('/api/product-details',{cache:'no-store'}),loadReleases()]);
+      if(d.ok)details=await d.json();
+    }catch{}
     decorate();
     const grid=document.getElementById('product-grid')||document.querySelector('.product-grid');
     if(grid)new MutationObserver(()=>setTimeout(decorate,0)).observe(grid,{childList:true,subtree:true});
