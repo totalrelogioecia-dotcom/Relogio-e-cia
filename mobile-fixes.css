@@ -61,6 +61,29 @@ footer .footer-grid li:has(> a[href^="https://wa.me/"]){
     max-height:32px !important;
     flex-basis:32px;
   }
+
+  /* No catálogo móvel, o atalho do rodapé vira um botão compacto para não cobrir os cards. */
+  #catalog-footer-jump{
+    width:48px !important;
+    height:48px !important;
+    min-width:48px !important;
+    min-height:48px !important;
+    max-width:48px !important;
+    padding:0 !important;
+    right:8px !important;
+    bottom:calc(10px + env(safe-area-inset-bottom)) !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+  #catalog-footer-jump .catalog-footer-jump__label{
+    display:none !important;
+  }
+  #catalog-footer-jump .catalog-footer-jump__arrow{
+    margin:0 !important;
+    font-size:1.2rem !important;
+    line-height:1 !important;
+  }
 }
 
 @media (max-width:380px){
