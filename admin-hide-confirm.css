@@ -99,3 +99,40 @@ html.reloja-contrast #confirmations-list .confirmation-release-fields input{back
   #confirmations-list .confirmation-purchase-actions .btn,#confirmations-list [data-release-purchase],#confirmations-list [data-confirmation-save],#confirmations-list .confirmation-contact a{width:100%;justify-content:center}
   #confirmations-list .admin-table td:nth-child(7){align-items:stretch}
 }
+
+/* Mais contraste e separação entre solicitações */
+#confirmations-list.admin-table-wrap{padding:18px;background:#ecece8;border:1px solid var(--line-strong)}
+#confirmations-list .admin-table tbody{gap:30px}
+#confirmations-list .admin-table tbody tr{border:2px solid #a8a8a1;border-top:5px solid var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.12),0 14px 32px rgba(0,0,0,.08)}
+#confirmations-list .admin-table td::before{color:var(--ink)}
+#confirmations-list .admin-table td:nth-child(1),#confirmations-list .admin-table td:nth-child(2){border-right:1px solid #d2d2cc}
+#confirmations-list .admin-table td:nth-child(4){background:#f3f3f0;border-top:2px solid #c9c9c3}
+#confirmations-list .admin-table td:nth-child(5){background:#fff5f5;border-top:2px solid #c9c9c3;border-left:4px solid var(--red)}
+#confirmations-list .admin-table td:nth-child(6),#confirmations-list .admin-table td:nth-child(7){background:#e9e9e5;border-top:2px solid #c9c9c3}
+#confirmations-list .admin-table td:nth-child(1)>strong{font-size:1.12rem}
+#confirmations-list .confirmation-status,#confirmations-list .confirmation-note,#confirmations-list .confirmation-release-fields input{border-width:2px}
+
+html.reloja-dark #confirmations-list.admin-table-wrap{background:#0a0a0a;border-color:#505050}
+html.reloja-dark #confirmations-list .admin-table tbody tr{border-color:#666;border-top-color:#efefeb;box-shadow:0 4px 0 rgba(255,255,255,.08),0 14px 32px rgba(0,0,0,.35)}
+html.reloja-dark #confirmations-list .admin-table td:nth-child(1),
+html.reloja-dark #confirmations-list .admin-table td:nth-child(2){border-right-color:#3e3e3e}
+html.reloja-dark #confirmations-list .admin-table td:nth-child(4),
+html.reloja-dark #confirmations-list .admin-table td:nth-child(6),
+html.reloja-dark #confirmations-list .admin-table td:nth-child(7){background:#181818;border-top-color:#4b4b4b}
+html.reloja-dark #confirmations-list .admin-table td:nth-child(5){background:#241718;border-top-color:#4b4b4b;border-left-color:#ff4a50}
+html.reloja-dark #confirmations-list .admin-table td::before{color:#f0f0ec}
+
+html.reloja-contrast #confirmations-list.admin-table-wrap{background:#fff!important;border:2px solid #000!important;padding:16px!important}
+html.reloja-contrast #confirmations-list .admin-table tbody{gap:28px!important}
+html.reloja-contrast #confirmations-list .admin-table tbody tr{border:3px solid #000!important;border-top-width:6px!important}
+
+@media(max-width:1050px){
+  #confirmations-list .admin-table td:nth-child(2){border-right:0}
+  #confirmations-list .admin-table td:nth-child(5){border-left:4px solid var(--red)}
+}
+
+@media(max-width:640px){
+  #confirmations-list.admin-table-wrap{padding:10px}
+  #confirmations-list .admin-table tbody{gap:22px}
+  #confirmations-list .admin-table td:nth-child(1),#confirmations-list .admin-table td:nth-child(2){border-right:0}
+}
