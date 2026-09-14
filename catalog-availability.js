@@ -16,7 +16,7 @@
   function whatsapp(p){return`https://wa.me/555196311864?text=${encodeURIComponent('Olá! Quero confirmar a disponibilidade do '+p.nome+' (Ref. '+p.sku+').')}`}
   function dialog(options){return window.relojaDialog?.open(options)||Promise.resolve('dismiss')}
   function releaseFor(id){const item=released.get(Number(id));return item?.purchase?.active?item:null}
-  function shortDate(value){const d=new Date(value||0);return Number.isNaN(d.getTime())?'':d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
+  function shortDate(value){const d=new Date(value||0);return Number.isNaN(d.getTime())?'':d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
   function ensureStyle(){
     if(document.getElementById('catalog-availability-style'))return;
     const s=document.createElement('style');s.id='catalog-availability-style';s.textContent=`
@@ -35,7 +35,13 @@
       .product-card--unavailable .card-actions [data-add-carrinho]{display:none}
       .product-card [data-add-carrinho]:disabled{opacity:.55;cursor:not-allowed}
       @media(max-width:900px){.product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media(max-width:640px){.product-grid{grid-template-columns:minmax(0,1fr)}.catalog-availability{min-height:42px}}
+      @media(max-width:640px){
+        .product-grid{grid-template-columns:minmax(0,1fr)}
+        .catalog-availability,.catalog-availability.confirmation-released{min-height:0;padding:9px 10px;gap:5px;overflow:visible}
+        .catalog-availability strong,.catalog-availability span{white-space:normal;overflow:visible;text-overflow:clip}
+        .catalog-availability strong{font-size:.64rem;line-height:1.35}
+        .catalog-availability span{font-size:.6rem;line-height:1.35}
+      }
     `;document.head.appendChild(s);
   }
   function compactStatus(note,card,state,label,detail,meta){
@@ -67,7 +73,7 @@
         if(release){
           btn.removeAttribute('data-confirm-request-sent');
           const until=shortDate(release.purchase?.expires_at);
-          compactStatus(note,card,'confirmation-released','Disponibilidade confirmada','A compra foi liberada somente para a sua conta.',until?`Válida até ${until}`:'Compra liberada');
+          compactStatus(note,card,'confirmation-released','Disponibilidade confirmada','A compra foi liberada somente para a sua conta.',until?`até ${until}`:'Compra liberada');
           btn.disabled=false;
           if(!/adicionado/i.test(btn.textContent||''))btn.textContent='Adicionar liberado';
         }else{
