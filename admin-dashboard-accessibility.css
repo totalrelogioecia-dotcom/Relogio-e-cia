@@ -1,2 +1,280 @@
-html.reloja-dark .dashboard-kpi,html.reloja-dark .dashboard-section,html.reloja-dark .dashboard-alert,html.reloja-dark .review-moderation-actions button{background:var(--bg-soft)!important;color:var(--ink)!important;border-color:var(--line-strong)!important}html.reloja-dark .dashboard-alert:hover,html.reloja-dark .dashboard-alert:focus-visible{background:var(--paper)!important;border-color:var(--ink)!important}html.reloja-dark .dashboard-note,html.reloja-dark .dashboard-empty,html.reloja-dark .product-review-eligibility{background:var(--paper)!important;color:var(--ink-soft)!important;border-color:var(--line-strong)!important}html.reloja-dark .dashboard-table th,html.reloja-dark .dashboard-table td{border-color:var(--line)!important;color:var(--ink)!important}html.reloja-dark .dashboard-status.ok,html.reloja-dark .review-status.approved{background:#13271b!important;color:#a8e5bc!important;border-color:#34794d!important}html.reloja-dark .dashboard-status.warn,html.reloja-dark .review-status.pending{background:#2b2818!important;color:#ffd27a!important;border-color:#8f7a25!important}html.reloja-dark .dashboard-status.fail,html.reloja-dark .review-status.rejected,html.reloja-dark .dashboard-error{background:#2a1719!important;color:#ffb5b8!important;border-color:#a93a3f!important}html.reloja-dark .dashboard-stock.low{color:#ffd27a!important}html.reloja-dark .review-moderation-actions button[data-review-action="approved"]{color:#a8e5bc!important;border-color:#34794d!important}html.reloja-dark .review-moderation-actions button[data-review-action="rejected"]{color:#ffb5b8!important;border-color:#a93a3f!important}html.reloja-dark .dashboard-kpi-label,html.reloja-dark .dashboard-kpi small,html.reloja-dark .dashboard-section-head p,html.reloja-dark .admin-module-toolbar p,html.reloja-dark .audit-origin,html.reloja-dark .dashboard-refreshed,html.reloja-dark .dashboard-loading{color:var(--ink-soft)!important}
-html.reloja-high-contrast .dashboard-kpi,html.reloja-high-contrast .dashboard-section,html.reloja-high-contrast .dashboard-alert,html.reloja-high-contrast .dashboard-note,html.reloja-high-contrast .dashboard-empty,html.reloja-high-contrast .review-moderation-actions button,html.reloja-high-contrast .dashboard-error{background:#fff!important;color:#000!important;border:2px solid #000!important;box-shadow:none!important}html.reloja-high-contrast .dashboard-alert.warning,html.reloja-high-contrast .dashboard-alert.ok{border-left:6px solid #000!important}html.reloja-high-contrast .dashboard-alert:hover,html.reloja-high-contrast .dashboard-alert:focus-visible{background:#000!important;color:#fff!important}html.reloja-high-contrast .dashboard-alert:hover strong,html.reloja-high-contrast .dashboard-alert:hover span,html.reloja-high-contrast .dashboard-alert:hover small,html.reloja-high-contrast .dashboard-alert:focus-visible strong,html.reloja-high-contrast .dashboard-alert:focus-visible span,html.reloja-high-contrast .dashboard-alert:focus-visible small{color:#fff!important}html.reloja-high-contrast .dashboard-status,html.reloja-high-contrast .review-status,html.reloja-high-contrast .review-moderation-actions button{background:#fff!important;color:#000!important;border:2px solid #000!important}html.reloja-high-contrast .dashboard-table th,html.reloja-high-contrast .dashboard-table td{color:#000!important;border-color:#000!important}html.reloja-high-contrast .dashboard-kpi-label,html.reloja-high-contrast .dashboard-kpi small,html.reloja-high-contrast .dashboard-section-head p,html.reloja-high-contrast .admin-module-toolbar p,html.reloja-high-contrast .audit-origin,html.reloja-high-contrast .dashboard-refreshed,html.reloja-high-contrast .dashboard-loading,html.reloja-high-contrast .dashboard-stock.low{color:#000!important}
+/* Painel administrativo — coerência visual nos modos escuro e alto contraste. */
+
+html.reloja-dark .dashboard-kpi,
+html.reloja-dark .dashboard-section,
+html.reloja-dark .dashboard-alert,
+html.reloja-dark .review-moderation-actions button {
+  background: var(--bg-soft) !important;
+  color: var(--ink) !important;
+  border-color: var(--line-strong) !important;
+}
+
+html.reloja-dark .dashboard-alert:hover,
+html.reloja-dark .dashboard-alert:focus-visible {
+  background: var(--paper) !important;
+  border-color: var(--ink) !important;
+}
+
+html.reloja-dark .dashboard-note,
+html.reloja-dark .dashboard-empty,
+html.reloja-dark .product-review-eligibility {
+  background: var(--paper) !important;
+  color: var(--ink-soft) !important;
+  border-color: var(--line-strong) !important;
+}
+
+html.reloja-dark .dashboard-table th,
+html.reloja-dark .dashboard-table td {
+  border-color: var(--line) !important;
+  color: var(--ink) !important;
+}
+
+html.reloja-dark .dashboard-status.ok,
+html.reloja-dark .review-status.approved,
+html.reloja-dark .invoice-status.emitted,
+html.reloja-dark .coupon-status.active,
+html.reloja-dark .integration-summary-status.ok,
+html.reloja-dark .melhorenvio-badge.ok {
+  background: #13271b !important;
+  color: #a8e5bc !important;
+  border-color: #34794d !important;
+}
+
+html.reloja-dark .dashboard-status.warn,
+html.reloja-dark .review-status.pending,
+html.reloja-dark .invoice-status.pending,
+html.reloja-dark .coupon-status.scheduled,
+html.reloja-dark .integration-summary-status.pending,
+html.reloja-dark .melhorenvio-badge.pending {
+  background: #2b2818 !important;
+  color: #ffd27a !important;
+  border-color: #8f7a25 !important;
+}
+
+html.reloja-dark .dashboard-status.fail,
+html.reloja-dark .review-status.rejected,
+html.reloja-dark .dashboard-error,
+html.reloja-dark .invoice-status.cancelled,
+html.reloja-dark .coupon-status.expired {
+  background: #2a1719 !important;
+  color: #ffb5b8 !important;
+  border-color: #a93a3f !important;
+}
+
+html.reloja-dark .invoice-status.waiting,
+html.reloja-dark .coupon-status.inactive {
+  background: var(--paper) !important;
+  color: var(--ink-soft) !important;
+  border-color: var(--line-strong) !important;
+}
+
+html.reloja-dark .dashboard-stock.low { color: #ffd27a !important; }
+html.reloja-dark .dashboard-stock.zero { color: #ff9da1 !important; }
+html.reloja-dark .status.paid { color: #8fe0ae !important; border-color: #34794d !important; }
+html.reloja-dark .status.rejected,
+html.reloja-dark .status.cancelled { color: #ffb5b8 !important; border-color: #a93a3f !important; }
+
+html.reloja-dark .review-moderation-actions button[data-review-action="approved"] {
+  color: #a8e5bc !important;
+  border-color: #34794d !important;
+}
+
+html.reloja-dark .review-moderation-actions button[data-review-action="rejected"] {
+  color: #ffb5b8 !important;
+  border-color: #a93a3f !important;
+}
+
+html.reloja-dark .dashboard-kpi-label,
+html.reloja-dark .dashboard-kpi small,
+html.reloja-dark .dashboard-section-head p,
+html.reloja-dark .admin-module-toolbar p,
+html.reloja-dark .audit-origin,
+html.reloja-dark .dashboard-refreshed,
+html.reloja-dark .dashboard-loading {
+  color: var(--ink-soft) !important;
+}
+
+/* Diagnóstico técnico / Status da loja. */
+html.reloja-dark .store-health-banner {
+  background: var(--paper) !important;
+  color: var(--ink-soft) !important;
+  border-color: var(--line-strong) !important;
+}
+
+html.reloja-dark .store-health-banner.ok {
+  background: #13271b !important;
+  color: #bce9ca !important;
+  border-left-color: #4ca96c !important;
+}
+
+html.reloja-dark .store-health-banner.warn {
+  background: #2b2818 !important;
+  color: #ffe09a !important;
+  border-left-color: #d8a52d !important;
+}
+
+html.reloja-dark .store-health-banner.error {
+  background: #2a1719 !important;
+  color: #ffb5b8 !important;
+  border-left-color: #cf5960 !important;
+}
+
+html.reloja-dark .store-health-banner strong,
+html.reloja-dark .store-health-banner li {
+  color: inherit !important;
+}
+
+html.reloja-dark .store-health-card {
+  background: var(--bg-soft) !important;
+  color: var(--ink) !important;
+  border-color: var(--line-strong) !important;
+}
+
+html.reloja-dark .store-health-card small,
+html.reloja-dark .store-health-card p,
+html.reloja-dark .store-health-refreshed {
+  color: var(--ink-soft) !important;
+}
+
+html.reloja-dark .store-health-shipping {
+  border-color: var(--line-strong) !important;
+}
+
+html.reloja-dark .store-health-shipping h3,
+html.reloja-dark .store-health-shipping-toggle,
+html.reloja-dark .store-health-summary strong {
+  color: var(--ink) !important;
+}
+
+html.reloja-dark .store-health-summary {
+  color: var(--ink-soft) !important;
+}
+
+html.reloja-dark .store-health-toggle-icon {
+  color: var(--ink) !important;
+  border-color: var(--line-strong) !important;
+  background: var(--paper) !important;
+}
+
+html.reloja-dark .store-health-table tr.is-blocking {
+  background: #251719 !important;
+}
+
+html.reloja-dark .store-health-table tr.is-waiting {
+  background: #272417 !important;
+}
+
+html.reloja-dark .store-health-critical,
+html.reloja-dark .store-health-missing {
+  color: #ff9da1 !important;
+}
+
+/* Integrações, cupons e frete. */
+html.reloja-dark .admin-integrations-body,
+html.reloja-dark .shipping-product-fields {
+  border-color: var(--line) !important;
+}
+
+html.reloja-dark .coupon-help,
+html.reloja-dark .coupon-table small,
+html.reloja-dark .shipping-box-help,
+html.reloja-dark .shipping-product-fields p {
+  color: var(--ink-soft) !important;
+}
+
+html.reloja-dark .coupon-inline-note {
+  background: var(--paper) !important;
+  color: var(--ink-soft) !important;
+  border-color: var(--line-strong) !important;
+}
+
+html.reloja-dark .shipping-product-grid input[readonly] {
+  background: var(--paper) !important;
+  color: var(--ink-soft) !important;
+  border-color: var(--line-strong) !important;
+}
+
+html.reloja-dark .shipping-product-status.ok {
+  color: #8fe0ae !important;
+  border-color: #34794d !important;
+}
+
+html.reloja-dark .shipping-product-status.pending {
+  color: #ffd27a !important;
+  border-color: #8f7a25 !important;
+}
+
+html.reloja-dark .shipping-product-note strong {
+  color: var(--ink) !important;
+}
+
+/* Razões de pagamento e etiquetas de fotos. */
+html.reloja-dark .payment-reason--ok strong { color: #8fe0ae !important; }
+html.reloja-dark .payment-reason--warning strong { color: #ffd27a !important; }
+html.reloja-dark .payment-reason--risk strong,
+html.reloja-dark .payment-reason--error strong { color: #ffb5b8 !important; }
+
+html.reloja-dark .photo-order-card::after {
+  background: rgba(17,18,20,.94) !important;
+  color: #f5f5f2 !important;
+  border-color: rgba(255,255,255,.38) !important;
+}
+
+/* Alto contraste. */
+html.reloja-high-contrast .dashboard-kpi,
+html.reloja-high-contrast .dashboard-section,
+html.reloja-high-contrast .dashboard-alert,
+html.reloja-high-contrast .dashboard-note,
+html.reloja-high-contrast .dashboard-empty,
+html.reloja-high-contrast .review-moderation-actions button,
+html.reloja-high-contrast .dashboard-error {
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+  box-shadow: none !important;
+}
+
+html.reloja-high-contrast .dashboard-alert.warning,
+html.reloja-high-contrast .dashboard-alert.ok {
+  border-left: 6px solid #000 !important;
+}
+
+html.reloja-high-contrast .dashboard-alert:hover,
+html.reloja-high-contrast .dashboard-alert:focus-visible {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+html.reloja-high-contrast .dashboard-alert:hover strong,
+html.reloja-high-contrast .dashboard-alert:hover span,
+html.reloja-high-contrast .dashboard-alert:hover small,
+html.reloja-high-contrast .dashboard-alert:focus-visible strong,
+html.reloja-high-contrast .dashboard-alert:focus-visible span,
+html.reloja-high-contrast .dashboard-alert:focus-visible small {
+  color: #fff !important;
+}
+
+html.reloja-high-contrast .dashboard-status,
+html.reloja-high-contrast .review-status,
+html.reloja-high-contrast .review-moderation-actions button {
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+}
+
+html.reloja-high-contrast .dashboard-table th,
+html.reloja-high-contrast .dashboard-table td {
+  color: #000 !important;
+  border-color: #000 !important;
+}
+
+html.reloja-high-contrast .dashboard-kpi-label,
+html.reloja-high-contrast .dashboard-kpi small,
+html.reloja-high-contrast .dashboard-section-head p,
+html.reloja-high-contrast .admin-module-toolbar p,
+html.reloja-high-contrast .audit-origin,
+html.reloja-high-contrast .dashboard-refreshed,
+html.reloja-high-contrast .dashboard-loading,
+html.reloja-high-contrast .dashboard-stock.low {
+  color: #000 !important;
+}
