@@ -6,6 +6,7 @@ const { flushPersistentStore } = require('./persistent-store');
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const REQUESTS = path.join(DATA, 'availability-requests.json');
 const DEFAULT_RELEASE_HOURS = 48;
+const CLAIM_HOLD_MS = 2 * 60 * 60 * 1000;
 
 function readRequests() {
   try {
@@ -47,7 +48,12 @@ function purchaseState(request, now = Date.now()) {
   if (purchase.completed_at) return { active: false, reason: 'completed' };
   const expiresAt = new Date(purchase.expires_at || 0).getTime();
   if (!Number.isFinite(expiresAt) || expiresAt <= now) return { active: false, reason: 'expired' };
-  if (purchase.claimed_order_id) return { active: false, reason: 'claimed' };
+  if (purchase.claimed_order_id) {
+    const claimedAt = new Date(purchase.claimed_at || 0).getTime();
+    if (Number.isFinite(claimedAt) && claimedAt > now - CLAIM_HOLD_MS) {
+      return { active: false, reason: 'claimed' };
+    }
+  }
   return { active: true, reason: 'active' };
 }
 
@@ -96,7 +102,7 @@ function customerPurchases(customer) {
           released_at: purchase.released_at || null,
           expires_at: purchase.expires_at || null,
           token: state.active ? String(purchase.token || '') : '',
-          claimed_order_id: purchase.claimed_order_id || null,
+          claimed_order_id: state.reason === 'claimed' ? purchase.claimed_order_id || null : null,
           completed_at: purchase.completed_at || null
         } : null
       };
@@ -110,6 +116,18 @@ async function releasePurchase(requestId, options = {}) {
   if (index < 0) {
     const error = new Error('Solicitação não encontrada.');
     error.status = 404;
+    throw error;
+  }
+
+  const existingState = purchaseState(requests[index]);
+  if (existingState.reason === 'claimed') {
+    const error = new Error('Este cliente já iniciou a compra. Aguarde o resultado do pagamento.');
+    error.status = 409;
+    throw error;
+  }
+  if (existingState.reason === 'completed') {
+    const error = new Error('Esta confirmação já foi utilizada em uma compra concluída.');
+    error.status = 409;
     throw error;
   }
 
@@ -154,6 +172,14 @@ async function revokePurchase(requestId) {
 
   const current = requests[index];
   if (!current.purchase_authorization) return current;
+  const state = purchaseState(current);
+  if (state.reason === 'claimed') {
+    const error = new Error('A compra já foi iniciada. Aguarde o resultado do pagamento antes de revogar.');
+    error.status = 409;
+    throw error;
+  }
+  if (state.reason === 'completed') return current;
+
   const nowIso = new Date().toISOString();
   requests[index] = {
     ...current,
