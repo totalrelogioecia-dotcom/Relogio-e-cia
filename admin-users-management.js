@@ -6,6 +6,7 @@
   let currentAdmin = null;
   let users = [];
   let editingId = '';
+  let modalResolve = null;
 
   const $ = selector => document.querySelector(selector);
 
@@ -36,35 +37,110 @@
     const style = document.createElement('style');
     style.id = 'admin-users-management-style';
     style.textContent = `
-      #tab-usuarios-admin{margin-top:18px;background:#0b0b0b;color:#fff;border:1px solid #222;box-shadow:0 18px 45px rgba(0,0,0,.18);padding:20px}
-      #tab-usuarios-admin .admin-toolbar{background:#111;border:1px solid #333;padding:18px;margin-bottom:14px}
-      #tab-usuarios-admin h2,#tab-usuarios-admin h3{color:#fff;margin-top:0}
-      #tab-usuarios-admin .admin-muted,#tab-usuarios-admin .admin-users-help,#tab-usuarios-admin .admin-user-editor-note{color:#d7d7d7}
-      #tab-usuarios-admin .admin-card{background:#151515;border:1px solid #333;color:#fff;padding:18px}
-      #tab-usuarios-admin label{color:#fff;font-weight:700}
-      #tab-usuarios-admin input,#tab-usuarios-admin select{background:#fff;color:#111;border:2px solid #555}
-      #tab-usuarios-admin input:focus,#tab-usuarios-admin select:focus{border-color:#e31e24;outline:3px solid rgba(227,30,36,.22)}
-      #tab-usuarios-admin .admin-table-wrap{border:1px solid #333;background:#111;overflow-x:auto}
-      #tab-usuarios-admin .admin-table{width:100%;min-width:760px;border-collapse:collapse;color:#fff}
-      #tab-usuarios-admin .admin-table th{background:#050505;color:#fff;border-bottom:2px solid #e31e24;text-align:left;font-weight:800;padding:13px}
-      #tab-usuarios-admin .admin-table td{background:#141414;color:#fff;border-bottom:1px solid #333;padding:12px;vertical-align:middle}
-      #tab-usuarios-admin .admin-table tr:hover td{background:#1b1b1b}
-      #tab-usuarios-admin .admin-table small{color:#d0d0d0}
-      #tab-usuarios-admin .admin-user-role{display:inline-flex;align-items:center;padding:5px 9px;border:1px solid #777;background:#222;color:#fff;border-radius:5px;font-size:.72rem;font-weight:800;white-space:nowrap}
-      #tab-usuarios-admin .admin-user-status{display:inline-flex;align-items:center;padding:5px 9px;border-radius:5px;font-size:.72rem;font-weight:800;border:1px solid #555}
-      #tab-usuarios-admin .admin-user-status.active{background:#10351f;color:#b9ffd0;border-color:#247543}
-      #tab-usuarios-admin .admin-user-status.blocked{background:#3a1717;color:#ffd0d0;border-color:#8d2b2b}
+      #tab-usuarios-admin{margin-top:18px;background:#fff;color:#111;border:2px solid #111;box-shadow:0 18px 45px rgba(0,0,0,.14);padding:20px}
+      #tab-usuarios-admin .admin-toolbar{background:#fff;border:2px solid #111;padding:18px;margin-bottom:14px}
+      #tab-usuarios-admin h2,#tab-usuarios-admin h3{color:#111;margin-top:0}
+      #tab-usuarios-admin .admin-muted,#tab-usuarios-admin .admin-users-help,#tab-usuarios-admin .admin-user-editor-note{color:#333}
+      #tab-usuarios-admin .admin-card{background:#f7f7f7;border:2px solid #111;color:#111;padding:18px}
+      #tab-usuarios-admin label{color:#111;font-weight:800}
+      #tab-usuarios-admin input,#tab-usuarios-admin select{background:#fff;color:#111;border:2px solid #111}
+      #tab-usuarios-admin input:focus,#tab-usuarios-admin select:focus{border-color:#e31e24;outline:3px solid rgba(227,30,36,.18)}
+      #tab-usuarios-admin .admin-table-wrap{border:2px solid #111;background:#fff;overflow-x:auto}
+      #tab-usuarios-admin .admin-table{width:100%;min-width:760px;border-collapse:collapse;color:#111}
+      #tab-usuarios-admin .admin-table th{background:#111;color:#fff;border-bottom:3px solid #e31e24;text-align:left;font-weight:900;padding:13px}
+      #tab-usuarios-admin .admin-table td{background:#fff;color:#111;border-bottom:1px solid #cfcfcf;padding:12px;vertical-align:middle}
+      #tab-usuarios-admin .admin-table tr:nth-child(even) td{background:#f5f5f5}
+      #tab-usuarios-admin .admin-table tr:hover td{background:#ffecee}
+      #tab-usuarios-admin .admin-table small{color:#444}
+      #tab-usuarios-admin .admin-user-role{display:inline-flex;align-items:center;padding:5px 9px;border:2px solid #111;background:#fff;color:#111;border-radius:5px;font-size:.72rem;font-weight:900;white-space:nowrap}
+      #tab-usuarios-admin .admin-user-status{display:inline-flex;align-items:center;padding:5px 9px;border-radius:5px;font-size:.72rem;font-weight:900;border:2px solid #111}
+      #tab-usuarios-admin .admin-user-status.active{background:#eaf8ee;color:#155f2d;border-color:#247543}
+      #tab-usuarios-admin .admin-user-status.blocked{background:#fff0f0;color:#8a151a;border-color:#a51f25}
       #tab-usuarios-admin .admin-users-actions{display:flex;gap:7px;flex-wrap:wrap}
-      #tab-usuarios-admin .admin-users-actions button{white-space:nowrap;min-height:36px}
-      #tab-usuarios-admin .admin-users-actions .admin-user-delete{background:#e31e24;color:#fff;border-color:#e31e24;font-weight:800}
+      #tab-usuarios-admin .admin-users-actions button{white-space:nowrap;min-height:36px;border:2px solid #111;font-weight:800}
+      #tab-usuarios-admin .admin-users-actions .btn-outline{background:#fff;color:#111;border-color:#111}
+      #tab-usuarios-admin .admin-users-actions .btn-outline:hover,#tab-usuarios-admin .admin-users-actions .btn-outline:focus-visible{background:#111;color:#fff;border-color:#111}
+      #tab-usuarios-admin .admin-users-actions .admin-user-delete{background:#e31e24;color:#fff;border-color:#e31e24;font-weight:900}
       #tab-usuarios-admin .admin-users-actions .admin-user-delete:hover,#tab-usuarios-admin .admin-users-actions .admin-user-delete:focus-visible{background:#b9161b;border-color:#b9161b;color:#fff}
-      #tab-usuarios-admin .admin-users-actions .btn-outline{background:#fff;color:#111;border-color:#fff}
-      #tab-usuarios-admin .admin-users-actions .btn-outline:hover,#tab-usuarios-admin .admin-users-actions .btn-outline:focus-visible{background:#e9e9e9;color:#111;border-color:#fff}
-      #tab-usuarios-admin .admin-users-danger-note{margin:0 0 12px;padding:10px 12px;border-left:4px solid #e31e24;background:#1b1b1b;color:#f2f2f2}
+      #tab-usuarios-admin .admin-users-danger-note{margin:0 0 12px;padding:10px 12px;border:2px solid #e31e24;background:#fff4f4;color:#111}
       .admin-user-badge{display:inline-flex;align-items:center;gap:6px;margin-right:10px;padding:7px 10px;border:1px solid rgba(0,0,0,.12);border-radius:999px;font-size:.74rem;background:#fff}
-      @media(max-width:760px){.admin-user-badge{display:none}#tab-usuarios-admin{padding:12px}#tab-usuarios-admin .admin-toolbar{padding:14px}}
+      .admin-users-modal-backdrop{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.58)}
+      .admin-users-modal-backdrop.open{display:flex}
+      .admin-users-modal{width:min(460px,100%);background:#fff;color:#111;border:3px solid #111;box-shadow:0 24px 70px rgba(0,0,0,.35);padding:22px}
+      .admin-users-modal h3{margin:0 0 10px;font-size:1.1rem}
+      .admin-users-modal p{margin:0;color:#333;line-height:1.5}
+      .admin-users-modal strong{color:#e31e24}
+      .admin-users-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+      .admin-users-modal-actions button{min-height:40px;padding:9px 15px;border:2px solid #111;font-weight:900;cursor:pointer}
+      .admin-users-modal-cancel{background:#fff;color:#111}
+      .admin-users-modal-confirm{background:#e31e24;color:#fff;border-color:#e31e24!important}
+      .admin-users-modal-confirm:hover,.admin-users-modal-confirm:focus-visible{background:#b9161b}
+      .admin-users-modal-close{background:#111;color:#fff}
+      @media(max-width:760px){.admin-user-badge{display:none}#tab-usuarios-admin{padding:12px}#tab-usuarios-admin .admin-toolbar{padding:14px}.admin-users-modal-actions{flex-direction:column}.admin-users-modal-actions button{width:100%}}
     `;
     document.head.appendChild(style);
+  }
+
+  function ensureModal() {
+    if ($('#admin-users-modal')) return;
+    const modal = document.createElement('div');
+    modal.id = 'admin-users-modal';
+    modal.className = 'admin-users-modal-backdrop';
+    modal.innerHTML = `
+      <div class="admin-users-modal" role="dialog" aria-modal="true" aria-labelledby="admin-users-modal-title">
+        <h3 id="admin-users-modal-title">Confirmar ação</h3>
+        <p id="admin-users-modal-message"></p>
+        <div class="admin-users-modal-actions">
+          <button type="button" class="admin-users-modal-cancel" data-modal-cancel>Cancelar</button>
+          <button type="button" class="admin-users-modal-confirm" data-modal-confirm>Confirmar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', event => { if (event.target === modal) finishModal(false); });
+    modal.querySelector('[data-modal-cancel]').addEventListener('click', () => finishModal(false));
+    modal.querySelector('[data-modal-confirm]').addEventListener('click', () => finishModal(true));
+  }
+
+  function finishModal(value) {
+    const modal = $('#admin-users-modal');
+    if (modal) modal.classList.remove('open');
+    if (modalResolve) { const resolve = modalResolve; modalResolve = null; resolve(value); }
+  }
+
+  function confirmAdminAction(title, message, confirmLabel = 'Confirmar', danger = true) {
+    ensureModal();
+    const modal = $('#admin-users-modal');
+    const titleEl = $('#admin-users-modal-title');
+    const messageEl = $('#admin-users-modal-message');
+    const confirm = modal?.querySelector('[data-modal-confirm]');
+    if (!modal || !titleEl || !messageEl || !confirm) return Promise.resolve(false);
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    confirm.textContent = confirmLabel;
+    confirm.classList.toggle('admin-users-modal-confirm', danger);
+    modal.classList.add('open');
+    return new Promise(resolve => { modalResolve = resolve; });
+  }
+
+  function showAdminError(title, message) {
+    ensureModal();
+    const modal = $('#admin-users-modal');
+    const titleEl = $('#admin-users-modal-title');
+    const messageEl = $('#admin-users-modal-message');
+    const confirm = modal?.querySelector('[data-modal-confirm]');
+    const cancel = modal?.querySelector('[data-modal-cancel]');
+    if (!modal || !titleEl || !messageEl || !confirm || !cancel) return;
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    confirm.textContent = 'Fechar';
+    confirm.classList.remove('admin-users-modal-confirm');
+    confirm.classList.add('admin-users-modal-close');
+    cancel.style.display = 'none';
+    modal.classList.add('open');
+    const reset = () => { cancel.style.display = ''; confirm.classList.remove('admin-users-modal-close'); confirm.classList.add('admin-users-modal-confirm'); };
+    const oldFinish = modalResolve;
+    modalResolve = value => { reset(); if (oldFinish) oldFinish(value); };
+    confirm.onclick = () => { reset(); modal.classList.remove('open'); modalResolve = null; };
   }
 
   function roleLabel(level) { return ROLE_LABELS[level] || 'Atendimento'; }
@@ -216,22 +292,23 @@
 
   async function toggleUser(user) {
     const action = user.active ? 'bloquear' : 'reativar';
-    if (!confirm(`Deseja ${action} o acesso de ${user.name}?`)) return;
+    const confirmed = await confirmAdminAction(`${action === 'bloquear' ? 'Bloquear' : 'Reativar'} usuário`, `Deseja ${action} o acesso de ${user.name}?`, action === 'bloquear' ? 'Bloquear' : 'Reativar', action === 'bloquear');
+    if (!confirmed) return;
     try {
       await api(`/api/admin/users/${encodeURIComponent(user.id)}`, { method: 'PATCH', body: JSON.stringify({ active: !user.active }) });
       await loadUsers();
-    } catch (error) { alert(error.message); }
+    } catch (error) { showAdminError('Não foi possível concluir', error.message); }
   }
 
   async function deleteUser(user) {
     if (!user || (currentAdmin && user.id === currentAdmin.id)) return;
-    const confirmed = confirm(`Excluir permanentemente o administrador "${user.name}"?\n\nEssa ação não poderá ser desfeita.`);
+    const confirmed = await confirmAdminAction('Excluir administrador', `Excluir permanentemente o administrador “${user.name}”? Esta ação não poderá ser desfeita.`, 'Excluir', true);
     if (!confirmed) return;
     try {
       await api(`/api/admin/users/${encodeURIComponent(user.id)}`, { method: 'DELETE' });
       await loadUsers();
     } catch (error) {
-      alert(error.message);
+      showAdminError('Não foi possível excluir', error.message);
     }
   }
 
@@ -284,6 +361,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     addStyles();
+    ensureModal();
     syncIdentity();
     const loginButton = $('#login-btn');
     if (loginButton) loginButton.addEventListener('click', () => setTimeout(syncIdentity, 350));
