@@ -153,3 +153,343 @@ html.reloja-high-contrast .stock-catalog-results .admin-actions button:focus-vis
   background: #000 !important;
   color: #fff !important;
 }
+
+/* ---------- Produtos: leitura e contraste alinhados ao padrão administrativo ---------- */
+#tab-produtos .admin-toolbar {
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  background: #fff;
+  border: 1px solid #aaa9a3;
+  border-left: 4px solid var(--red);
+  box-shadow: 0 4px 0 rgba(0,0,0,.08);
+}
+
+#tab-produtos #product-editor {
+  border: 2px solid #aaa9a3;
+  border-top: 5px solid var(--ink);
+  background: #fff;
+  box-shadow: 0 4px 0 rgba(0,0,0,.1), 0 14px 30px rgba(0,0,0,.07);
+  margin-bottom: 24px;
+}
+
+#tab-produtos #product-editor h3 {
+  margin-top: 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #d0d0ca;
+}
+
+#tab-produtos #product-editor .form-field label {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+#tab-produtos #product-editor .form-field input,
+#tab-produtos #product-editor .form-field textarea {
+  background: #fff;
+  color: var(--ink);
+  border: 2px solid #9a9a94;
+}
+
+#tab-produtos #product-editor .form-field input:focus,
+#tab-produtos #product-editor .form-field textarea:focus {
+  border-color: var(--ink);
+  outline: 3px solid rgba(229,28,42,.18);
+  outline-offset: 1px;
+}
+
+#tab-produtos .stock-catalog-card {
+  background: #ecece8;
+  border: 2px solid #aaa9a3;
+  border-top: 5px solid var(--ink);
+  box-shadow: 0 4px 0 rgba(0,0,0,.1), 0 12px 26px rgba(0,0,0,.06);
+  padding: 20px;
+}
+
+#tab-produtos .stock-catalog-head h3 {
+  color: var(--ink);
+  font-size: 1.15rem;
+}
+
+#tab-produtos .stock-catalog-head p,
+#tab-produtos .stock-catalog-status,
+#tab-produtos .stock-catalog-counts {
+  color: #4e4e49;
+}
+
+#tab-produtos .stock-catalog-search input,
+#tab-produtos .stock-catalog-search select {
+  min-height: 44px;
+  background: #fff;
+  color: var(--ink);
+  border: 2px solid #8f8f89;
+}
+
+#tab-produtos .stock-catalog-search input:focus,
+#tab-produtos .stock-catalog-search select:focus {
+  border-color: var(--ink);
+  outline: 3px solid rgba(229,28,42,.18);
+  outline-offset: 1px;
+}
+
+#tab-produtos .stock-catalog-placeholder {
+  background: #fff;
+  color: #3d3d39;
+  border: 2px dashed #a6a69f;
+}
+
+#tab-produtos .stock-catalog-results table {
+  border: 2px solid #aaa9a3;
+  background: #fff;
+}
+
+#tab-produtos .stock-catalog-results thead th {
+  background: var(--ink);
+  color: #fff;
+  border-color: #424242;
+  font-weight: 700;
+}
+
+#tab-produtos .stock-catalog-results tbody td {
+  background: #fff;
+  color: var(--ink);
+  border-color: #cecec8;
+}
+
+#tab-produtos .stock-catalog-results tbody tr:nth-child(even) td {
+  background: #f2f2ef;
+}
+
+#tab-produtos .stock-catalog-product strong {
+  color: var(--ink);
+  font-size: .95rem;
+}
+
+#tab-produtos .stock-catalog-product small {
+  color: #555550;
+}
+
+#tab-produtos #products-list {
+  overflow: auto;
+  border: 2px solid #aaa9a3;
+  border-top: 5px solid var(--ink);
+  background: #ecece8;
+  box-shadow: 0 4px 0 rgba(0,0,0,.1), 0 14px 30px rgba(0,0,0,.07);
+}
+
+#tab-produtos #products-list .admin-table {
+  margin: 0;
+  background: #fff;
+}
+
+#tab-produtos #products-list .admin-table th {
+  background: var(--ink);
+  color: #fff;
+  border-color: #414141;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  font-weight: 700;
+}
+
+#tab-produtos #products-list .admin-table td {
+  background: #fff;
+  color: var(--ink);
+  border-color: #cecec8;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+#tab-produtos #products-list .admin-table tbody tr:nth-child(even) td {
+  background: #f2f2ef;
+}
+
+#tab-produtos #products-list .admin-table td:first-child strong {
+  font-size: .95rem;
+  line-height: 1.35;
+}
+
+#tab-produtos #products-list .admin-table td:first-child small {
+  color: #555550;
+}
+
+#tab-produtos #products-list .admin-table td:nth-child(3),
+#tab-produtos #products-list .admin-table td:nth-child(4) {
+  font-weight: 700;
+}
+
+#tab-produtos #products-list .admin-table td:last-child {
+  background: #fff5f5;
+  border-left: 3px solid var(--red);
+}
+
+#tab-produtos #products-list .admin-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#tab-produtos #products-list .admin-actions button {
+  min-height: 38px;
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid #8f8f89;
+  font-weight: 700;
+  transition: background .16s, color .16s, border-color .16s;
+}
+
+#tab-produtos #products-list .admin-actions button[data-edit]:hover,
+#tab-produtos #products-list .admin-actions button[data-edit]:focus-visible {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+#tab-produtos #products-list .admin-actions button[data-del] {
+  background: #fff9eb;
+  color: #745000;
+  border-color: #c69a31;
+}
+
+#tab-produtos #products-list .admin-actions button[data-del]:hover,
+#tab-produtos #products-list .admin-actions button[data-del]:focus-visible {
+  background: #8a6100;
+  color: #fff;
+  border-color: #8a6100;
+}
+
+#tab-produtos #products-list .admin-actions button[data-delete-permanent] {
+  background: #c81720;
+  color: #fff;
+  border-color: #a70f17;
+}
+
+#tab-produtos #products-list .admin-actions button[data-delete-permanent]:hover,
+#tab-produtos #products-list .admin-actions button[data-delete-permanent]:focus-visible {
+  background: #970c13;
+  border-color: #970c13;
+}
+
+#tab-produtos #products-list .admin-actions button:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 2px;
+}
+
+html.reloja-dark #tab-produtos .admin-toolbar,
+html.reloja-dark #tab-produtos #product-editor,
+html.reloja-dark #tab-produtos #products-list {
+  background: #0d0e10;
+  color: #f4f4f2;
+  border-color: #555960;
+}
+
+html.reloja-dark #tab-produtos .admin-toolbar {
+  border-left-color: #ff4a50;
+}
+
+html.reloja-dark #tab-produtos #product-editor {
+  border-top-color: #efefeb;
+}
+
+html.reloja-dark #tab-produtos #product-editor h3 {
+  border-bottom-color: #42464d;
+}
+
+html.reloja-dark #tab-produtos #product-editor .form-field label {
+  color: #f4f4f2;
+}
+
+html.reloja-dark #tab-produtos #product-editor .form-field input,
+html.reloja-dark #tab-produtos #product-editor .form-field textarea {
+  background: #111317;
+  color: #f4f4f2;
+  border-color: #555960;
+  color-scheme: dark;
+}
+
+html.reloja-dark #tab-produtos #products-list {
+  border-top-color: #efefeb;
+}
+
+html.reloja-dark #tab-produtos #products-list .admin-table,
+html.reloja-dark #tab-produtos #products-list .admin-table td {
+  background: #121417;
+  color: #f4f4f2;
+  border-color: #3d4148;
+}
+
+html.reloja-dark #tab-produtos #products-list .admin-table th {
+  background: #efefeb;
+  color: #111;
+  border-color: #bfc0bc;
+}
+
+html.reloja-dark #tab-produtos #products-list .admin-table tbody tr:nth-child(even) td {
+  background: #181b1f;
+}
+
+html.reloja-dark #tab-produtos #products-list .admin-table td:first-child small {
+  color: #b9bdc5;
+}
+
+html.reloja-dark #tab-produtos #products-list .admin-table td:last-child {
+  background: #251718;
+  border-left-color: #ff4a50;
+}
+
+html.reloja-dark #tab-produtos #products-list .admin-actions button {
+  background: #111317;
+  color: #f4f4f2;
+  border-color: #5a5f67;
+}
+
+html.reloja-dark #tab-produtos #products-list .admin-actions button[data-edit]:hover,
+html.reloja-dark #tab-produtos #products-list .admin-actions button[data-edit]:focus-visible {
+  background: #efefeb;
+  color: #111;
+  border-color: #efefeb;
+}
+
+html.reloja-dark #tab-produtos #products-list .admin-actions button[data-del] {
+  background: #2b220c;
+  color: #ffd875;
+  border-color: #9a7624;
+}
+
+html.reloja-dark #tab-produtos #products-list .admin-actions button[data-delete-permanent] {
+  background: #c81720;
+  color: #fff;
+  border-color: #ff5d64;
+}
+
+html.reloja-high-contrast #tab-produtos .admin-toolbar,
+html.reloja-high-contrast #tab-produtos #product-editor,
+html.reloja-high-contrast #tab-produtos #products-list,
+html.reloja-high-contrast #tab-produtos #products-list .admin-table,
+html.reloja-high-contrast #tab-produtos #products-list .admin-table th,
+html.reloja-high-contrast #tab-produtos #products-list .admin-table td {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #000 !important;
+}
+
+html.reloja-high-contrast #tab-produtos #product-editor,
+html.reloja-high-contrast #tab-produtos #products-list {
+  border-top-color: #000 !important;
+}
+
+html.reloja-high-contrast #tab-produtos #product-editor .form-field label,
+html.reloja-high-contrast #tab-produtos #product-editor .form-field input,
+html.reloja-high-contrast #tab-produtos #product-editor .form-field textarea {
+  color: #000 !important;
+}
+
+html.reloja-high-contrast #tab-produtos #product-editor .form-field input,
+html.reloja-high-contrast #tab-produtos #product-editor .form-field textarea,
+html.reloja-high-contrast #tab-produtos #products-list .admin-actions button {
+  background: #fff !important;
+  border: 2px solid #000 !important;
+}
+
+html.reloja-high-contrast #tab-produtos #products-list .admin-actions button:hover,
+html.reloja-high-contrast #tab-produtos #products-list .admin-actions button:focus-visible {
+  background: #000 !important;
+  color: #fff !important;
+}
