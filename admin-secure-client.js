@@ -2,6 +2,15 @@
   const TOKEN_KEY = 'reloja_admin_token';
   const SESSION_MARKER = 'cookie-session';
 
+  function loadHeaderIdentity() {
+    if (document.querySelector('script[data-admin-header-identity]')) return;
+    const script = document.createElement('script');
+    script.src = 'admin-header-identity.js?v=2';
+    script.dataset.adminHeaderIdentity = '1';
+    script.async = true;
+    document.head.appendChild(script);
+  }
+
   async function syncSession() {
     try {
       const response = await fetch('/api/admin/session', {
@@ -54,6 +63,8 @@
       location.reload();
     }
   }
+
+  loadHeaderIdentity();
 
   document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logout-btn');
