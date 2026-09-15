@@ -2,11 +2,7 @@
   'use strict';
 
   const TOKEN_KEY = 'reloja_admin_token';
-  const ROLE_LABELS = {
-    owner: 'Proprietário',
-    manager: 'Gerente',
-    atendimento: 'Atendimento'
-  };
+  const ROLE_LABELS = { owner: 'Proprietário', manager: 'Gerente', atendimento: 'Atendimento' };
   let currentAdmin = null;
   let users = [];
   let editingId = '';
@@ -14,9 +10,7 @@
   const $ = selector => document.querySelector(selector);
 
   function esc(value) {
-    return String(value ?? '').replace(/[&<>\"']/g, char => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[char]));
+    return String(value ?? '').replace(/[&<>\"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   }
 
   function date(value) {
@@ -30,11 +24,7 @@
       ...options,
       cache: 'no-store',
       credentials: 'same-origin',
-      headers: {
-        Accept: 'application/json',
-        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-        ...(options.headers || {})
-      }
+      headers: { Accept: 'application/json', ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(options.headers || {}) }
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Não foi possível concluir a operação.');
@@ -46,23 +36,41 @@
     const style = document.createElement('style');
     style.id = 'admin-users-management-style';
     style.textContent = `
+      #tab-usuarios-admin{margin-top:18px;background:#0b0b0b;color:#fff;border:1px solid #222;box-shadow:0 18px 45px rgba(0,0,0,.18);padding:20px}
+      #tab-usuarios-admin .admin-toolbar{background:#111;border:1px solid #333;padding:18px;margin-bottom:14px}
+      #tab-usuarios-admin h2,#tab-usuarios-admin h3{color:#fff;margin-top:0}
+      #tab-usuarios-admin .admin-muted,#tab-usuarios-admin .admin-users-help,#tab-usuarios-admin .admin-user-editor-note{color:#d7d7d7}
+      #tab-usuarios-admin .admin-card{background:#151515;border:1px solid #333;color:#fff;padding:18px}
+      #tab-usuarios-admin label{color:#fff;font-weight:700}
+      #tab-usuarios-admin input,#tab-usuarios-admin select{background:#fff;color:#111;border:2px solid #555}
+      #tab-usuarios-admin input:focus,#tab-usuarios-admin select:focus{border-color:#e31e24;outline:3px solid rgba(227,30,36,.22)}
+      #tab-usuarios-admin .admin-table-wrap{border:1px solid #333;background:#111;overflow-x:auto}
+      #tab-usuarios-admin .admin-table{width:100%;min-width:760px;border-collapse:collapse;color:#fff}
+      #tab-usuarios-admin .admin-table th{background:#050505;color:#fff;border-bottom:2px solid #e31e24;text-align:left;font-weight:800;padding:13px}
+      #tab-usuarios-admin .admin-table td{background:#141414;color:#fff;border-bottom:1px solid #333;padding:12px;vertical-align:middle}
+      #tab-usuarios-admin .admin-table tr:hover td{background:#1b1b1b}
+      #tab-usuarios-admin .admin-table small{color:#d0d0d0}
+      #tab-usuarios-admin .admin-user-role{display:inline-flex;align-items:center;padding:5px 9px;border:1px solid #777;background:#222;color:#fff;border-radius:5px;font-size:.72rem;font-weight:800;white-space:nowrap}
+      #tab-usuarios-admin .admin-user-status{display:inline-flex;align-items:center;padding:5px 9px;border-radius:5px;font-size:.72rem;font-weight:800;border:1px solid #555}
+      #tab-usuarios-admin .admin-user-status.active{background:#10351f;color:#b9ffd0;border-color:#247543}
+      #tab-usuarios-admin .admin-user-status.blocked{background:#3a1717;color:#ffd0d0;border-color:#8d2b2b}
+      #tab-usuarios-admin .admin-users-actions{display:flex;gap:7px;flex-wrap:wrap}
+      #tab-usuarios-admin .admin-users-actions button{white-space:nowrap;min-height:36px}
+      #tab-usuarios-admin .admin-users-actions .admin-user-delete{background:#e31e24;color:#fff;border-color:#e31e24;font-weight:800}
+      #tab-usuarios-admin .admin-users-actions .admin-user-delete:hover,#tab-usuarios-admin .admin-users-actions .admin-user-delete:focus-visible{background:#b9161b;border-color:#b9161b;color:#fff}
+      #tab-usuarios-admin .admin-users-actions .btn-outline{background:#fff;color:#111;border-color:#fff}
+      #tab-usuarios-admin .admin-users-actions .btn-outline:hover,#tab-usuarios-admin .admin-users-actions .btn-outline:focus-visible{background:#e9e9e9;color:#111;border-color:#fff}
+      #tab-usuarios-admin .admin-users-danger-note{margin:0 0 12px;padding:10px 12px;border-left:4px solid #e31e24;background:#1b1b1b;color:#f2f2f2}
       .admin-user-badge{display:inline-flex;align-items:center;gap:6px;margin-right:10px;padding:7px 10px;border:1px solid rgba(0,0,0,.12);border-radius:999px;font-size:.74rem;background:#fff}
-      .admin-user-status{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.72rem;font-weight:700}.admin-user-status.active{background:#edf7ef;color:#245d35}.admin-user-status.blocked{background:#fff0ee;color:#8d2119}
-      .admin-user-role{display:inline-block;padding:4px 8px;border:1px solid rgba(0,0,0,.12);border-radius:999px;font-size:.72rem;white-space:nowrap}
-      .admin-users-help{max-width:820px;line-height:1.5}.admin-users-help strong{color:#1f1f1f}
-      .admin-users-actions{display:flex;gap:6px;flex-wrap:wrap}.admin-users-actions button{white-space:nowrap}
-      .admin-user-editor-note{margin-top:8px;font-size:.78rem;line-height:1.45;color:#5d5d5d}
-      @media(max-width:760px){.admin-user-badge{display:none}.admin-users-actions{min-width:180px}}
+      @media(max-width:760px){.admin-user-badge{display:none}#tab-usuarios-admin{padding:12px}#tab-usuarios-admin .admin-toolbar{padding:14px}}
     `;
     document.head.appendChild(style);
   }
 
-  function roleLabel(level) {
-    return ROLE_LABELS[level] || 'Atendimento';
-  }
+  function roleLabel(level) { return ROLE_LABELS[level] || 'Atendimento'; }
 
   function roleHelp() {
-    return '<strong>Proprietário:</strong> acesso completo e gerenciamento de usuários. <strong>Gerente:</strong> operação da loja, sem gerenciar usuários, sem excluir produto permanentemente e sem alterar integração do Melhor Envio. <strong>Atendimento:</strong> consulta do painel e atualização de atendimento, pós-venda, avaliações, confirmações e andamento de envio.';
+    return '<strong>Proprietário:</strong> acesso completo e gerenciamento de usuários. <strong>Gerente:</strong> operação da loja, sem gerenciar usuários. <strong>Atendimento:</strong> acesso focado no atendimento e pós-venda.';
   }
 
   function ensureBadge() {
@@ -100,6 +108,7 @@
           <div><h2>Usuários do Admin</h2><p class="admin-muted admin-users-help">Crie um login separado para cada pessoa. ${roleHelp()}</p></div>
           <button id="novo-admin-user" class="btn btn-primary" type="button">+ Novo usuário</button>
         </div>
+        <p class="admin-users-danger-note"><strong>Atenção:</strong> excluir remove o usuário administrativo de forma permanente. O próprio usuário logado não pode ser excluído por aqui.</p>
         <div id="admin-user-editor" class="admin-card" style="display:none">
           <h3 id="admin-user-editor-title">Novo usuário</h3>
           <div id="admin-user-editor-error" class="form-error" style="display:none"></div>
@@ -121,10 +130,7 @@
     tabs.querySelectorAll('button').forEach(button => {
       if (button === usersButton || button.dataset.adminUsersBound === '1') return;
       button.dataset.adminUsersBound = '1';
-      button.addEventListener('click', () => {
-        const panel = $('#tab-usuarios-admin');
-        if (panel) panel.style.display = 'none';
-      });
+      button.addEventListener('click', () => { const panel = $('#tab-usuarios-admin'); if (panel) panel.style.display = 'none'; });
     });
 
     $('#novo-admin-user').onclick = () => openEditor();
@@ -135,10 +141,7 @@
   function applyRoleVisibility() {
     if (!currentAdmin) return;
     if (currentAdmin.access_level === 'atendimento') {
-      ['produtos', 'cupons', 'audit'].forEach(tab => {
-        const button = document.querySelector(`.admin-tabs [data-tab="${tab}"]`);
-        if (button) button.style.display = 'none';
-      });
+      ['produtos', 'cupons', 'audit'].forEach(tab => { const button = document.querySelector(`.admin-tabs [data-tab="${tab}"]`); if (button) button.style.display = 'none'; });
     }
   }
 
@@ -165,9 +168,7 @@
     $('#admin-user-role').value = user?.access_level || 'atendimento';
     $('#admin-user-password').value = '';
     $('#admin-user-password').placeholder = user ? 'Deixe em branco para manter a senha' : 'Mínimo de 10 caracteres';
-    $('#admin-user-password-help').textContent = user
-      ? 'Preencha a senha somente se quiser redefinir o acesso deste usuário.'
-      : 'A senha é obrigatória para criar o usuário e fica armazenada de forma protegida, nunca em texto puro.';
+    $('#admin-user-password-help').textContent = user ? 'Preencha a senha somente se quiser redefinir o acesso deste usuário.' : 'A senha é obrigatória para criar o usuário e fica armazenada de forma protegida, nunca em texto puro.';
     const self = user && currentAdmin && user.id === currentAdmin.id;
     $('#admin-user-email').disabled = Boolean(self);
     $('#admin-user-role').disabled = Boolean(self);
@@ -192,17 +193,13 @@
     if (!name || !email) return showEditorError('Preencha nome e e-mail.');
     if (!editingId && password.length < 10) return showEditorError('A senha deve ter pelo menos 10 caracteres.');
     if (editingId && password && password.length < 10) return showEditorError('A nova senha deve ter pelo menos 10 caracteres.');
-
     const body = { name, email, access_level };
     if (password) body.password = password;
     button.disabled = true;
     const previous = button.textContent;
     button.textContent = 'Salvando...';
     try {
-      const response = await api(editingId ? `/api/admin/users/${encodeURIComponent(editingId)}` : '/api/admin/users', {
-        method: editingId ? 'PATCH' : 'POST',
-        body: JSON.stringify(body)
-      });
+      const response = await api(editingId ? `/api/admin/users/${encodeURIComponent(editingId)}` : '/api/admin/users', { method: editingId ? 'PATCH' : 'POST', body: JSON.stringify(body) });
       const changedOwnPassword = editingId && currentAdmin?.id === editingId && Boolean(password);
       closeEditor();
       if (changedOwnPassword || response.session_invalidated) {
@@ -213,22 +210,25 @@
         return;
       }
       await loadUsers();
-    } catch (error) {
-      showEditorError(error.message);
-    } finally {
-      button.disabled = false;
-      button.textContent = previous;
-    }
+    } catch (error) { showEditorError(error.message); }
+    finally { button.disabled = false; button.textContent = previous; }
   }
 
   async function toggleUser(user) {
     const action = user.active ? 'bloquear' : 'reativar';
     if (!confirm(`Deseja ${action} o acesso de ${user.name}?`)) return;
     try {
-      await api(`/api/admin/users/${encodeURIComponent(user.id)}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ active: !user.active })
-      });
+      await api(`/api/admin/users/${encodeURIComponent(user.id)}`, { method: 'PATCH', body: JSON.stringify({ active: !user.active }) });
+      await loadUsers();
+    } catch (error) { alert(error.message); }
+  }
+
+  async function deleteUser(user) {
+    if (!user || (currentAdmin && user.id === currentAdmin.id)) return;
+    const confirmed = confirm(`Excluir permanentemente o administrador "${user.name}"?\n\nEssa ação não poderá ser desfeita.`);
+    if (!confirmed) return;
+    try {
+      await api(`/api/admin/users/${encodeURIComponent(user.id)}`, { method: 'DELETE' });
       await loadUsers();
     } catch (error) {
       alert(error.message);
@@ -248,32 +248,25 @@
             <td><span class="admin-user-role">${esc(roleLabel(user.access_level))}</span></td>
             <td><span class="admin-user-status ${user.active ? 'active' : 'blocked'}">${user.active ? 'Ativo' : 'Bloqueado'}</span></td>
             <td>${esc(date(user.last_login_at))}</td>
-            <td><div class="admin-users-actions"><button type="button" class="btn btn-outline" data-admin-user-edit="${esc(user.id)}">Editar</button>${self ? '' : `<button type="button" class="btn btn-outline" data-admin-user-toggle="${esc(user.id)}">${user.active ? 'Bloquear' : 'Reativar'}</button>`}</div></td>
+            <td><div class="admin-users-actions">
+              <button type="button" class="btn btn-outline" data-admin-user-edit="${esc(user.id)}">Editar</button>
+              ${self ? '' : `<button type="button" class="btn btn-outline" data-admin-user-toggle="${esc(user.id)}">${user.active ? 'Bloquear' : 'Reativar'}</button><button type="button" class="btn admin-user-delete" data-admin-user-delete="${esc(user.id)}">Excluir</button>`}
+            </div></td>
           </tr>`;
         }).join('') || '<tr><td colspan="5">Nenhum usuário administrativo cadastrado.</td></tr>'}</tbody>
       </table>`;
 
-    host.querySelectorAll('[data-admin-user-edit]').forEach(button => {
-      button.onclick = () => openEditor(users.find(user => user.id === button.dataset.adminUserEdit));
-    });
-    host.querySelectorAll('[data-admin-user-toggle]').forEach(button => {
-      button.onclick = () => {
-        const user = users.find(item => item.id === button.dataset.adminUserToggle);
-        if (user) toggleUser(user);
-      };
-    });
+    host.querySelectorAll('[data-admin-user-edit]').forEach(button => { button.onclick = () => openEditor(users.find(user => user.id === button.dataset.adminUserEdit)); });
+    host.querySelectorAll('[data-admin-user-toggle]').forEach(button => { button.onclick = () => { const user = users.find(item => item.id === button.dataset.adminUserToggle); if (user) toggleUser(user); }; });
+    host.querySelectorAll('[data-admin-user-delete]').forEach(button => { button.onclick = () => { const user = users.find(item => item.id === button.dataset.adminUserDelete); if (user) deleteUser(user); }; });
   }
 
   async function loadUsers() {
     const host = $('#admin-users-list');
     if (!host) return;
     host.innerHTML = '<p class="admin-muted">Carregando usuários...</p>';
-    try {
-      users = await api('/api/admin/users');
-      renderUsers();
-    } catch (error) {
-      host.innerHTML = `<div class="form-error">${esc(error.message)}</div>`;
-    }
+    try { users = await api('/api/admin/users'); renderUsers(); }
+    catch (error) { host.innerHTML = `<div class="form-error">${esc(error.message)}</div>`; }
   }
 
   async function syncIdentity() {
@@ -286,9 +279,7 @@
       ensureBadge();
       ensureUi();
       applyRoleVisibility();
-    } catch {
-      // A sessão pode ainda não existir na tela inicial; o login normal continua funcionando.
-    }
+    } catch {}
   }
 
   document.addEventListener('DOMContentLoaded', () => {
