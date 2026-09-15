@@ -1,1 +1,353 @@
-.coupon-help{margin:0 0 18px;color:#666;font-size:.92rem;line-height:1.55}.coupon-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.coupon-status{display:inline-flex;padding:4px 8px;border:1px solid #ccc;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}.coupon-status.active{border-color:#198754;color:#198754}.coupon-status.inactive{color:#777}.coupon-status.scheduled{border-color:#b8860b;color:#8a6700}.coupon-status.expired{border-color:#c62828;color:#c62828}.coupon-table small{color:#777}.coupon-inline-note{padding:12px 14px;background:#f7f7f7;border:1px solid #ddd;font-size:.88rem;line-height:1.5}@media(max-width:760px){.coupon-grid{grid-template-columns:1fr}.coupon-table{min-width:860px}}
+.coupon-help{margin:0 0 18px;color:#666;font-size:.92rem;line-height:1.55}.coupon-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.coupon-status{display:inline-flex;padding:4px 8px;border:1px solid #ccc;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}.coupon-status.active{border-color:#198754;color:#198754}.coupon-status.inactive{color:#777}.coupon-status.scheduled{border-color:#b8860b;color:#8a6700}.coupon-status.expired{border-color:#c62828;color:#c62828}.coupon-table small{color:#777}.coupon-inline-note{padding:12px 14px;background:#f7f7f7;border:1px solid #ddd;font-size:.88rem;line-height:1.5}
+
+/* Módulos administrativos — contraste visual padronizado */
+#tab-audit .admin-module-toolbar,
+#tab-reviews .admin-module-toolbar,
+#tab-cancelamentos-loja .admin-toolbar,
+#tab-cupons .admin-toolbar,
+#tab-trocas .admin-toolbar{
+  background:#fff;
+  border:2px solid #a8a8a1;
+  border-top:5px solid #111;
+  padding:18px 20px;
+  margin-bottom:16px;
+  box-shadow:0 4px 0 rgba(0,0,0,.10),0 12px 26px rgba(0,0,0,.05);
+}
+#tab-audit .admin-module-toolbar h2,
+#tab-reviews .admin-module-toolbar h2,
+#tab-cancelamentos-loja .admin-toolbar h2,
+#tab-cupons .admin-toolbar h2,
+#tab-trocas .admin-toolbar h2{margin-top:0;color:#111}
+#tab-audit .admin-module-toolbar p,
+#tab-reviews .admin-module-toolbar p,
+#tab-cancelamentos-loja .admin-toolbar p,
+#tab-cupons .admin-toolbar p,
+#tab-trocas .admin-toolbar p{color:#4f4f4b}
+
+#admin-audit-list>.admin-table-wrap,
+#admin-reviews-list>.admin-table-wrap,
+#store-cancellations-list,
+#coupons-list,
+#return-requests-list{
+  background:#ecece8;
+  border:1px solid #aaa79f;
+  padding:14px;
+}
+#admin-audit-list .admin-table,
+#admin-reviews-list .admin-table,
+#store-cancellations-list .admin-table,
+#coupons-list .admin-table,
+#return-requests-list .admin-table{
+  background:#fff;
+  border:2px solid #aaa79f;
+  border-top:4px solid #111;
+}
+#admin-audit-list .admin-table th,
+#admin-reviews-list .admin-table th,
+#store-cancellations-list .admin-table th,
+#coupons-list .admin-table th,
+#return-requests-list .admin-table th{
+  background:#deded9;
+  color:#111;
+  border-bottom:2px solid #aaa79f;
+  font-weight:700;
+}
+#admin-audit-list .admin-table td,
+#admin-reviews-list .admin-table td,
+#store-cancellations-list .admin-table td,
+#coupons-list .admin-table td,
+#return-requests-list .admin-table td{
+  background:#fff;
+  color:#171717;
+  border-bottom:1px solid #d0d0ca;
+  border-right:1px solid #deded9;
+}
+#admin-audit-list .admin-table tbody tr:nth-child(even) td,
+#admin-reviews-list .admin-table tbody tr:nth-child(even) td,
+#store-cancellations-list .admin-table tbody tr:nth-child(even) td,
+#coupons-list .admin-table tbody tr:nth-child(even) td,
+#return-requests-list .admin-table tbody tr:nth-child(even) td{background:#f5f5f1}
+#admin-audit-list .admin-table tbody tr:hover td,
+#admin-reviews-list .admin-table tbody tr:hover td,
+#store-cancellations-list .admin-table tbody tr:hover td,
+#coupons-list .admin-table tbody tr:hover td,
+#return-requests-list .admin-table tbody tr:hover td{background:#efefeb}
+#admin-audit-list small,
+#admin-reviews-list small,
+#store-cancellations-list small,
+#coupons-list small,
+#return-requests-list small{color:#555852}
+
+#coupon-editor{
+  border:2px solid #aaa79f;
+  border-top:5px solid #111;
+  background:#f7f7f4;
+  box-shadow:0 4px 0 rgba(0,0,0,.10),0 12px 26px rgba(0,0,0,.05);
+}
+#coupon-editor .form-field input,
+#coupon-editor .form-field select,
+#coupon-editor .form-field textarea,
+#tab-reviews .admin-module-controls select,
+#admin-reviews-list .review-moderation textarea{
+  background:#fff;
+  color:#111;
+  border:1px solid #777772;
+}
+#coupon-editor .form-field input:focus,
+#coupon-editor .form-field select:focus,
+#coupon-editor .form-field textarea:focus,
+#tab-reviews .admin-module-controls select:focus,
+#admin-reviews-list .review-moderation textarea:focus{
+  outline:2px solid #ef2029;
+  outline-offset:1px;
+  border-color:#111;
+}
+#coupon-editor .coupon-inline-note{background:#e9e9e5;border-color:#bcbcb5;color:#222}
+
+#tab-audit .btn,
+#tab-reviews .btn,
+#tab-cancelamentos-loja .btn,
+#tab-trocas .btn{
+  border-color:#686863;
+  background:#fff;
+  color:#111;
+}
+#tab-audit .btn:hover,
+#tab-audit .btn:focus-visible,
+#tab-reviews .btn:hover,
+#tab-reviews .btn:focus-visible,
+#tab-cancelamentos-loja .btn:hover,
+#tab-cancelamentos-loja .btn:focus-visible,
+#tab-trocas .btn:hover,
+#tab-trocas .btn:focus-visible{background:#111;color:#fff;border-color:#111}
+
+#coupons-list .admin-actions button,
+#return-requests-list [data-return-open],
+#admin-reviews-list .review-moderation-actions button{
+  min-height:36px;
+  border:1px solid #777772;
+  background:#fff;
+  color:#111;
+  padding:8px 11px;
+  font:inherit;
+  cursor:pointer;
+}
+#coupons-list [data-coupon-edit]:hover,
+#coupons-list [data-coupon-edit]:focus-visible,
+#return-requests-list [data-return-open]:hover,
+#return-requests-list [data-return-open]:focus-visible{background:#111;color:#fff;border-color:#111;outline:none}
+#coupons-list [data-coupon-delete]{border-color:#b3282f;color:#a51f26;background:#fff5f5}
+#coupons-list [data-coupon-delete]:hover,
+#coupons-list [data-coupon-delete]:focus-visible{background:#b3282f;color:#fff;border-color:#b3282f;outline:none}
+
+#admin-reviews-list .review-moderation-actions button[data-review-action="approved"]{border-color:#198754;color:#176d43;background:#f2fbf6}
+#admin-reviews-list .review-moderation-actions button[data-review-action="approved"]:hover,
+#admin-reviews-list .review-moderation-actions button[data-review-action="approved"]:focus-visible{background:#198754;color:#fff;outline:none}
+#admin-reviews-list .review-moderation-actions button[data-review-action="rejected"]{border-color:#b3282f;color:#a51f26;background:#fff5f5}
+#admin-reviews-list .review-moderation-actions button[data-review-action="rejected"]:hover,
+#admin-reviews-list .review-moderation-actions button[data-review-action="rejected"]:focus-visible{background:#b3282f;color:#fff;outline:none}
+
+#admin-reviews-list .review-status,
+#admin-audit-list .dashboard-status,
+#store-cancellations-list .admin-history-status,
+#return-requests-list .return-admin-status,
+#coupons-list .coupon-status{border-width:2px;font-weight:700;background:#fff}
+#admin-reviews-list .review-status.pending{background:#fff7df}
+#admin-reviews-list .review-status.approved{background:#eef9f2}
+#admin-reviews-list .review-status.rejected{background:#fff0f0}
+#admin-audit-list .dashboard-status.ok{background:#eef9f2}
+#admin-audit-list .dashboard-status.fail{background:#fff0f0}
+#store-cancellations-list .admin-history-status.ok{background:#eef9f2}
+#store-cancellations-list .admin-history-status.pending{background:#fff7df}
+#store-cancellations-list .admin-history-status.fail{background:#fff0f0}
+#return-requests-list .return-admin-status{background:#f1f1ed;border-color:#8a8a84;color:#222}
+#coupons-list .coupon-status.active{background:#eef9f2}
+#coupons-list .coupon-status.scheduled{background:#fff7df}
+#coupons-list .coupon-status.expired{background:#fff0f0}
+#coupons-list .coupon-status.inactive{background:#f0f0ed;border-color:#8b8b85;color:#555}
+
+#admin-audit-list .audit-action{color:#111;font-weight:700}
+#admin-audit-list .audit-origin{color:#4c4f4a;line-height:1.5}
+#admin-audit-list .audit-actor{color:#111;font-weight:600}
+#admin-reviews-list .review-comment{line-height:1.55}
+
+#admin-audit-list .dashboard-empty,
+#admin-reviews-list .dashboard-empty,
+#admin-audit-list .dashboard-loading,
+#admin-reviews-list .dashboard-loading{
+  background:#f2f2ee;
+  color:#333;
+  border:2px dashed #aaa79f;
+  padding:22px;
+}
+#admin-audit-list .dashboard-error,
+#admin-reviews-list .dashboard-error{border:2px solid #b3282f;background:#fff0f0;color:#8d1d23}
+
+#return-admin-modal .return-admin-dialog{border:2px solid #8d8d87;border-top:5px solid #111;box-shadow:0 18px 55px rgba(0,0,0,.28)}
+#return-admin-modal .return-admin-grid div{background:#ededE8;border:1px solid #c8c8c1}
+#return-admin-modal .return-admin-message{background:#f6f6f2;border-color:#bdbdb6}
+#return-admin-modal .return-admin-actions select,
+#return-admin-modal .return-admin-actions textarea{background:#fff;color:#111;border:1px solid #777772}
+
+/* Modo escuro */
+html.reloja-dark #tab-audit .admin-module-toolbar,
+html.reloja-dark #tab-reviews .admin-module-toolbar,
+html.reloja-dark #tab-cancelamentos-loja .admin-toolbar,
+html.reloja-dark #tab-cupons .admin-toolbar,
+html.reloja-dark #tab-trocas .admin-toolbar,
+html.reloja-dark #coupon-editor{
+  background:#151515;
+  color:#f7f7f5;
+  border-color:#555;
+  border-top-color:#f2f2ef;
+  box-shadow:0 4px 0 rgba(255,255,255,.08),0 12px 28px rgba(0,0,0,.32);
+}
+html.reloja-dark #tab-audit .admin-module-toolbar h2,
+html.reloja-dark #tab-reviews .admin-module-toolbar h2,
+html.reloja-dark #tab-cancelamentos-loja .admin-toolbar h2,
+html.reloja-dark #tab-cupons .admin-toolbar h2,
+html.reloja-dark #tab-trocas .admin-toolbar h2{color:#f7f7f5}
+html.reloja-dark #tab-audit .admin-module-toolbar p,
+html.reloja-dark #tab-reviews .admin-module-toolbar p,
+html.reloja-dark #tab-cancelamentos-loja .admin-toolbar p,
+html.reloja-dark #tab-cupons .admin-toolbar p,
+html.reloja-dark #tab-trocas .admin-toolbar p,
+html.reloja-dark .coupon-help{color:#b8bcc4}
+html.reloja-dark #admin-audit-list>.admin-table-wrap,
+html.reloja-dark #admin-reviews-list>.admin-table-wrap,
+html.reloja-dark #store-cancellations-list,
+html.reloja-dark #coupons-list,
+html.reloja-dark #return-requests-list{background:#090909;border-color:#505050}
+html.reloja-dark #admin-audit-list .admin-table,
+html.reloja-dark #admin-reviews-list .admin-table,
+html.reloja-dark #store-cancellations-list .admin-table,
+html.reloja-dark #coupons-list .admin-table,
+html.reloja-dark #return-requests-list .admin-table{background:#141414;border-color:#555;border-top-color:#f0f0ed}
+html.reloja-dark #admin-audit-list .admin-table th,
+html.reloja-dark #admin-reviews-list .admin-table th,
+html.reloja-dark #store-cancellations-list .admin-table th,
+html.reloja-dark #coupons-list .admin-table th,
+html.reloja-dark #return-requests-list .admin-table th{background:#1d1d1d;color:#f7f7f5;border-color:#5a5a5a}
+html.reloja-dark #admin-audit-list .admin-table td,
+html.reloja-dark #admin-reviews-list .admin-table td,
+html.reloja-dark #store-cancellations-list .admin-table td,
+html.reloja-dark #coupons-list .admin-table td,
+html.reloja-dark #return-requests-list .admin-table td{background:#141414;color:#f2f2ef;border-color:#343434}
+html.reloja-dark #admin-audit-list .admin-table tbody tr:nth-child(even) td,
+html.reloja-dark #admin-reviews-list .admin-table tbody tr:nth-child(even) td,
+html.reloja-dark #store-cancellations-list .admin-table tbody tr:nth-child(even) td,
+html.reloja-dark #coupons-list .admin-table tbody tr:nth-child(even) td,
+html.reloja-dark #return-requests-list .admin-table tbody tr:nth-child(even) td{background:#101010}
+html.reloja-dark #admin-audit-list .admin-table tbody tr:hover td,
+html.reloja-dark #admin-reviews-list .admin-table tbody tr:hover td,
+html.reloja-dark #store-cancellations-list .admin-table tbody tr:hover td,
+html.reloja-dark #coupons-list .admin-table tbody tr:hover td,
+html.reloja-dark #return-requests-list .admin-table tbody tr:hover td{background:#202020}
+html.reloja-dark #admin-audit-list small,
+html.reloja-dark #admin-reviews-list small,
+html.reloja-dark #store-cancellations-list small,
+html.reloja-dark #coupons-list small,
+html.reloja-dark #return-requests-list small,
+html.reloja-dark #admin-audit-list .audit-origin{color:#b8bcc4}
+html.reloja-dark #admin-audit-list .audit-action,
+html.reloja-dark #admin-audit-list .audit-actor{color:#f7f7f5}
+html.reloja-dark #coupon-editor .form-field input,
+html.reloja-dark #coupon-editor .form-field select,
+html.reloja-dark #coupon-editor .form-field textarea,
+html.reloja-dark #tab-reviews .admin-module-controls select,
+html.reloja-dark #admin-reviews-list .review-moderation textarea,
+html.reloja-dark #return-admin-modal .return-admin-actions select,
+html.reloja-dark #return-admin-modal .return-admin-actions textarea{background:#0d0d0d;color:#f7f7f5;border-color:#666;color-scheme:dark}
+html.reloja-dark #coupon-editor .coupon-inline-note{background:#202020;border-color:#555;color:#e8e8e4}
+html.reloja-dark #tab-audit .btn,
+html.reloja-dark #tab-reviews .btn,
+html.reloja-dark #tab-cancelamentos-loja .btn,
+html.reloja-dark #tab-trocas .btn,
+html.reloja-dark #coupons-list .admin-actions button,
+html.reloja-dark #return-requests-list [data-return-open],
+html.reloja-dark #admin-reviews-list .review-moderation-actions button{background:#111;color:#f7f7f5;border-color:#666}
+html.reloja-dark #coupons-list [data-coupon-delete],
+html.reloja-dark #admin-reviews-list .review-moderation-actions button[data-review-action="rejected"]{background:#2b1113;color:#ffaaaE;border-color:#b94b52}
+html.reloja-dark #admin-reviews-list .review-moderation-actions button[data-review-action="approved"]{background:#102319;color:#7de3a4;border-color:#36875a}
+html.reloja-dark #admin-reviews-list .review-status,
+html.reloja-dark #admin-audit-list .dashboard-status,
+html.reloja-dark #store-cancellations-list .admin-history-status,
+html.reloja-dark #return-requests-list .return-admin-status,
+html.reloja-dark #coupons-list .coupon-status{background:#101010}
+html.reloja-dark #admin-audit-list .dashboard-empty,
+html.reloja-dark #admin-reviews-list .dashboard-empty,
+html.reloja-dark #admin-audit-list .dashboard-loading,
+html.reloja-dark #admin-reviews-list .dashboard-loading{background:#111;color:#ddd;border-color:#555}
+html.reloja-dark #return-admin-modal .return-admin-dialog{background:#151515;color:#f7f7f5;border-color:#666;border-top-color:#f2f2ef}
+html.reloja-dark #return-admin-modal .return-admin-grid div,
+html.reloja-dark #return-admin-modal .return-admin-message{background:#101010;color:#f0f0ed;border-color:#555}
+
+/* Alto contraste */
+html.reloja-high-contrast #tab-audit .admin-module-toolbar,
+html.reloja-high-contrast #tab-reviews .admin-module-toolbar,
+html.reloja-high-contrast #tab-cancelamentos-loja .admin-toolbar,
+html.reloja-high-contrast #tab-cupons .admin-toolbar,
+html.reloja-high-contrast #tab-trocas .admin-toolbar,
+html.reloja-high-contrast #coupon-editor,
+html.reloja-high-contrast #admin-audit-list>.admin-table-wrap,
+html.reloja-high-contrast #admin-reviews-list>.admin-table-wrap,
+html.reloja-high-contrast #store-cancellations-list,
+html.reloja-high-contrast #coupons-list,
+html.reloja-high-contrast #return-requests-list,
+html.reloja-high-contrast #admin-audit-list .admin-table,
+html.reloja-high-contrast #admin-reviews-list .admin-table,
+html.reloja-high-contrast #store-cancellations-list .admin-table,
+html.reloja-high-contrast #coupons-list .admin-table,
+html.reloja-high-contrast #return-requests-list .admin-table,
+html.reloja-high-contrast #admin-audit-list .admin-table th,
+html.reloja-high-contrast #admin-reviews-list .admin-table th,
+html.reloja-high-contrast #store-cancellations-list .admin-table th,
+html.reloja-high-contrast #coupons-list .admin-table th,
+html.reloja-high-contrast #return-requests-list .admin-table th,
+html.reloja-high-contrast #admin-audit-list .admin-table td,
+html.reloja-high-contrast #admin-reviews-list .admin-table td,
+html.reloja-high-contrast #store-cancellations-list .admin-table td,
+html.reloja-high-contrast #coupons-list .admin-table td,
+html.reloja-high-contrast #return-requests-list .admin-table td{background:#fff!important;color:#000!important;border-color:#000!important}
+html.reloja-high-contrast #coupon-editor input,
+html.reloja-high-contrast #coupon-editor select,
+html.reloja-high-contrast #coupon-editor textarea,
+html.reloja-high-contrast #tab-reviews select,
+html.reloja-high-contrast #admin-reviews-list textarea,
+html.reloja-high-contrast #return-admin-modal select,
+html.reloja-high-contrast #return-admin-modal textarea{background:#fff!important;color:#000!important;border:2px solid #000!important;color-scheme:light!important}
+html.reloja-high-contrast #tab-audit .btn,
+html.reloja-high-contrast #tab-reviews .btn,
+html.reloja-high-contrast #tab-cancelamentos-loja .btn,
+html.reloja-high-contrast #tab-trocas .btn,
+html.reloja-high-contrast #coupons-list button,
+html.reloja-high-contrast #return-requests-list button,
+html.reloja-high-contrast #admin-reviews-list button{background:#fff!important;color:#000!important;border:2px solid #000!important}
+html.reloja-high-contrast #tab-audit .btn:hover,
+html.reloja-high-contrast #tab-reviews .btn:hover,
+html.reloja-high-contrast #tab-cancelamentos-loja .btn:hover,
+html.reloja-high-contrast #tab-trocas .btn:hover,
+html.reloja-high-contrast #coupons-list button:hover,
+html.reloja-high-contrast #return-requests-list button:hover,
+html.reloja-high-contrast #admin-reviews-list button:hover{background:#000!important;color:#fff!important}
+
+@media(max-width:760px){
+  .coupon-grid{grid-template-columns:1fr}.coupon-table{min-width:860px}
+  #tab-audit .admin-module-toolbar,
+  #tab-reviews .admin-module-toolbar,
+  #tab-cancelamentos-loja .admin-toolbar,
+  #tab-cupons .admin-toolbar,
+  #tab-trocas .admin-toolbar{padding:16px;flex-direction:column;align-items:stretch}
+  #tab-audit .admin-module-controls,
+  #tab-reviews .admin-module-controls{width:100%}
+  #tab-audit .admin-module-controls .btn,
+  #tab-reviews .admin-module-controls .btn,
+  #tab-cancelamentos-loja .admin-toolbar>.btn,
+  #tab-cupons .admin-toolbar>.btn,
+  #tab-trocas .admin-toolbar>.btn{width:100%}
+  #admin-audit-list>.admin-table-wrap,
+  #admin-reviews-list>.admin-table-wrap,
+  #store-cancellations-list,
+  #coupons-list,
+  #return-requests-list{padding:8px}
+}
