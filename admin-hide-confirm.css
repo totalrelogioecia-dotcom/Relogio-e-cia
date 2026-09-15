@@ -13,11 +13,11 @@ html.reloja-dark .admin-hide-product-note strong{color:#fff}
 html.reloja-dark .admin-hide-product-note span{color:#d8d8d4}
 html.reloja-dark .admin-hide-product-modal .admin-modal-close{color:#e2e2de}
 
-html.reloja-contrast .admin-hide-product-modal{background:#fff!important;color:#000!important;border:2px solid #000!important;box-shadow:none!important}
-html.reloja-contrast .admin-hide-product-modal .admin-muted,
-html.reloja-contrast .admin-hide-product-note span{color:#000!important}
-html.reloja-contrast .admin-hide-product-note{background:#fff!important;border:2px solid #000!important;border-left:6px solid #000!important}
-html.reloja-contrast .admin-hide-product-note strong{color:#000!important}
+html.reloja-high-contrast .admin-hide-product-modal{background:#fff!important;color:#000!important;border:2px solid #000!important;box-shadow:none!important}
+html.reloja-high-contrast .admin-hide-product-modal .admin-muted,
+html.reloja-high-contrast .admin-hide-product-note span{color:#000!important}
+html.reloja-high-contrast .admin-hide-product-note{background:#fff!important;border:2px solid #000!important;border-left:6px solid #000!important}
+html.reloja-high-contrast .admin-hide-product-note strong{color:#000!important}
 
 @media(max-width:700px){
   .admin-hide-product-actions{flex-direction:column}
@@ -27,7 +27,7 @@ html.reloja-contrast .admin-hide-product-note strong{color:#000!important}
 /* Pedidos mediante confirmação: cards administrativos */
 #confirmations-list.admin-table-wrap{overflow:visible}
 #confirmations-list .admin-table{display:block;width:100%;border-collapse:separate;border-spacing:0;background:transparent}
-#confirmations-list .admin-table thead{display:none}
+#confirmations-list .admin-table thead{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 #confirmations-list .admin-table tbody{display:grid;gap:18px;width:100%}
 #confirmations-list .admin-table tbody tr{display:grid;grid-template-columns:minmax(180px,.78fr) minmax(240px,1fr) minmax(240px,1fr);grid-template-areas:"protocol product client" "status status purchase" "date action purchase";width:100%;border:1px solid var(--line);background:#fff;box-shadow:0 10px 28px rgba(0,0,0,.04);overflow:hidden}
 #confirmations-list .admin-table td{display:block;min-width:0;padding:20px;border:0;font-size:.92rem;line-height:1.5;vertical-align:top;overflow-wrap:anywhere}
@@ -75,13 +75,13 @@ html.reloja-dark #confirmations-list .confirmation-status,
 html.reloja-dark #confirmations-list .confirmation-note,
 html.reloja-dark #confirmations-list .confirmation-release-fields input{background:#101010;color:#f7f7f5;border-color:#555}
 
-html.reloja-contrast #confirmations-list .admin-table tbody tr{border:2px solid #000!important;box-shadow:none!important}
-html.reloja-contrast #confirmations-list .admin-table td{background:#fff!important;color:#000!important;border-color:#000!important}
-html.reloja-contrast #confirmations-list .admin-table td::before,
-html.reloja-contrast #confirmations-list .admin-table small{color:#000!important}
-html.reloja-contrast #confirmations-list .confirmation-status,
-html.reloja-contrast #confirmations-list .confirmation-note,
-html.reloja-contrast #confirmations-list .confirmation-release-fields input{background:#fff!important;color:#000!important;border:2px solid #000!important}
+html.reloja-high-contrast #confirmations-list .admin-table tbody tr{border:2px solid #000!important;box-shadow:none!important}
+html.reloja-high-contrast #confirmations-list .admin-table td{background:#fff!important;color:#000!important;border-color:#000!important}
+html.reloja-high-contrast #confirmations-list .admin-table td::before,
+html.reloja-high-contrast #confirmations-list .admin-table small{color:#000!important}
+html.reloja-high-contrast #confirmations-list .confirmation-status,
+html.reloja-high-contrast #confirmations-list .confirmation-note,
+html.reloja-high-contrast #confirmations-list .confirmation-release-fields input{background:#fff!important;color:#000!important;border:2px solid #000!important}
 
 @media(max-width:1050px){
   #confirmations-list .admin-table tbody tr{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"protocol product" "client client" "status status" "purchase purchase" "date action"}
@@ -122,9 +122,9 @@ html.reloja-dark #confirmations-list .admin-table td:nth-child(7){background:#18
 html.reloja-dark #confirmations-list .admin-table td:nth-child(5){background:#241718;border-top-color:#4b4b4b;border-left-color:#ff4a50}
 html.reloja-dark #confirmations-list .admin-table td::before{color:#f0f0ec}
 
-html.reloja-contrast #confirmations-list.admin-table-wrap{background:#fff!important;border:2px solid #000!important;padding:16px!important}
-html.reloja-contrast #confirmations-list .admin-table tbody{gap:28px!important}
-html.reloja-contrast #confirmations-list .admin-table tbody tr{border:3px solid #000!important;border-top-width:6px!important}
+html.reloja-high-contrast #confirmations-list.admin-table-wrap{background:#fff!important;border:2px solid #000!important;padding:16px!important}
+html.reloja-high-contrast #confirmations-list .admin-table tbody{gap:28px!important}
+html.reloja-high-contrast #confirmations-list .admin-table tbody tr{border:3px solid #000!important;border-top-width:6px!important}
 
 @media(max-width:1050px){
   #confirmations-list .admin-table td:nth-child(2){border-right:0}

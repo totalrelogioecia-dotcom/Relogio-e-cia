@@ -18,6 +18,8 @@
     revoked: 'Liberação revogada',
     not_released: 'Ainda não liberada'
   };
+  const ADMIN_SESSION_LOOKUP_TIMEOUT_MS = 1500;
+  let currentAccessLevel = '';
 
   function esc(value) {
     return String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -55,6 +57,23 @@
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Não foi possível concluir a operação.');
     return data;
+  }
+
+  async function syncCurrentAccessLevel() {
+    let timeoutId;
+    const timeout = new Promise(resolve => {
+      timeoutId = setTimeout(() => resolve(null), ADMIN_SESSION_LOOKUP_TIMEOUT_MS);
+    });
+    const session = await Promise.race([
+      api('/api/admin/session').catch(() => null),
+      timeout
+    ]);
+    clearTimeout(timeoutId);
+    currentAccessLevel = session?.authenticated ? String(session.admin?.access_level || '') : '';
+  }
+
+  function canManagePurchaseAuthorization() {
+    return currentAccessLevel === 'owner' || currentAccessLevel === 'manager';
   }
 
   function addStyles() {
@@ -151,6 +170,10 @@
   }
 
   async function releasePurchase(id) {
+    if (!canManagePurchaseAuthorization()) {
+      alert('Somente Gerente ou Proprietário pode liberar a compra.');
+      return;
+    }
     const row = document.querySelector(`[data-confirmation-row="${CSS.escape(String(id))}"]`);
     if (!row) return;
     const quantity = Math.max(1, Math.min(9, Number(row.querySelector('[data-release-quantity]')?.value) || 1));
@@ -172,6 +195,10 @@
   }
 
   async function revokePurchase(id) {
+    if (!canManagePurchaseAuthorization()) {
+      alert('Somente Gerente ou Proprietário pode revogar a liberação.');
+      return;
+    }
     if (!confirm('Revogar a liberação deste cliente? O link deixará de permitir a compra.')) return;
     try {
       await api(`/api/admin/availability-requests/${encodeURIComponent(id)}/revoke-purchase`, {
@@ -201,7 +228,11 @@
 
   function purchaseCell(item) {
     const purchase = item.purchase;
+    const canManagePurchase = canManagePurchaseAuthorization();
     if (!purchase) {
+      if (!canManagePurchase) {
+        return `<div class="confirmation-purchase-box"><strong>Aguardando confirmação</strong><small>Acompanhe o contato e salve o status ou a observação. Somente Gerente ou Proprietário pode liberar a compra.</small></div>`;
+      }
       return `<div class="confirmation-purchase-box"><strong>Aguardando confirmação</strong><small>Depois de confirmar com o fornecedor, libere a compra individual.</small><div class="confirmation-release-fields"><label>Qtd.<input data-release-quantity type="number" min="1" max="9" value="1"></label><label>Validade (h)<input data-release-hours type="number" min="1" max="168" value="48"></label></div><button type="button" class="btn btn-primary" data-release-purchase="${esc(item.id)}">Confirmar e liberar compra</button></div>`;
     }
 
@@ -211,7 +242,10 @@
     if (state === 'active') {
       const waMessage = `Olá, ${item.customer?.nome || ''}! Confirmamos a disponibilidade de ${item.product?.nome || 'seu produto'}. Sua compra foi liberada até ${date(purchase.expires_at)}. Finalize por este link: ${link}`;
       const wa = whatsappLink(item.customer?.telefone, waMessage);
-      return `<div class="confirmation-purchase-box"><strong>${esc(label)}</strong><small>${purchase.quantity} unidade(s) · válida até ${esc(date(purchase.expires_at))}</small><div class="confirmation-purchase-actions"><button type="button" class="btn btn-outline" data-copy-purchase="${esc(item.id)}" data-purchase-link="${esc(link)}">Copiar link</button>${wa ? `<a class="btn btn-outline" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp com link</a>` : ''}<button type="button" class="btn btn-outline" data-revoke-purchase="${esc(item.id)}">Revogar</button></div></div>`;
+      const revokeAction = canManagePurchase
+        ? `<button type="button" class="btn btn-outline" data-revoke-purchase="${esc(item.id)}">Revogar</button>`
+        : '';
+      return `<div class="confirmation-purchase-box"><strong>${esc(label)}</strong><small>${purchase.quantity} unidade(s) · válida até ${esc(date(purchase.expires_at))}</small><div class="confirmation-purchase-actions"><button type="button" class="btn btn-outline" data-copy-purchase="${esc(item.id)}" data-purchase-link="${esc(link)}">Copiar link</button>${wa ? `<a class="btn btn-outline" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp com link</a>` : ''}${revokeAction}</div></div>`;
     }
     if (state === 'claimed') {
       return `<div class="confirmation-purchase-box"><strong>${esc(label)}</strong><small>O cliente iniciou o checkout${purchase.claimed_order_id ? ` · ${esc(purchase.claimed_order_id)}` : ''}. A liberação fica reservada enquanto o pagamento é processado.</small></div>`;
@@ -220,7 +254,11 @@
       return `<div class="confirmation-purchase-box"><strong>${esc(label)}</strong><small>Esta confirmação já foi usada em uma compra concluída.</small></div>`;
     }
 
-    return `<div class="confirmation-purchase-box"><strong>${esc(label)}</strong><small>${purchase.expires_at ? `Última validade: ${esc(date(purchase.expires_at))}. ` : ''}É possível gerar uma nova liberação.</small><div class="confirmation-release-fields"><label>Qtd.<input data-release-quantity type="number" min="1" max="9" value="1"></label><label>Validade (h)<input data-release-hours type="number" min="1" max="168" value="48"></label></div><button type="button" class="btn btn-primary" data-release-purchase="${esc(item.id)}">Liberar novamente</button></div>`;
+    const lastValidity = purchase.expires_at ? `Última validade: ${esc(date(purchase.expires_at))}. ` : '';
+    if (!canManagePurchase) {
+      return `<div class="confirmation-purchase-box"><strong>${esc(label)}</strong><small>${lastValidity}Somente Gerente ou Proprietário pode liberar novamente.</small></div>`;
+    }
+    return `<div class="confirmation-purchase-box"><strong>${esc(label)}</strong><small>${lastValidity}É possível gerar uma nova liberação.</small><div class="confirmation-release-fields"><label>Qtd.<input data-release-quantity type="number" min="1" max="9" value="1"></label><label>Validade (h)<input data-release-hours type="number" min="1" max="168" value="48"></label></div><button type="button" class="btn btn-primary" data-release-purchase="${esc(item.id)}">Liberar novamente</button></div>`;
   }
 
   async function loadConfirmations() {
@@ -228,7 +266,10 @@
     if (!host) return;
     host.innerHTML = '<p class="admin-muted">Carregando solicitações...</p>';
     try {
-      const requests = await api('/api/admin/availability-requests');
+      const [requests] = await Promise.all([
+        api('/api/admin/availability-requests'),
+        syncCurrentAccessLevel()
+      ]);
       host.innerHTML = `<table class="admin-table"><thead><tr><th>Protocolo</th><th>Produto</th><th>Cliente</th><th>Status / observação</th><th>Liberação da compra</th><th>Data</th><th>Ação</th></tr></thead><tbody>${requests.map(item => {
         const wa = whatsappLink(item.customer?.telefone);
         const options = Object.entries(STATUS_LABELS)

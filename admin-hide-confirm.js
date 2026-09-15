@@ -15,7 +15,7 @@
     style.textContent = `
       html.reloja-dark #admin-user-badge{background:#1a1a1a!important;color:#f7f7f5!important;border-color:#5d5d5d!important}
       html.reloja-dark #admin-user-badge *{color:inherit!important}
-      html.reloja-contrast #admin-user-badge{background:#fff!important;color:#000!important;border:2px solid #000!important}
+      html.reloja-high-contrast #admin-user-badge{background:#fff!important;color:#000!important;border:2px solid #000!important}
     `;
     document.head.appendChild(style);
   }
