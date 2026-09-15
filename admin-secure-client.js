@@ -13,8 +13,6 @@
       const marker = localStorage.getItem(TOKEN_KEY);
 
       if (data.authenticated) {
-        // Remove qualquer token administrativo antigo que tenha ficado salvo
-        // no localStorage e mantém apenas um marcador sem valor de autenticação.
         if (marker !== SESSION_MARKER) {
           localStorage.setItem(TOKEN_KEY, SESSION_MARKER);
           if (!marker) location.reload();
@@ -55,10 +53,19 @@
     }
   }
 
+  function loadDuplicateUserCardFix() {
+    if (document.querySelector('script[data-admin-user-card-fix]')) return;
+    const script = document.createElement('script');
+    script.src = 'admin-hide-duplicate-users.js?v=1';
+    script.dataset.adminUserCardFix = '1';
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logout-btn');
     if (logoutButton) logoutButton.onclick = logout;
+    loadDuplicateUserCardFix();
     syncSession();
   });
 })();
-
