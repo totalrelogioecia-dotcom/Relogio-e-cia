@@ -69,7 +69,7 @@ test('favoritos aparecem no perfil, produto e cards do catálogo', () => {
   assert.match(bootstrap, /favorites-client\.js\?v=3/);
 });
 
-test('Admin mantém ranking de favoritos e ganha navegação em hub', () => {
+test('Admin mantém ranking, navegação em hub e watchdog de visibilidade', () => {
   const admin = read('admin-favorites.js');
   assert.match(admin, /Mais favoritados/);
   assert.match(admin, /\/api\/admin\/favorites\/summary/);
@@ -78,6 +78,11 @@ test('Admin mantém ranking de favoritos e ganha navegação em hub', () => {
   assert.match(admin, /Central administrativa/);
   assert.match(admin, /data-hub-tab/);
   assert.match(admin, /admin-back-hub/);
+  assert.match(admin, /DASHBOARD_STABILITY_TIMEOUT_MS=2800/);
+  assert.match(admin, /clearTimeout\(visibilityWatchdog\)/);
+  const watchdog = admin.indexOf('const visibilityWatchdog=setTimeout');
+  const sessionFetch = admin.indexOf("await fetch('/api/admin/session'");
+  assert.ok(watchdog >= 0 && watchdog < sessionFetch, 'o watchdog precisa iniciar antes da requisição de sessão');
 });
 
 test('recomendações são técnicas e reutilizam o mesmo motor do catálogo', () => {
