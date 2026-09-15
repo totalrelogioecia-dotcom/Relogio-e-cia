@@ -5,6 +5,7 @@
   const TOKEN_KEY='reloja_admin_token';
   const root=document.documentElement;
   let stabilitySequence=0;
+  const DASHBOARD_STABILITY_TIMEOUT_MS=2800;
 
   function hasSessionMarker(){try{return Boolean(localStorage.getItem(TOKEN_KEY))}catch{return false}}
   function dashboardVisible(){const dashboard=document.getElementById('dashboard');return Boolean(dashboard&&getComputedStyle(dashboard).display!=='none')}
@@ -40,13 +41,20 @@
     const sequence=++stabilitySequence;
     root.classList.add('admin-ui-stabilizing');
     const started=performance.now();
+    const visibilityWatchdog=setTimeout(()=>{
+      if(sequence===stabilitySequence)root.classList.remove('admin-ui-stabilizing');
+    },DASHBOARD_STABILITY_TIMEOUT_MS);
     let session=null;
     try{
       const response=await fetch('/api/admin/session',{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
       session=await response.json().catch(()=>null);
     }catch{}
-    if(sequence!==stabilitySequence)return;
+    if(sequence!==stabilitySequence){
+      clearTimeout(visibilityWatchdog);
+      return;
+    }
     if(session&&!session.authenticated){
+      clearTimeout(visibilityWatchdog);
       root.classList.remove('admin-ui-stabilizing');
       return;
     }
@@ -54,14 +62,18 @@
     const accessLevel=session?.admin?.access_level||'';
     let stableFrames=0;
     const check=()=>{
-      if(sequence!==stabilitySequence)return;
+      if(sequence!==stabilitySequence){
+        clearTimeout(visibilityWatchdog);
+        return;
+      }
       const hubCards=document.querySelectorAll('#admin-hub .admin-hub-card').length;
       const badge=document.getElementById('admin-user-badge');
       const badgeReady=Boolean(badge&&String(badge.textContent||'').trim());
       const ownerCardReady=accessLevel!=='owner'||Boolean(document.querySelector('#admin-hub [data-hub-tab="usuarios-admin"]'));
       const ready=dashboardVisible()&&hubCards>0&&badgeReady&&ownerCardReady&&finalAccessibilityReady();
       stableFrames=ready?stableFrames+1:0;
-      if(stableFrames>=3||performance.now()-started>2800){
+      if(stableFrames>=3||performance.now()-started>DASHBOARD_STABILITY_TIMEOUT_MS){
+        clearTimeout(visibilityWatchdog);
         root.classList.remove('admin-ui-stabilizing');
         return;
       }
