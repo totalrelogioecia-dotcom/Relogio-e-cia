@@ -33,6 +33,32 @@ test('painel aguarda a identidade antes de carregar produtos restritos', () => {
   assert.doesNotMatch(admin, /if\(token\(\)\)showDash\(\);/);
 });
 
+test('Atendimento não recebe ações gerenciais de liberação de compra', () => {
+  const confirmations = read('admin-extra-tabs.js');
+  assert.match(confirmations, /ADMIN_SESSION_LOOKUP_TIMEOUT_MS = 1500/);
+  assert.match(confirmations, /Promise\.race/);
+  assert.match(confirmations, /function canManagePurchaseAuthorization\(\)/);
+  assert.match(confirmations, /currentAccessLevel === 'owner' \|\| currentAccessLevel === 'manager'/);
+  assert.match(confirmations, /if \(!canManagePurchaseAuthorization\(\)\)/);
+  assert.match(confirmations, /Somente Gerente ou Proprietário pode liberar a compra/);
+  assert.match(confirmations, /data-release-purchase/);
+  assert.match(confirmations, /data-revoke-purchase/);
+});
+
+test('tabelas em cards preservam cabeçalhos e módulos usam a classe atual de contraste', () => {
+  const adminCss = read('admin.css');
+  const confirmationCss = read('admin-hide-confirm.css');
+  const confirmationJs = read('admin-hide-confirm.js');
+  assert.doesNotMatch(adminCss, /#orders-list \.orders-table thead\{display:none\}/);
+  assert.match(adminCss, /#orders-list \.orders-table thead\{position:absolute[^}]+clip-path:inset\(50%\)/);
+  assert.doesNotMatch(confirmationCss, /#confirmations-list \.admin-table thead\{display:none\}/);
+  assert.match(confirmationCss, /#confirmations-list \.admin-table thead\{position:absolute[^}]+clip-path:inset\(50%\)/);
+  assert.doesNotMatch(confirmationCss, /reloja-contrast/);
+  assert.doesNotMatch(confirmationJs, /reloja-contrast/);
+  assert.match(confirmationCss, /reloja-high-contrast/);
+  assert.match(confirmationJs, /reloja-high-contrast/);
+});
+
 test('persistência transforma gravações rejeitadas em erro operacional', () => {
   const { assertPersistentWrites } = require('../persistent-store');
   assert.doesNotThrow(() => assertPersistentWrites([{ status: 'fulfilled', value: undefined }]));
@@ -65,6 +91,8 @@ test('Admin multiusuário aplica autenticação, níveis de acesso e revogação
     app.get('/api/admin/orders', (req, res) => res.json({ actor: req.admin.email }));
     app.get('/api/admin/coupons', (req, res) => res.json([{ code: 'NAO-DEVE-APARECER' }]));
     app.patch('/api/admin/orders/:id/fulfillment', (req, res) => res.json({ ok: true }));
+    app.post('/api/admin/availability-requests/:id/release-purchase', (req, res) => res.json({ ok: true }));
+    app.post('/api/admin/availability-requests/:id/revoke-purchase', (req, res) => res.json({ ok: true }));
 
     server = await new Promise((resolve, reject) => {
       const instance = app.listen(0, '127.0.0.1', () => resolve(instance));
@@ -140,6 +168,20 @@ test('Admin multiusuário aplica autenticação, níveis de acesso e revogação
       body: { status: 'shipped' }
     });
     assert.equal(allowedFulfillment.status, 200);
+
+    const deniedReleasePurchase = await request('/api/admin/availability-requests/CONF-123/release-purchase', {
+      method: 'POST',
+      cookie: supportLogin.cookie,
+      body: { quantity: 1, hours: 48 }
+    });
+    assert.equal(deniedReleasePurchase.status, 403);
+
+    const deniedRevokePurchase = await request('/api/admin/availability-requests/CONF-123/revoke-purchase', {
+      method: 'POST',
+      cookie: supportLogin.cookie,
+      body: {}
+    });
+    assert.equal(deniedRevokePurchase.status, 403);
 
     const protectedOwner = await request(`/api/admin/users/${encodeURIComponent(ownerLogin.data.admin.id)}`, {
       method: 'PATCH',
