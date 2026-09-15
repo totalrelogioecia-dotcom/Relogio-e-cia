@@ -188,105 +188,113 @@
     const email = $('#admin-user-email').value.trim();
     const access_level = $('#admin-user-role').value;
     const password = $('#admin-user-password').value;
-    const button = $('#salvar-admin-user').onclick;
-    void button;
-    if (!name || !email) return showEditorError('Nome e e-mail são obrigatórios.');
-    if (!editingId && password.length < 10) return showEditorError('A senha precisa ter pelo menos 10 caracteres.');
+    const button = $('#salvar-admin-user');
+    if (!name || !email) return showEditorError('Preencha nome e e-mail.');
+    if (!editingId && password.length < 10) return showEditorError('A senha deve ter pelo menos 10 caracteres.');
+    if (editingId && password && password.length < 10) return showEditorError('A nova senha deve ter pelo menos 10 caracteres.');
 
+    const body = { name, email, access_level };
+    if (password) body.password = password;
+    button.disabled = true;
+    const previous = button.textContent;
+    button.textContent = 'Salvando...';
     try {
-      const payload = { name, email, access_level };
-      if (password) payload.password = password;
-      await api(editingId ? `/api/admin/users/${encodeURIComponent(editingId)}` : '/api/admin/users', {
-        method: editingId ? 'PUT' : 'POST',
-        body: JSON.stringify(payload)
+      const response = await api(editingId ? `/api/admin/users/${encodeURIComponent(editingId)}` : '/api/admin/users', {
+        method: editingId ? 'PATCH' : 'POST',
+        body: JSON.stringify(body)
       });
+      const changedOwnPassword = editingId && currentAdmin?.id === editingId && Boolean(password);
       closeEditor();
+      if (changedOwnPassword || response.session_invalidated) {
+        alert('A alteração foi salva. Por segurança, entre novamente com sua senha.');
+        await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {});
+        localStorage.removeItem(TOKEN_KEY);
+        location.reload();
+        return;
+      }
       await loadUsers();
     } catch (error) {
       showEditorError(error.message);
+    } finally {
+      button.disabled = false;
+      button.textContent = previous;
     }
   }
 
-  async function loadUsers() {
+  async function toggleUser(user) {
+    const action = user.active ? 'bloquear' : 'reativar';
+    if (!confirm(`Deseja ${action} o acesso de ${user.name}?`)) return;
     try {
-      const data = await api('/api/admin/users');
-      users = Array.isArray(data.users) ? data.users : [];
-      renderUsers();
+      await api(`/api/admin/users/${encodeURIComponent(user.id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ active: !user.active })
+      });
+      await loadUsers();
     } catch (error) {
-      const list = $('#admin-users-list');
-      if (list) list.innerHTML = `<div class="form-error">${esc(error.message)}</div>`;
+      alert(error.message);
     }
   }
 
   function renderUsers() {
-    const list = $('#admin-users-list');
-    if (!list) return;
-    if (!users.length) {
-      list.innerHTML = '<p class="admin-muted">Nenhum usuário administrativo cadastrado.</p>';
-      return;
-    }
-    list.innerHTML = `
+    const host = $('#admin-users-list');
+    if (!host) return;
+    host.innerHTML = `
       <table class="admin-table">
-        <thead><tr><th>Usuário</th><th>Acesso</th><th>Status</th><th>Último login</th><th>Ações</th></tr></thead>
-        <tbody>${users.map(user => `
-          <tr>
-            <td><strong>${esc(user.name || 'Sem nome')}</strong><br><span class="admin-muted">${esc(user.email)}</span></td>
+        <thead><tr><th>Usuário</th><th>Nível</th><th>Status</th><th>Último acesso</th><th>Ações</th></tr></thead>
+        <tbody>${users.map(user => {
+          const self = currentAdmin && user.id === currentAdmin.id;
+          return `<tr>
+            <td><strong>${esc(user.name)}</strong>${self ? ' <small>(você)</small>' : ''}<br><small>${esc(user.email)}</small></td>
             <td><span class="admin-user-role">${esc(roleLabel(user.access_level))}</span></td>
-            <td><span class="admin-user-status ${user.is_active ? 'active' : 'blocked'}">${user.is_active ? 'Ativo' : 'Bloqueado'}</span></td>
+            <td><span class="admin-user-status ${user.active ? 'active' : 'blocked'}">${user.active ? 'Ativo' : 'Bloqueado'}</span></td>
             <td>${esc(date(user.last_login_at))}</td>
-            <td><div class="admin-users-actions"><button type="button" class="btn btn-outline" data-user-edit="${esc(user.id)}">Editar</button>${user.id !== currentAdmin?.id ? `<button type="button" class="btn btn-outline" data-user-toggle="${esc(user.id)}">${user.is_active ? 'Bloquear' : 'Ativar'}</button>` : ''}</div></td>
-          </tr>`).join('')}</tbody>
+            <td><div class="admin-users-actions"><button type="button" class="btn btn-outline" data-admin-user-edit="${esc(user.id)}">Editar</button>${self ? '' : `<button type="button" class="btn btn-outline" data-admin-user-toggle="${esc(user.id)}">${user.active ? 'Bloquear' : 'Reativar'}</button>`}</div></td>
+          </tr>`;
+        }).join('') || '<tr><td colspan="5">Nenhum usuário administrativo cadastrado.</td></tr>'}</tbody>
       </table>`;
-    list.querySelectorAll('[data-user-edit]').forEach(button => {
-      button.addEventListener('click', () => openEditor(users.find(user => user.id === button.dataset.userEdit)));
+
+    host.querySelectorAll('[data-admin-user-edit]').forEach(button => {
+      button.onclick = () => openEditor(users.find(user => user.id === button.dataset.adminUserEdit));
     });
-    list.querySelectorAll('[data-user-toggle]').forEach(button => {
-      button.addEventListener('click', () => toggleUser(button.dataset.userToggle));
+    host.querySelectorAll('[data-admin-user-toggle]').forEach(button => {
+      button.onclick = () => {
+        const user = users.find(item => item.id === button.dataset.adminUserToggle);
+        if (user) toggleUser(user);
+      };
     });
   }
 
-  async function toggleUser(id) {
-    const user = users.find(item => item.id === id);
-    if (!user) return;
+  async function loadUsers() {
+    const host = $('#admin-users-list');
+    if (!host) return;
+    host.innerHTML = '<p class="admin-muted">Carregando usuários...</p>';
     try {
-      await api(`/api/admin/users/${encodeURIComponent(id)}`, {
-        method: 'PUT',
-        body: JSON.stringify({ is_active: !user.is_active })
-      });
-      await loadUsers();
+      users = await api('/api/admin/users');
+      renderUsers();
     } catch (error) {
-      window.alert(error.message);
+      host.innerHTML = `<div class="form-error">${esc(error.message)}</div>`;
     }
   }
 
-  async function syncAdmin() {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) return;
+  async function syncIdentity() {
     try {
-      const data = await api('/api/admin/session');
-      if (!data?.authenticated || !data.admin) return;
-      currentAdmin = data.admin;
+      const session = await api('/api/admin/session');
+      if (!session.authenticated || !session.admin) return;
+      currentAdmin = session.admin;
+      const loginCopy = document.querySelector('#login-screen .admin-muted');
+      if (loginCopy) loginCopy.textContent = 'Entre com seu usuário administrativo.';
       ensureBadge();
       ensureUi();
       applyRoleVisibility();
     } catch {
-      // The main admin shell handles the session state.
+      // A sessão pode ainda não existir na tela inicial; o login normal continua funcionando.
     }
   }
 
-  function bindLoginRefresh() {
-    const login = $('#login-btn');
-    if (!login || login.dataset.usersRefreshBound === '1') return;
-    login.dataset.usersRefreshBound = '1';
-    login.addEventListener('click', () => setTimeout(syncAdmin, 350));
-  }
-
-  function boot() {
+  document.addEventListener('DOMContentLoaded', () => {
     addStyles();
-    syncAdmin();
-    bindLoginRefresh();
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
-  else boot();
+    syncIdentity();
+    const loginButton = $('#login-btn');
+    if (loginButton) loginButton.addEventListener('click', () => setTimeout(syncIdentity, 350));
+  });
 })();
