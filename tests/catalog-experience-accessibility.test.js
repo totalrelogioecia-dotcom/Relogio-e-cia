@@ -85,6 +85,18 @@ test('Admin mantém ranking, navegação em hub e watchdog de visibilidade', () 
   assert.ok(watchdog >= 0 && watchdog < sessionFetch, 'o watchdog precisa iniciar antes da requisição de sessão');
 });
 
+test('Admin mostra progresso imediato enquanto estabiliza permissões e módulos', () => {
+  const admin = read('admin-favorites.js');
+  assert.match(admin, /loader\.id='admin-loading-state'/);
+  assert.match(admin, /loader\.setAttribute\('role','status'\)/);
+  assert.match(admin, /dashboard\.setAttribute\('aria-busy'/);
+  assert.match(admin, /Preparando o painel/);
+  assert.match(admin, /admin-loading-cards/);
+  assert.match(admin, /prefers-reduced-motion:reduce/);
+  assert.match(admin, /#dashboard>:not\(\.admin-head\):not\(#admin-loading-state\)/);
+  assert.doesNotMatch(admin, /admin-ui-stabilizing #dashboard\{visibility:hidden/);
+});
+
 test('recomendações são técnicas e reutilizam o mesmo motor do catálogo', () => {
   const recommendations = read('product-recommendations.js');
   assert.match(recommendations, /RelogioCatalogIntelligence\.recommend/);
