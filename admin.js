@@ -8,8 +8,8 @@ let currentInvoiceOrder=null;
 
 async function api(url,opts={}){opts.headers={...(opts.headers||{}),Authorization:`Bearer ${token()}`,'Content-Type':'application/json'};const r=await fetch(url,opts);const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Erro');return d;}
 function msg(text,ok=false){const e=$('#admin-msg');e.className=ok?'form-success':'form-error';e.textContent=text;e.style.display='block';setTimeout(()=>e.style.display='none',3500);}
-function showDash(){ $('#login-screen').style.display='none';$('#dashboard').style.display='block';loadProducts(); }
-async function login(){try{const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('#admin-email').value,senha:$('#admin-senha').value})});const d=await r.json();if(!r.ok)throw Error(d.error);localStorage.setItem(tokenKey,d.token);showDash();}catch(e){const m=$('#login-msg');m.textContent=e.message;m.style.display='block';}}
+function showDash(admin=null){ $('#login-screen').style.display='none';$('#dashboard').style.display='block';if(admin&&admin.access_level!=='atendimento')loadProducts(); }
+async function login(){try{const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('#admin-email').value,senha:$('#admin-senha').value})});const d=await r.json();if(!r.ok)throw Error(d.error);localStorage.setItem(tokenKey,d.token);showDash(d.admin);}catch(e){const m=$('#login-msg');m.textContent=e.message;m.style.display='block';}}
 
 function resetPhotos(){currentPhotos=[];renderPhotoPreview();}
 function setPhotos(list){currentPhotos=Array.isArray(list)?list.filter(Boolean).slice(0,MAX_PHOTOS):[];renderPhotoPreview();}
@@ -220,4 +220,13 @@ document.querySelectorAll('.admin-tabs button').forEach(b=>b.onclick=()=>{docume
 setupPhotoDropzone();
 ensureInvoiceModal();
 ensureProductDeleteModal();
-if(token())showDash();
+async function restoreDash(){
+  if(!token())return;
+  showDash();
+  try{
+    const r=await fetch('/api/admin/session',{headers:{Accept:'application/json'},cache:'no-store',credentials:'same-origin'});
+    const d=await r.json().catch(()=>({}));
+    if(r.ok&&d.authenticated&&d.admin)showDash(d.admin);
+  }catch{}
+}
+restoreDash();

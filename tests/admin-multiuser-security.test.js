@@ -24,6 +24,15 @@ test('central administrativa exibe somente módulos cujas abas estão disponíve
   assert.match(hub, /attributeFilter:\[['"]style['"],['"]hidden['"]\]/);
 });
 
+test('painel aguarda a identidade antes de carregar produtos restritos', () => {
+  const admin = read('admin.js');
+  assert.match(admin, /function showDash\(admin=null\)/);
+  assert.match(admin, /admin&&admin\.access_level!==['"]atendimento['"]/);
+  assert.match(admin, /async function restoreDash\(\)/);
+  assert.match(admin, /showDash\(d\.admin\)/);
+  assert.doesNotMatch(admin, /if\(token\(\)\)showDash\(\);/);
+});
+
 test('persistência transforma gravações rejeitadas em erro operacional', () => {
   const { assertPersistentWrites } = require('../persistent-store');
   assert.doesNotThrow(() => assertPersistentWrites([{ status: 'fulfilled', value: undefined }]));
