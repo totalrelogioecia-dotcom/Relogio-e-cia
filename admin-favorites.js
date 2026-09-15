@@ -17,10 +17,61 @@
     style.id='admin-layout-stability-style';
     style.textContent=`
       html.admin-header-stabilizing .site-header .nav>:not(.brand-mark){visibility:hidden!important}
-      html.admin-ui-stabilizing #dashboard{visibility:hidden!important;pointer-events:none!important}
+      #admin-loading-state{display:none}
+      html.admin-ui-stabilizing #dashboard{visibility:visible!important;pointer-events:none!important}
+      html.admin-ui-stabilizing #dashboard>.admin-head{visibility:visible!important;pointer-events:auto!important}
+      html.admin-ui-stabilizing #dashboard>:not(.admin-head):not(#admin-loading-state){visibility:hidden!important;pointer-events:none!important}
       html.admin-ui-stabilizing #login-screen{visibility:hidden!important}
+      html.admin-ui-stabilizing #admin-loading-state{display:grid!important;visibility:visible!important;gap:22px;padding:4px 0 26px;color:var(--ink,#151515)}
+      .admin-loading-copy{display:flex;align-items:center;gap:12px;min-height:44px}
+      .admin-loading-copy strong,.admin-loading-copy small{display:block}
+      .admin-loading-copy strong{font-family:var(--font-display);font-size:1rem}
+      .admin-loading-copy small{margin-top:3px;color:var(--ink-soft,#5f5f5f)}
+      .admin-loading-spinner{width:22px;height:22px;flex:0 0 22px;border:2px solid var(--line-strong,#b8b8b8);border-top-color:var(--red,#d71920);animation:admin-loading-spin .75s linear infinite}
+      .admin-loading-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+      .admin-loading-card{min-height:132px;padding:18px;border:2px solid var(--line-strong,#b8b8b8);border-top:5px solid var(--ink,#151515);background:var(--paper,#fff)}
+      .admin-loading-line{display:block;height:9px;margin-bottom:12px;background:var(--line,#dedede);animation:admin-loading-pulse 1.05s ease-in-out infinite alternate}
+      .admin-loading-line.short{width:34%}
+      .admin-loading-line.medium{width:68%}
+      .admin-loading-line:last-child{width:86%;margin-top:30px;margin-bottom:0}
+      html.reloja-dark .admin-loading-card{border-color:var(--line-strong,#555);border-top-color:var(--red,#ff4a50);background:var(--bg-soft,#181818)}
+      html.reloja-high-contrast .admin-loading-card{border:2px solid #000!important;border-top-width:5px!important;background:#fff!important}
+      html.reloja-high-contrast .admin-loading-line{background:#000!important}
+      @keyframes admin-loading-spin{to{transform:rotate(360deg)}}
+      @keyframes admin-loading-pulse{from{opacity:.38}to{opacity:.9}}
+      @media(max-width:760px){.admin-loading-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+      @media(max-width:460px){.admin-loading-cards{grid-template-columns:1fr}.admin-loading-card:nth-child(n+3){display:none}}
+      @media(prefers-reduced-motion:reduce){.admin-loading-spinner,.admin-loading-line{animation:none}}
     `;
     document.head.appendChild(style);
+  }
+
+  function ensureDashboardLoadingState(){
+    const dashboard=document.getElementById('dashboard');
+    if(!dashboard||document.getElementById('admin-loading-state'))return;
+    const loader=document.createElement('div');
+    loader.id='admin-loading-state';
+    loader.setAttribute('role','status');
+    loader.setAttribute('aria-live','polite');
+    loader.setAttribute('aria-atomic','true');
+    loader.innerHTML=`
+      <div class="admin-loading-copy"><span class="admin-loading-spinner" aria-hidden="true"></span><span><strong>Preparando o painel</strong><small>Carregando permissões e áreas administrativas...</small></span></div>
+      <div class="admin-loading-cards" aria-hidden="true">
+        <span class="admin-loading-card"><span class="admin-loading-line short"></span><span class="admin-loading-line medium"></span><span class="admin-loading-line"></span></span>
+        <span class="admin-loading-card"><span class="admin-loading-line short"></span><span class="admin-loading-line medium"></span><span class="admin-loading-line"></span></span>
+        <span class="admin-loading-card"><span class="admin-loading-line short"></span><span class="admin-loading-line medium"></span><span class="admin-loading-line"></span></span>
+        <span class="admin-loading-card"><span class="admin-loading-line short"></span><span class="admin-loading-line medium"></span><span class="admin-loading-line"></span></span>
+      </div>
+    `;
+    const heading=dashboard.querySelector('.admin-head');
+    if(heading)heading.insertAdjacentElement('afterend',loader);
+    else dashboard.prepend(loader);
+  }
+
+  function setDashboardLoading(active){
+    root.classList.toggle('admin-ui-stabilizing',Boolean(active));
+    const dashboard=document.getElementById('dashboard');
+    if(dashboard)dashboard.setAttribute('aria-busy',active?'true':'false');
   }
 
   function waitForFinalHeader(){
@@ -39,10 +90,10 @@
   async function stabilizeDashboard(){
     if(!dashboardVisible())return;
     const sequence=++stabilitySequence;
-    root.classList.add('admin-ui-stabilizing');
+    setDashboardLoading(true);
     const started=performance.now();
     const visibilityWatchdog=setTimeout(()=>{
-      if(sequence===stabilitySequence)root.classList.remove('admin-ui-stabilizing');
+      if(sequence===stabilitySequence)setDashboardLoading(false);
     },DASHBOARD_STABILITY_TIMEOUT_MS);
     let session=null;
     try{
@@ -55,7 +106,7 @@
     }
     if(session&&!session.authenticated){
       clearTimeout(visibilityWatchdog);
-      root.classList.remove('admin-ui-stabilizing');
+      setDashboardLoading(false);
       return;
     }
 
@@ -74,7 +125,7 @@
       stableFrames=ready?stableFrames+1:0;
       if(stableFrames>=3||performance.now()-started>DASHBOARD_STABILITY_TIMEOUT_MS){
         clearTimeout(visibilityWatchdog);
-        root.classList.remove('admin-ui-stabilizing');
+        setDashboardLoading(false);
         return;
       }
       requestAnimationFrame(check);
@@ -84,13 +135,14 @@
 
   function installStabilityGuard(){
     installStabilityStyles();
+    ensureDashboardLoadingState();
     waitForFinalHeader();
     const dashboard=document.getElementById('dashboard');
     if(!dashboard)return;
     if(hasSessionMarker()&&dashboardVisible())stabilizeDashboard();
     new MutationObserver(()=>{
       if(dashboardVisible())stabilizeDashboard();
-      else root.classList.remove('admin-ui-stabilizing');
+      else setDashboardLoading(false);
     }).observe(dashboard,{attributes:true,attributeFilter:['style']});
   }
 
