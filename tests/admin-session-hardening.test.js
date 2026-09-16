@@ -77,3 +77,9 @@ test('PostgreSQL valida certificado quando SSL está habilitado', () => {
   assert.match(source, /rejectUnauthorized:\s*true/);
   assert.doesNotMatch(source, /rejectUnauthorized:\s*false/);
 });
+
+test('Express confia somente no primeiro proxy da plataforma', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  assert.match(source, /app\.set\('trust proxy',\s*1\)/);
+  assert.doesNotMatch(source, /app\.set\('trust proxy',\s*true\)/);
+});

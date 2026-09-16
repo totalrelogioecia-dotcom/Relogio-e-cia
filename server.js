@@ -11,6 +11,8 @@ const { withPublicProductList } = require('./public-product-media');
 const { fetchAllowedImage } = require('./remote-image');
 
 const app = express();
+// Render encaminha cada requisição por um único proxy; não confiar em toda a cadeia enviada pelo cliente.
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(ROOT, 'data');
