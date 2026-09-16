@@ -44,7 +44,7 @@ function cleanUser(user) {
 }
 
 function authToken(user) {
-  const secret = String(process.env.AUTH_SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || '').trim();
+  const secret = String(process.env.AUTH_SESSION_SECRET || '').trim();
   if (!secret) throw new Error('AUTH_SESSION_SECRET não configurado.');
   const body = Buffer.from(JSON.stringify({
     sub: user.id,
@@ -57,7 +57,7 @@ function authToken(user) {
 
 function validAuthToken(token) {
   try {
-    const secret = String(process.env.AUTH_SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || '').trim();
+    const secret = String(process.env.AUTH_SESSION_SECRET || '').trim();
     if (!secret) return null;
     const [body, sig] = String(token || '').split('.');
     if (!body || !sig) return null;

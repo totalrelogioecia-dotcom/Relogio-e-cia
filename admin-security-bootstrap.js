@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const express = require('express');
 const { recordAudit, recordRequestAudit, tokenPayload } = require('./admin-audit');
 const { flushPersistentStore } = require('./persistent-store');
+const adminSession = require('./admin-session');
 
 const COOKIE_NAME = 'reloja_admin_session';
 const SESSION_MS = 8 * 60 * 60 * 1000;
@@ -16,13 +17,11 @@ const ACCESS_LEVELS = new Set(['owner', 'manager', 'atendimento']);
 const loginAttempts = new Map();
 
 function safeEqual(a, b) {
-  const left = Buffer.from(String(a || ''));
-  const right = Buffer.from(String(b || ''));
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
+  return adminSession.safeEqual(a, b);
 }
 
 function normalizeEmail(value) {
-  return String(value || '').trim().toLowerCase();
+  return adminSession.normalizeEmail(value);
 }
 
 function normalizeName(value) {
@@ -34,8 +33,7 @@ function validEmail(value) {
 }
 
 function normalizeAccessLevel(value) {
-  const level = String(value || '').trim().toLowerCase();
-  return ACCESS_LEVELS.has(level) ? level : 'atendimento';
+  return adminSession.normalizeAccessLevel(value);
 }
 
 function passwordHash(password) {
@@ -57,12 +55,7 @@ function passwordMatches(password, encoded) {
 }
 
 function readAdminUsers() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(ADMIN_USERS_FILE, 'utf8'));
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return adminSession.readAdminUsers();
 }
 
 function writeAdminUsers(users) {
@@ -135,30 +128,7 @@ function makeToken(payload) {
 }
 
 function authenticatedToken(value) {
-  try {
-    const [body, sig] = String(value || '').split('.');
-    if (!body || !sig) return null;
-    const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
-    if (!secret) return null;
-    const expected = crypto.createHmac('sha256', secret).update(body).digest('base64url');
-    if (!safeEqual(sig, expected)) return null;
-    const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
-    if (payload.role !== 'admin' || Number(payload.exp) <= Date.now()) return null;
-
-    if (!payload.user_id) return null;
-    const users = readAdminUsers();
-    const user = users.find(item => String(item.id) === String(payload.user_id));
-    if (!user || user.active === false) return null;
-    if (Number(user.session_version || 1) !== Number(payload.session_version || 1)) return null;
-    return {
-      ...payload,
-      email: normalizeEmail(user.email),
-      name: normalizeName(user.name) || 'Administrador',
-      access_level: normalizeAccessLevel(user.access_level)
-    };
-  } catch {
-    return null;
-  }
+  return adminSession.authenticatedToken(value);
 }
 
 function validToken(value) {
@@ -166,17 +136,7 @@ function validToken(value) {
 }
 
 function parseCookies(req) {
-  const result = {};
-  for (const part of String(req.headers.cookie || '').split(';')) {
-    const index = part.indexOf('=');
-    if (index <= 0) continue;
-    const key = part.slice(0, index).trim();
-    const value = part.slice(index + 1).trim();
-    if (!key) continue;
-    try { result[key] = decodeURIComponent(value); }
-    catch { result[key] = value; }
-  }
-  return result;
+  return adminSession.parseCookies(req);
 }
 
 function secureRequest(req) {
@@ -197,8 +157,7 @@ function sessionCookie(req, token, maxAgeSeconds) {
 }
 
 function clientIp(req) {
-  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  return forwarded || req.socket?.remoteAddress || 'unknown';
+  return String(req.ip || req.socket?.remoteAddress || 'unknown');
 }
 
 function currentAttempt(ip) {

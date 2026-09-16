@@ -7,6 +7,8 @@
   let users = [];
   let editingId = '';
   let modalResolve = null;
+  let modalPreviousFocus = null;
+  let modalBodyOverflow = '';
 
   const $ = selector => document.querySelector(selector);
 
@@ -87,7 +89,7 @@
     modal.id = 'admin-users-modal';
     modal.className = 'admin-users-modal-backdrop';
     modal.innerHTML = `
-      <div class="admin-users-modal" role="dialog" aria-modal="true" aria-labelledby="admin-users-modal-title">
+      <div class="admin-users-modal" role="dialog" aria-modal="true" aria-labelledby="admin-users-modal-title" aria-describedby="admin-users-modal-message" tabindex="-1">
         <h3 id="admin-users-modal-title">Confirmar ação</h3>
         <p id="admin-users-modal-message"></p>
         <div class="admin-users-modal-actions">
@@ -101,46 +103,87 @@
     modal.querySelector('[data-modal-confirm]').addEventListener('click', () => finishModal(true));
   }
 
+  function modalFocusableElements() {
+    const modal = $('#admin-users-modal');
+    if (!modal) return [];
+    return [...modal.querySelectorAll('button:not([disabled]):not([style*="display: none"])')];
+  }
+
+  function handleModalKeydown(event) {
+    const modal = $('#admin-users-modal');
+    if (!modal?.classList.contains('open')) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      finishModal(false);
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = modalFocusableElements();
+    if (!focusable.length) {
+      event.preventDefault();
+      modal.querySelector('[role="dialog"]')?.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   function finishModal(value) {
     const modal = $('#admin-users-modal');
     if (modal) modal.classList.remove('open');
-    if (modalResolve) { const resolve = modalResolve; modalResolve = null; resolve(value); }
+    document.removeEventListener('keydown', handleModalKeydown);
+    document.body.style.overflow = modalBodyOverflow;
+    const previousFocus = modalPreviousFocus;
+    modalPreviousFocus = null;
+    if (modalResolve) {
+      const resolve = modalResolve;
+      modalResolve = null;
+      resolve(value);
+    }
+    if (previousFocus && document.contains(previousFocus)) previousFocus.focus();
   }
 
-  function confirmAdminAction(title, message, confirmLabel = 'Confirmar', danger = true) {
+  function openAdminModal({ title, message, confirmLabel, danger, showCancel }) {
     ensureModal();
-    const modal = $('#admin-users-modal');
-    const titleEl = $('#admin-users-modal-title');
-    const messageEl = $('#admin-users-modal-message');
-    const confirm = modal?.querySelector('[data-modal-confirm]');
-    if (!modal || !titleEl || !messageEl || !confirm) return Promise.resolve(false);
-    titleEl.textContent = title;
-    messageEl.textContent = message;
-    confirm.textContent = confirmLabel;
-    confirm.classList.toggle('admin-users-modal-confirm', danger);
-    modal.classList.add('open');
-    return new Promise(resolve => { modalResolve = resolve; });
-  }
-
-  function showAdminError(title, message) {
-    ensureModal();
+    if (modalResolve) finishModal(false);
     const modal = $('#admin-users-modal');
     const titleEl = $('#admin-users-modal-title');
     const messageEl = $('#admin-users-modal-message');
     const confirm = modal?.querySelector('[data-modal-confirm]');
     const cancel = modal?.querySelector('[data-modal-cancel]');
-    if (!modal || !titleEl || !messageEl || !confirm || !cancel) return;
+    const dialog = modal?.querySelector('[role="dialog"]');
+    if (!modal || !titleEl || !messageEl || !confirm || !cancel || !dialog) return Promise.resolve(false);
+
     titleEl.textContent = title;
     messageEl.textContent = message;
-    confirm.textContent = 'Fechar';
-    confirm.classList.remove('admin-users-modal-confirm');
-    confirm.classList.add('admin-users-modal-close');
-    cancel.style.display = 'none';
+    confirm.textContent = confirmLabel;
+    confirm.classList.toggle('admin-users-modal-confirm', danger);
+    confirm.classList.toggle('admin-users-modal-close', !danger);
+    cancel.hidden = !showCancel;
+    modalPreviousFocus = document.activeElement;
+    modalBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     modal.classList.add('open');
-    const reset = () => { cancel.style.display = ''; confirm.classList.remove('admin-users-modal-close'); confirm.classList.add('admin-users-modal-confirm'); };
-    const oldFinish = modalResolve;
-    modalResolve = value => { reset(); if (oldFinish) oldFinish(value); };
-    confirm.onclick = () => { reset(); modal.classList.remove('open'); modalResolve = null; };
+    document.addEventListener('keydown', handleModalKeydown);
+
+    const promise = new Promise(resolve => { modalResolve = resolve; });
+    window.requestAnimationFrame(() => (showCancel ? cancel : confirm).focus());
+    return promise;
+  }
+
+  function confirmAdminAction(title, message, confirmLabel = 'Confirmar', danger = true) {
+    return openAdminModal({ title, message, confirmLabel, danger, showCancel: true });
+  }
+
+  function showAdminError(title, message) {
+    return openAdminModal({ title, message, confirmLabel: 'Fechar', danger: false, showCancel: false });
   }
 
   function roleLabel(level) { return ROLE_LABELS[level] || 'Atendimento'; }

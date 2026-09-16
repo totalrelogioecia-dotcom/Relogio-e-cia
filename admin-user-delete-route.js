@@ -1,68 +1,28 @@
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const express = require('express');
 const { flushPersistentStore } = require('./persistent-store');
 const { recordAudit } = require('./admin-audit');
+const adminSession = require('./admin-session');
 
 const COOKIE_NAME = 'reloja_admin_session';
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const USERS_FILE = path.join(DATA, 'admin-users.json');
 
-function safeEqual(a, b) {
-  const left = Buffer.from(String(a || ''));
-  const right = Buffer.from(String(b || ''));
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
-}
-
-function parseCookies(req) {
-  const result = {};
-  for (const part of String(req.headers.cookie || '').split(';')) {
-    const index = part.indexOf('=');
-    if (index <= 0) continue;
-    const key = part.slice(0, index).trim();
-    const value = part.slice(index + 1).trim();
-    try { result[key] = decodeURIComponent(value); } catch { result[key] = value; }
-  }
-  return result;
-}
-
 function normalizeEmail(value) {
-  return String(value || '').trim().toLowerCase();
+  return adminSession.normalizeEmail(value);
 }
 
 function normalizeAccessLevel(value) {
-  const level = String(value || '').trim().toLowerCase();
-  return ['owner', 'manager', 'atendimento'].includes(level) ? level : 'atendimento';
+  return adminSession.normalizeAccessLevel(value);
 }
 
 function readUsers() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return adminSession.readAdminUsers();
 }
 
 function authenticatedPayload(req) {
-  try {
-    const token = parseCookies(req)[COOKIE_NAME];
-    const [body, sig] = String(token || '').split('.');
-    const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
-    if (!body || !sig || !secret) return null;
-    const expected = crypto.createHmac('sha256', secret).update(body).digest('base64url');
-    if (!safeEqual(sig, expected)) return null;
-    const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
-    if (payload.role !== 'admin' || Number(payload.exp) <= Date.now() || !payload.user_id) return null;
-    const users = readUsers();
-    const current = users.find(user => String(user.id) === String(payload.user_id));
-    if (!current || current.active === false) return null;
-    if (Number(current.session_version || 1) !== Number(payload.session_version || 1)) return null;
-    return { ...payload, email: normalizeEmail(current.email), access_level: normalizeAccessLevel(current.access_level) };
-  } catch {
-    return null;
-  }
+  return adminSession.authenticatedRequest(req);
 }
 
 function ownerCount(users) {
@@ -106,7 +66,7 @@ function wrapExpress(originalExpress) {
             path: `/api/admin/users/${encodeURIComponent(target.id)}`,
             status_code: 200,
             success: true,
-            ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown',
+            ip: req.ip || req.socket?.remoteAddress || 'unknown',
             user_agent: req.headers['user-agent']
           });
         } catch {}

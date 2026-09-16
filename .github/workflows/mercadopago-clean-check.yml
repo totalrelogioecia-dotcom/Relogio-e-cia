@@ -37,6 +37,7 @@ jobs:
           node --check store-health.js
           node --check store-health-bootstrap.js
           node --check admin-store-health.js
+          node --check admin-session.js
           node --check admin-security-bootstrap.js
           node --check admin-users-management.js
           node --check persistent-store.js
