@@ -57,19 +57,18 @@ function writeLocalJson(file, value) {
 
 function databaseSsl(connectionString) {
   const configured = String(process.env.DATABASE_SSL || '').trim().toLowerCase();
-  if (configured) {
-    if (configured === 'false' || configured === '0' || configured === 'off') return false;
-    return { rejectUnauthorized: false };
-  }
+  if (['false', '0', 'off', 'disable'].includes(configured)) return false;
 
+  let sslMode = '';
   try {
     const url = new URL(connectionString);
-    const sslMode = String(url.searchParams.get('sslmode') || '').toLowerCase();
-    if (sslMode === 'require' || sslMode === 'verify-ca' || sslMode === 'verify-full') {
-      return { rejectUnauthorized: false };
-    }
+    sslMode = String(url.searchParams.get('sslmode') || '').toLowerCase();
   } catch {}
 
+  if (sslMode === 'disable') return false;
+  if (configured || ['require', 'verify-ca', 'verify-full'].includes(sslMode)) {
+    return { rejectUnauthorized: true };
+  }
   return false;
 }
 
