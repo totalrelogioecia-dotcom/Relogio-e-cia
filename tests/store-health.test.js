@@ -60,8 +60,8 @@ test('painel carrega diagnóstico protegido e mostra frete incompleto', () => {
   assert.match(client, /store-health-shipping-toggle/);
   assert.match(client, /table\.hidden = !nextExpanded/);
   assert.match(styles, /\.store-health-shipping-toggle/);
-  assert.match(bootstrap, /reloja_admin_session/);
-  assert.match(bootstrap, /validAdminToken/);
+  assert.match(bootstrap, /require\('\.\/admin-session'\)/);
+  assert.match(bootstrap, /authenticatedRequest\(req\)/);
   assert.match(pkg.scripts.start, /store-health-bootstrap\.js/);
 });
 
