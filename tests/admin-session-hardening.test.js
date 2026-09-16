@@ -72,3 +72,8 @@ test('sessão de cliente não usa o segredo administrativo como fallback', () =>
   assert.doesNotMatch(source, /AUTH_SESSION_SECRET\s*\|\|\s*process\.env\.ADMIN_SESSION_SECRET/);
 });
 
+test('PostgreSQL valida certificado quando SSL está habilitado', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'persistent-store.js'), 'utf8');
+  assert.match(source, /rejectUnauthorized:\s*true/);
+  assert.doesNotMatch(source, /rejectUnauthorized:\s*false/);
+});
