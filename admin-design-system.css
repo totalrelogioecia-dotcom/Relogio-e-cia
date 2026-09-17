@@ -71,6 +71,42 @@
 .admin-page .admin-table th,.admin-page .admin-table td{border-bottom-color:var(--admin-line);padding:13px 14px}
 .admin-page .status,.admin-page .dashboard-status,.admin-page .review-status,.admin-page .invoice-status{font-weight:700;border-width:1.5px}
 
+/* Usuários do Admin — sobrescreve a antiga camada injetada pelo JS sem tocar na lógica/permissões */
+.admin-page #tab-usuarios-admin{margin-top:22px!important;padding:0!important;background:transparent!important;color:var(--admin-ink)!important;border:0!important;box-shadow:none!important}
+.admin-page #tab-usuarios-admin .admin-toolbar{background:transparent!important;border:0!important;border-bottom:2px solid var(--admin-ink)!important;padding:0 0 14px!important;margin-bottom:20px!important}
+.admin-page #tab-usuarios-admin h2{font-size:1.65rem!important;line-height:1.15;color:var(--admin-ink)!important}
+.admin-page #tab-usuarios-admin h3{font-size:1.2rem;color:var(--admin-ink)!important}
+.admin-page #tab-usuarios-admin .admin-muted,.admin-page #tab-usuarios-admin .admin-users-help,.admin-page #tab-usuarios-admin .admin-user-editor-note{color:var(--admin-muted)!important;line-height:1.55}
+.admin-page #tab-usuarios-admin .admin-card{background:var(--admin-surface)!important;border:1px solid var(--admin-line-strong)!important;border-top:4px solid var(--admin-ink)!important;color:var(--admin-ink)!important;padding:22px!important;box-shadow:0 8px 24px rgba(0,0,0,.045)!important}
+.admin-page #tab-usuarios-admin label{color:var(--admin-ink)!important;font-weight:600!important}
+.admin-page #tab-usuarios-admin input,.admin-page #tab-usuarios-admin select{min-height:44px;background:var(--admin-surface)!important;color:var(--admin-ink)!important;border:1px solid var(--admin-line-strong)!important;padding:10px 12px}
+.admin-page #tab-usuarios-admin input:focus,.admin-page #tab-usuarios-admin select:focus{border-color:var(--admin-red)!important;outline:3px solid rgba(227,30,36,.22)!important}
+.admin-page #tab-usuarios-admin .admin-table-wrap{border:1px solid var(--admin-line-strong)!important;background:var(--admin-surface)!important;overflow-x:auto}
+.admin-page #tab-usuarios-admin .admin-table{width:100%;min-width:760px;border-collapse:collapse;color:var(--admin-ink)!important}
+.admin-page #tab-usuarios-admin .admin-table th{background:#ecece8!important;color:var(--admin-ink)!important;border-bottom:2px solid var(--admin-ink)!important;text-align:left;font-weight:700!important;padding:13px 14px!important;font-size:.72rem;letter-spacing:.055em}
+.admin-page #tab-usuarios-admin .admin-table td{background:var(--admin-surface)!important;color:var(--admin-ink)!important;border-bottom:1px solid var(--admin-line)!important;padding:13px 14px!important;vertical-align:middle;line-height:1.45}
+.admin-page #tab-usuarios-admin .admin-table tr:nth-child(even) td{background:var(--admin-surface-soft)!important}
+.admin-page #tab-usuarios-admin .admin-table tr:hover td{background:#fff3f3!important}
+.admin-page #tab-usuarios-admin .admin-table small{color:var(--admin-muted)!important}
+.admin-page #tab-usuarios-admin .admin-user-role,.admin-page #tab-usuarios-admin .admin-user-status{display:inline-flex;align-items:center;padding:5px 9px;border:1px solid var(--admin-line-strong)!important;background:var(--admin-surface)!important;color:var(--admin-ink)!important;border-radius:3px;font-size:.72rem;font-weight:700!important;white-space:nowrap}
+.admin-page #tab-usuarios-admin .admin-user-status.active{background:#edf7f1!important;color:#155f2d!important;border-color:#43815b!important}
+.admin-page #tab-usuarios-admin .admin-user-status.blocked{background:#fff0f0!important;color:#8a151a!important;border-color:#b05a5e!important}
+.admin-page #tab-usuarios-admin .admin-users-actions{display:flex;gap:8px;flex-wrap:wrap}
+.admin-page #tab-usuarios-admin .admin-users-actions button{white-space:nowrap;min-height:38px!important;border:1px solid var(--admin-line-strong)!important;font-weight:650!important}
+.admin-page #tab-usuarios-admin .admin-users-actions .btn-outline{background:var(--admin-surface)!important;color:var(--admin-ink)!important;border-color:var(--admin-line-strong)!important}
+.admin-page #tab-usuarios-admin .admin-users-actions .btn-outline:hover,.admin-page #tab-usuarios-admin .admin-users-actions .btn-outline:focus-visible{background:var(--admin-ink)!important;color:var(--admin-surface)!important;border-color:var(--admin-ink)!important}
+.admin-page #tab-usuarios-admin .admin-users-actions .admin-user-delete{background:var(--admin-red)!important;color:#fff!important;border-color:var(--admin-red)!important;font-weight:700!important}
+.admin-page #tab-usuarios-admin .admin-users-actions .admin-user-delete:hover,.admin-page #tab-usuarios-admin .admin-users-actions .admin-user-delete:focus-visible{filter:brightness(.82)}
+.admin-page #tab-usuarios-admin .admin-users-danger-note{margin:0 0 18px!important;padding:12px 14px!important;border:1px solid #d9a3a5!important;border-left:4px solid var(--admin-red)!important;background:#fff6f6!important;color:var(--admin-ink)!important;line-height:1.5}
+.admin-page .admin-user-badge{border:1px solid var(--admin-line-strong)!important;border-radius:3px!important;background:var(--admin-surface)!important;color:var(--admin-ink)!important;font-weight:600}
+.admin-page .admin-users-modal{background:var(--admin-surface)!important;color:var(--admin-ink)!important;border:1px solid var(--admin-line-strong)!important;border-top:5px solid var(--admin-ink)!important;box-shadow:0 24px 70px rgba(0,0,0,.3)!important;padding:24px!important}
+.admin-page .admin-users-modal h3{font-size:1.25rem!important;color:var(--admin-ink)!important}
+.admin-page .admin-users-modal p{color:var(--admin-muted)!important;line-height:1.55!important}
+.admin-page .admin-users-modal-actions button{min-height:42px!important;border:1px solid var(--admin-line-strong)!important;font-weight:650!important}
+.admin-page .admin-users-modal-cancel{background:var(--admin-surface)!important;color:var(--admin-ink)!important}
+.admin-page .admin-users-modal-confirm{background:var(--admin-red)!important;color:#fff!important;border-color:var(--admin-red)!important}
+.admin-page .admin-users-modal-close{background:var(--admin-ink)!important;color:var(--admin-surface)!important;border-color:var(--admin-ink)!important}
+
 /* Login */
 .admin-page .login-card{border-top:5px solid var(--admin-ink);padding:34px;box-shadow:0 14px 40px rgba(0,0,0,.07)}
 .admin-page .login-card .btn{width:100%;justify-content:center;margin-top:4px}
@@ -85,6 +121,8 @@
   .admin-page .admin-tabs button{min-height:44px;padding:10px 13px;border-right:1px solid var(--admin-line)}
   .admin-page .admin-toolbar,.admin-page .admin-module-toolbar{min-height:0}
   .admin-page .login-card{padding:26px 22px}
+  .admin-page #tab-usuarios-admin{padding:0!important}
+  .admin-page #tab-usuarios-admin .admin-toolbar{padding:0 0 12px!important}
 }
 
 html.reloja-dark .admin-page{
@@ -95,3 +133,8 @@ html.reloja-dark .admin-page .admin-card,html.reloja-dark .admin-page .dashboard
 html.reloja-dark .admin-page .form-field input,html.reloja-dark .admin-page .form-field textarea,html.reloja-dark .admin-page .form-field select,html.reloja-dark .admin-page .admin-module-controls select,html.reloja-dark .admin-page .btn-outline{background:#111;color:#f5f5f1;border-color:#666}
 html.reloja-dark .admin-page .admin-table th{background:#202020;color:#f5f5f1}
 html.reloja-dark .admin-page .admin-table td{background:#111;color:#f5f5f1}
+html.reloja-dark .admin-page #tab-usuarios-admin .admin-table th{background:#202020!important;color:#f5f5f1!important;border-bottom-color:#f5f5f1!important}
+html.reloja-dark .admin-page #tab-usuarios-admin .admin-table tr:hover td{background:#252020!important}
+html.reloja-dark .admin-page #tab-usuarios-admin .admin-users-danger-note{background:#251719!important;color:#f5f5f1!important;border-color:#8b464a!important}
+html.reloja-dark .admin-page #tab-usuarios-admin .admin-user-status.active{background:#13291c!important;color:#a9e5be!important}
+html.reloja-dark .admin-page #tab-usuarios-admin .admin-user-status.blocked{background:#2b1718!important;color:#ffb4b7!important}
