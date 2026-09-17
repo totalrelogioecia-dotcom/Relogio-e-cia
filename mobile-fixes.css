@@ -10,10 +10,6 @@
   display:none !important;
 }
 
-/* "Nossa loja" continua dentro da página Sobre e no rodapé, mas sai do menu principal. */
-.site-header .nav-links li:has(> a[href$="sobre.html#loja"]){
-  display:none !important;
-}
 
 /* Tamanho fixo da marca no cabeçalho */
 .brand-mark .brand-symbol{

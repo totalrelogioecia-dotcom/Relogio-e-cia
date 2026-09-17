@@ -77,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
   const utility = document.querySelector('.nav-utility');
-  const catalog = document.querySelector('.nav-cta');
   if (!toggle || !links) return;
 
   if (!links.querySelector('.nav-mobile-account')) {
@@ -87,24 +86,23 @@ document.addEventListener('DOMContentLoaded', () => {
     links.insertAdjacentHTML('beforeend', `
       <li class="nav-mobile-only nav-mobile-account"><a href="${escaparHtmlSeguro(accountHref)}">Minha conta</a></li>
       <li class="nav-mobile-only"><a href="${escaparHtmlSeguro(cartHref)}">Carrinho <span class="cart-badge" data-zero="1">0</span></a></li>
-      <li class="nav-mobile-only"><a href="${escaparHtmlSeguro(catalog?.getAttribute('href') || 'produtos.html')}">Ver catálogo</a></li>
     `);
     atualizarBadgeCarrinho();
   }
 
-  toggle.textContent = 'Mais';
-  toggle.setAttribute('aria-label', 'Abrir mais opções');
+  toggle.textContent = 'Menu';
+  toggle.setAttribute('aria-label', 'Abrir menu');
   toggle.addEventListener('click', () => {
     const open = links.classList.toggle('open');
-    toggle.textContent = open ? 'Fechar' : 'Mais';
-    toggle.setAttribute('aria-label', open ? 'Fechar mais opções' : 'Abrir mais opções');
+    toggle.textContent = open ? 'Fechar' : 'Menu';
+    toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
     toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
 
   links.addEventListener('click', event => {
     if (!event.target.closest('a')) return;
     links.classList.remove('open');
-    toggle.textContent = 'Mais';
+    toggle.textContent = 'Menu';
     toggle.setAttribute('aria-expanded', 'false');
   });
 });
