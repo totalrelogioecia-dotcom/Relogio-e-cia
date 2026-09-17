@@ -196,17 +196,8 @@
     document.querySelectorAll('.reloja-contrast-toggle').forEach(button => button.remove());
   }
 
-  function removeRedundantStoreNav() {
-    document.querySelectorAll('.site-header .nav-links a[href$="sobre.html#loja"]').forEach(link => {
-      const item = link.closest('li');
-      if (item) item.remove();
-      else link.remove();
-    });
-  }
-
   function cleanLegacyHeaderItems() {
     removeLegacyContrastButton();
-    removeRedundantStoreNav();
   }
 
   function watchLegacyHeader(nav) {

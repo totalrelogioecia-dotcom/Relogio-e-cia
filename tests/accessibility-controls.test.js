@@ -19,12 +19,12 @@ test('desktop mantém os controles em uma barra global fixa no canto inferior es
   assert.match(controls, /document\.body\.appendChild\(createGroup\('reloja-accessibility-global-rail'\)\)/);
 });
 
-test('cabeçalho remove contraste legado e item redundante Nossa loja', () => {
+test('cabeçalho remove apenas o controle de contraste legado', () => {
   assert.match(controls, /removeLegacyContrastButton/);
-  assert.match(controls, /removeRedundantStoreNav/);
-  assert.match(controls, /sobre\.html#loja/);
+  assert.doesNotMatch(controls, /removeRedundantStoreNav/);
+  assert.doesNotMatch(controls, /sobre\.html#loja/);
   assert.match(mobileFixes, /\.reloja-contrast-toggle\{[\s\S]*display:none !important/);
-  assert.match(mobileFixes, /a\[href\$="sobre\.html#loja"\]/);
+  assert.doesNotMatch(mobileFixes, /a\[href\$="sobre\.html#loja"\]/);
 });
 
 test('controles oferecem contraste, texto maior e modo escuro', () => {
