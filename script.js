@@ -64,7 +64,14 @@ function atualizarLinkConta() {
   const link = document.getElementById('nav-conta-link');
   if (!link) return;
   const sessao = sessaoAtual();
-  link.textContent = sessao ? sessao.nome.split(' ')[0] : 'Conta';
+  const nomeCompleto = String(sessao?.nome || '').trim();
+  const primeiroNome = nomeCompleto.split(/\s+/)[0] || 'Conta';
+  const label = document.createElement('span');
+  label.className = 'nav-account-label';
+  label.textContent = primeiroNome;
+  link.replaceChildren(label);
+  link.title = nomeCompleto ? `Conta de ${nomeCompleto}` : 'Conta';
+  link.setAttribute('aria-label', nomeCompleto ? `Conta de ${nomeCompleto}` : 'Conta');
 }
 
 document.addEventListener('DOMContentLoaded', () => {

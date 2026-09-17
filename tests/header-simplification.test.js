@@ -51,4 +51,6 @@ test('logo identifica a página inicial e menu móvel recria somente o acesso ne
   assert.match(style, /font-family:var\(--font-mono\);[\s\S]*font-size:\.76rem;[\s\S]*letter-spacing:\.06em/);
   assert.match(style, /\.site-header \.nav-cta\{[\s\S]*background:var\(--red\)/);
   assert.match(searchStyle, /font-weight:500;letter-spacing:\.06em/);
+  assert.match(script, /link\.setAttribute\('aria-label'/);
+  assert.match(style, /\.nav-account-label\{[\s\S]*max-width:12ch;[\s\S]*text-overflow:ellipsis/);
 });
