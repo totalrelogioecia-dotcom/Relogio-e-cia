@@ -41,7 +41,7 @@
         .slice(0,4);
       const section=document.querySelector('.related-section');if(!section)return;
       const head=section.querySelector('.related-head'),grid=section.querySelector('.related-grid');if(!grid)return;
-      if(head){const title=head.querySelector('h2'),eyebrow=head.querySelector('.eyebrow'),link=head.querySelector('a');if(title)title.textContent='Modelos que fazem sentido comparar';if(eyebrow)eyebrow.textContent='Pronta-entrega em destaque';if(link){link.href='produtos.html';link.textContent='Ver catálogo →'}}
+      if(head){const title=head.querySelector('h2'),eyebrow=head.querySelector('.eyebrow'),link=head.querySelector('a');if(title)title.textContent='Modelos que fazem sentido comparar';if(eyebrow)eyebrow.textContent='Recomendação técnica · pronta-entrega em destaque';if(link){link.href='produtos.html';link.textContent='Ver catálogo →'}}
       if(!recommendations.length)return;
       grid.innerHTML=recommendations.map(({product,reasons})=>{
         const photo=(Array.isArray(product.fotos)&&product.fotos.find(Boolean))||product.foto||'';
