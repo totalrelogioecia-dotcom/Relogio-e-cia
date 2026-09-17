@@ -36,8 +36,7 @@
       const list=Array.isArray(products)?products.filter(p=>p?.ativo!==false):[];
       const current=list.find(p=>Number(p.id)===currentId)||window.__relogioCurrentProduct;
       if(!current)return;
-      const recommendations=window.RelogioCatalogIntelligence
-        .recommend(current,list,details||{},list.length)
+      const recommendations=window.RelogioCatalogIntelligence.recommend(current,list,details||{},list.length)
         .sort((a,b)=>availabilityRank(a.product,details)-availabilityRank(b.product,details)||b.score-a.score||Number(a.product.id)-Number(b.product.id))
         .slice(0,4);
       const section=document.querySelector('.related-section');if(!section)return;
