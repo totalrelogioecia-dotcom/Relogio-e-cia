@@ -153,8 +153,10 @@
       }
 
       button.dataset.confirmRequestSent = '1';
-      button.removeAttribute('aria-disabled');
-      button.textContent = 'Enviado ✓ · abrir WhatsApp';
+      button.removeAttribute('href');
+      button.removeAttribute('target');
+      button.setAttribute('aria-disabled', 'true');
+      button.textContent = 'Solicitação enviada ✓';
       const action = await dialog({
         tone: 'success',
         kicker: data.duplicate ? 'Solicitação localizada' : 'Solicitação registrada',

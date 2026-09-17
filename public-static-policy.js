@@ -42,6 +42,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'catalog-intelligence.js',
   'catalog-mobile-filters.js',
   'catalog-product-links.js',
+  'catalog-progressive.js',
   'catalog-technical-filters.js',
   'conta.js',
   'enderecos.js',

@@ -53,7 +53,7 @@
     const availabilityHtml=preorder
       ? `<div class="product-availability-box preorder"><strong>Sob encomenda</strong><span>Prazo de preparação: ${availability.days} dias úteis. O prazo da transportadora começa depois da preparação.</span></div>`
       : confirmation
-        ? `<div class="product-availability-box confirmation"><strong>Pedido mediante confirmação</strong><span>Consulte a loja para confirmarmos a disponibilidade com o fornecedor antes do pagamento.</span></div>`
+        ? `<div class="product-availability-box confirmation"><strong>Pedido mediante confirmação</strong><span>Ao confirmar, a solicitação é enviada ao painel da loja. Para acelerar o atendimento, fale conosco pelo WhatsApp.</span></div>`
         : `<div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Esse produto encontra-se indisponível.'}</div>`;
 
     root.innerHTML=`
@@ -82,7 +82,7 @@
             ${confirmation
               ? `<a class="btn btn-primary" href="${whatsapp}" target="_blank" rel="noopener">Confirmar disponibilidade</a>`
               : `<button class="btn btn-primary" type="button" id="product-add" ${canBuy?'':'disabled'}>${canBuy?(preorder?'Adicionar sob encomenda':'Adicionar ao carrinho'):'Indisponível'}</button>`}
-            <a class="btn btn-outline" href="${whatsapp}" target="_blank" rel="noopener">Falar com a loja</a>
+            <a class="btn btn-outline" href="${whatsapp}" target="_blank" rel="noopener">Falar no WhatsApp</a>
           </div>
           ${canBuy?`<div class="product-shipping">
             <h3>Calcule a entrega</h3><p>${preorder?`O prazo abaixo considera a preparação de ${availability.days} dias úteis mais o transporte.`:'Veja preços e prazos para o seu CEP antes de adicionar o produto ao pedido.'}</p>

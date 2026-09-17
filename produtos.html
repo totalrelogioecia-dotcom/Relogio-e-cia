@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css?v=cards-1">
 <link rel="stylesheet" href="site-search.css">
-<link rel="stylesheet" href="catalog-filters.css">
+<link rel="stylesheet" href="catalog-filters.css?v=progressive-1">
 </head>
 <body>
 
@@ -43,7 +43,7 @@
       <div class="section-content">
         <p class="eyebrow">Catálogo</p>
         <h1 style="font-family:var(--font-display); font-size:clamp(1.9rem,3.4vw,2.7rem); margin:0 0 10px; font-weight:700; letter-spacing:-.01em;">Relógios e acessórios</h1>
-        <p style="color:var(--ink-soft); max-width:62ch; margin:0 0 40px;">Use os filtros para encontrar o relógio ideal por marca, movimento, tipo de mostrador, cor, materiais, categoria e faixa de preço.</p>
+        <p style="color:var(--ink-soft); max-width:62ch; margin:0 0 40px;">Use os filtros para encontrar o relógio ideal por marca, movimento, tipo de mostrador, cor, materiais, categoria e faixa de preço. Os modelos pronta-entrega aparecem primeiro e a situação de cada item é informada no card.</p>
 
         <div class="products-layout" style="padding-bottom:64px;">
           <aside class="filters">
@@ -56,18 +56,18 @@
 
             <fieldset class="filter-group" style="border:none; margin:0;">
               <legend>Marca</legend>
-              <label class="check-row"><input type="checkbox" name="marca" value="Technos"> Technos <span class="count">0</span></label>
-              <label class="check-row"><input type="checkbox" name="marca" value="Casio"> Casio <span class="count">0</span></label>
-              <label class="check-row"><input type="checkbox" name="marca" value="G-Shock"> G-Shock <span class="count">0</span></label>
-              <label class="check-row"><input type="checkbox" name="marca" value="Citizen"> Citizen <span class="count">0</span></label>
-              <label class="check-row"><input type="checkbox" name="marca" value="Orient"> Orient <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="Technos"> Technos <span class="count" aria-hidden="true">—</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="Casio"> Casio <span class="count" aria-hidden="true">—</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="G-Shock"> G-Shock <span class="count" aria-hidden="true">—</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="Citizen"> Citizen <span class="count" aria-hidden="true">—</span></label>
+              <label class="check-row"><input type="checkbox" name="marca" value="Orient"> Orient <span class="count" aria-hidden="true">—</span></label>
             </fieldset>
 
             <fieldset class="filter-group" style="border:none; margin:0;">
               <legend>Categoria</legend>
-              <label class="check-row"><input type="checkbox" name="categoria" value="Relógios"> Relógios <span class="count">0</span></label>
-              <label class="check-row"><input type="checkbox" name="categoria" value="Pulseiras"> Pulseiras <span class="count">0</span></label>
-              <label class="check-row"><input type="checkbox" name="categoria" value="Acessórios"> Acessórios <span class="count">0</span></label>
+              <label class="check-row"><input type="checkbox" name="categoria" value="Relógios"> Relógios <span class="count" aria-hidden="true">—</span></label>
+              <label class="check-row"><input type="checkbox" name="categoria" value="Pulseiras"> Pulseiras <span class="count" aria-hidden="true">—</span></label>
+              <label class="check-row"><input type="checkbox" name="categoria" value="Acessórios"> Acessórios <span class="count" aria-hidden="true">—</span></label>
             </fieldset>
 
             <fieldset class="filter-group" style="border:none; margin:0;">
@@ -117,7 +117,7 @@
 
           <div>
             <div class="products-toolbar">
-              <p class="result-count" id="result-count"><strong>0</strong> produtos encontrados</p>
+              <p class="result-count" id="result-count" role="status" aria-live="polite">Carregando catálogo…</p>
               <div class="sort-control">
                 <label for="ordenar">Ordenar por</label>
                 <select id="ordenar">
@@ -132,7 +132,17 @@
 
             <div class="catalog-active-filters" id="catalog-active-filters" hidden aria-live="polite" aria-label="Filtros selecionados"></div>
 
-            <div class="product-grid" id="product-grid"></div>
+            <div class="product-grid" id="product-grid" aria-busy="true">
+              <div class="catalog-loading-skeleton" role="status" aria-label="Carregando catálogo">
+                <span class="catalog-skeleton-card" aria-hidden="true"></span>
+                <span class="catalog-skeleton-card" aria-hidden="true"></span>
+                <span class="catalog-skeleton-card" aria-hidden="true"></span>
+                <span class="catalog-skeleton-card" aria-hidden="true"></span>
+                <span class="catalog-skeleton-card" aria-hidden="true"></span>
+                <span class="catalog-skeleton-card" aria-hidden="true"></span>
+                <span class="catalog-loading-label">Carregando catálogo…</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -187,6 +197,7 @@
 </footer>
 
 <script src="script.js?v=cards-2"></script>
+<script src="catalog-progressive.js?v=1"></script>
 <script src="legal-footer.js"></script>
 <script src="catalog-technical-filters.js"></script>
 <script src="catalog-mobile-filters.js?v=1"></script>
