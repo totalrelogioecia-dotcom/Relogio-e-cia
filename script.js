@@ -77,7 +77,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
   const utility = document.querySelector('.nav-utility');
+  const catalog = document.querySelector('.nav-cta');
   if (!toggle || !links) return;
+
+  if (!links.querySelector('.nav-mobile-catalog')) {
+    const catalogHref = catalog?.getAttribute('href') || 'produtos.html';
+    links.insertAdjacentHTML('afterbegin', `<li class="nav-mobile-only nav-mobile-catalog"><a href="${escaparHtmlSeguro(catalogHref)}">Produtos</a></li>`);
+  }
 
   if (!links.querySelector('.nav-mobile-account')) {
     const accountHref = utility?.querySelector('#nav-conta-link')?.getAttribute('href') || 'conta.html';

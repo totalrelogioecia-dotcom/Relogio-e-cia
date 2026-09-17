@@ -32,7 +32,9 @@ test('campos mobile crescem acima de 100 por cento sem perder o minimo do iPhone
   assert.match(enhancement, /not\(\[data-reloja-text-scale="100"\]\)[\s\S]*textarea\{font-size:1rem!important\}/);
 });
 
-test('cabecalho permite reflow em 130 e 140 por cento', () => {
-  assert.match(enhancement, /data-reloja-text-scale="130"[\s\S]*flex-wrap:wrap/);
-  assert.match(enhancement, /data-reloja-text-scale="140"[\s\S]*white-space:nowrap/);
+test('cabecalho vira menu em 130 e 140 por cento sem cortar ações', () => {
+  assert.match(enhancement, /data-reloja-text-scale="130"[\s\S]*flex-wrap:nowrap/);
+  assert.match(enhancement, /data-reloja-text-scale="140"[\s\S]*nav-links\.open/);
+  assert.match(enhancement, /data-reloja-text-scale="140"[\s\S]*nav-toggle[\s\S]*display:block/);
+  assert.doesNotMatch(enhancement, /flex-wrap:wrap/);
 });
