@@ -144,4 +144,9 @@ test('carregamentos e diálogos têm sintaxe válida e não alteram APIs globais
   assert.doesNotMatch(read('site-ui.js'), /window\.(?:fetch|alert|confirm)\s*=/);
   assert.match(read('modal-accessibility.js'), /sibling\.inert = true/);
   assert.match(read('modal-accessibility.js'), /event\.key === 'Escape'/);
+  assert.match(read('admin.js'), /label for="invoice-status"/);
+  assert.match(read('admin.js'), /label for="invoice-number"/);
+  assert.match(read('admin.js'), /label for="invoice-key"/);
+  assert.match(read('admin.html'), /label for="admin-email"/);
+  assert.match(read('admin.html'), /label for="admin-senha"/);
 });

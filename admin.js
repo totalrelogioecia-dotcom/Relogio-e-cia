@@ -189,9 +189,9 @@ function ensureInvoiceModal(){
     <h2 id="invoice-modal-title">Registrar NF-e</h2>
     <p class="admin-muted" id="invoice-order-label"></p>
     <div id="invoice-form-error" class="form-error" style="display:none"></div>
-    <div class="form-field"><label>Status</label><select id="invoice-status"><option value="pending">Pendente</option><option value="emitted">Emitida</option><option value="cancelled">Cancelada</option></select></div>
-    <div class="form-field"><label>Número da NF-e</label><input id="invoice-number" maxlength="40" placeholder="Ex.: 12345"></div>
-    <div class="form-field"><label>Chave de acesso</label><input id="invoice-key" inputmode="numeric" maxlength="44" placeholder="44 dígitos"></div>
+    <div class="form-field"><label for="invoice-status">Status</label><select id="invoice-status"><option value="pending">Pendente</option><option value="emitted">Emitida</option><option value="cancelled">Cancelada</option></select></div>
+    <div class="form-field"><label for="invoice-number">Número da NF-e</label><input id="invoice-number" maxlength="40" placeholder="Ex.: 12345"></div>
+    <div class="form-field"><label for="invoice-key">Chave de acesso</label><input id="invoice-key" inputmode="numeric" maxlength="44" placeholder="44 dígitos"></div>
     <p class="invoice-help">Para marcar como emitida, informe o número e a chave de acesso de 44 dígitos. O site apenas registra os dados da nota; a emissão continua sendo feita no sistema fiscal da empresa.</p>
     <div class="editor-actions"><button type="button" id="invoice-save" class="btn btn-primary">Salvar NF-e</button><button type="button" id="invoice-cancel" class="btn btn-outline">Fechar</button></div>
   </div>`;
