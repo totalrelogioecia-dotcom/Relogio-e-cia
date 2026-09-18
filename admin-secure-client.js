@@ -1,74 +1,33 @@
 (() => {
-  const TOKEN_KEY = 'reloja_admin_token';
-  const SESSION_MARKER = 'cookie-session';
-
-  function loadHeaderIdentity() {
-    if (document.querySelector('script[data-admin-header-identity]')) return;
-    const script = document.createElement('script');
-    script.src = 'admin-header-identity.js?v=2';
-    script.dataset.adminHeaderIdentity = '1';
-    script.async = true;
-    document.head.appendChild(script);
-  }
-
-  async function syncSession() {
-    try {
-      const response = await fetch('/api/admin/session', {
-        headers: { Accept: 'application/json' },
-        cache: 'no-store',
-        credentials: 'same-origin'
-      });
-      const data = await response.json().catch(() => ({}));
-      const marker = localStorage.getItem(TOKEN_KEY);
-
-      if (data.authenticated) {
-        // Remove qualquer token administrativo antigo que tenha ficado salvo
-        // no localStorage e mantém apenas um marcador sem valor de autenticação.
-        if (marker !== SESSION_MARKER) {
-          localStorage.setItem(TOKEN_KEY, SESSION_MARKER);
-          if (!marker) location.reload();
-        }
-        return;
-      }
-
-      if (marker) {
-        localStorage.removeItem(TOKEN_KEY);
-        location.reload();
-      }
-    } catch {
-      // Se a checagem falhar por indisponibilidade momentânea, não derruba
-      // a interface; as próprias APIs protegidas continuarão recusando acesso.
-    }
-  }
-
-  async function logout() {
+  'use strict';
+  const client = window.RelogioAdminClient;
+  if (!client) return;
+  let leaving = false;
+  client.logout = async function () {
+    if (leaving) return;
+    leaving = true;
     const button = document.getElementById('logout-btn');
-    if (button) {
-      button.disabled = true;
-      button.textContent = 'Saindo...';
-    }
+    const label = button?.textContent;
+    if (button) { button.disabled = true; button.textContent = 'Saindo…'; }
     try {
-      await fetch('/api/admin/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-        credentials: 'same-origin',
-        cache: 'no-store'
+      const response = await fetch('/api/admin/logout', {
+        method: 'POST', credentials: 'same-origin', cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' }, body: '{}'
       });
-    } catch {
-      // Mesmo se a rede falhar, removemos o marcador local. O cookie HttpOnly
-      // expira automaticamente e não é acessível ao JavaScript.
+      if (!response.ok) throw new Error('Não foi possível encerrar a sessão. Tente novamente.');
+      client.applySession(null);
+      document.getElementById('admin-email')?.focus();
+    } catch (error) {
+      await window.RelogioUI.notice(error.message || 'Falha de conexão ao sair. Tente novamente.');
     } finally {
-      localStorage.removeItem(TOKEN_KEY);
-      location.reload();
+      leaving = false;
+      if (button) { button.disabled = false; button.textContent = label; }
     }
-  }
-
-  loadHeaderIdentity();
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const logoutButton = document.getElementById('logout-btn');
-    if (logoutButton) logoutButton.onclick = logout;
-    syncSession();
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') client.syncSession();
+  });
+  window.addEventListener('storage', event => {
+    if (event.key === 'reloja_admin_token') client.syncSession();
   });
 })();

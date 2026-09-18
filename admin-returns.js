@@ -64,9 +64,10 @@
     const modal = document.createElement('div');
     modal.id = 'return-admin-modal';
     modal.className = 'return-admin-modal';
-    modal.innerHTML = `<div class="return-admin-dialog" role="dialog" aria-modal="true" aria-labelledby="return-admin-title"><button class="return-admin-close" type="button" aria-label="Fechar">×</button><p class="eyebrow">Pós-venda</p><h2 id="return-admin-title">Solicitação</h2><div id="return-admin-detail"></div><div class="return-admin-actions"><select id="return-admin-status"><option value="recebida">Recebida</option><option value="em_analise">Em análise</option><option value="aguardando_cliente">Aguardando cliente</option><option value="aprovada">Aprovada</option><option value="concluida">Concluída</option><option value="recusada">Não aprovada</option></select><button id="return-admin-save" class="btn btn-primary" type="button">Salvar status</button><textarea id="return-admin-note" placeholder="Observação visível ao cliente ao consultar o protocolo"></textarea></div></div>`;
+    modal.innerHTML = `<div class="return-admin-dialog" role="dialog" aria-modal="true" aria-labelledby="return-admin-title"><button class="return-admin-close" type="button" aria-label="Fechar">×</button><p class="eyebrow">Pós-venda</p><h2 id="return-admin-title">Solicitação</h2><div id="return-admin-detail"></div><div class="return-admin-actions"><label for="return-admin-status">Status da solicitação</label><select id="return-admin-status"><option value="recebida">Recebida</option><option value="em_analise">Em análise</option><option value="aguardando_cliente">Aguardando cliente</option><option value="aprovada">Aprovada</option><option value="concluida">Concluída</option><option value="recusada">Não aprovada</option></select><button id="return-admin-save" class="btn btn-primary" type="button">Salvar status</button><label for="return-admin-note">Observação para o cliente</label><textarea id="return-admin-note" placeholder="Observação visível ao cliente ao consultar o protocolo"></textarea></div></div>`;
     document.body.appendChild(modal);
     modal.querySelector('.return-admin-close').onclick = closeModal;
+    modal.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); closeModal(); } });
     modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
     $('#return-admin-save').onclick = saveRequest;
   }
@@ -91,7 +92,7 @@
       $('#return-admin-detail').innerHTML = `<div class="return-admin-grid"><div><strong>Cliente</strong><br>${esc(request.customer_name)}<br>${esc(request.email)}</div><div><strong>Pedido</strong><br>${esc(request.order_id)}${order ? `<br>${brl(order.total)} · ${esc(order.payment_status || order.status || '')}` : ''}</div><div><strong>Tipo</strong><br>${esc(typeLabel(request.type))}</div><div><strong>Motivo</strong><br>${esc(request.reason)}</div></div><p><strong>Itens do pedido</strong><br>${items}</p><p><strong>Mensagem do cliente</strong></p><div class="return-admin-message">${esc(request.message)}</div>${images ? `<p><strong>Anexos</strong></p><div class="return-admin-images">${images}</div>` : '<p><small>Sem imagens anexadas.</small></p>'}`;
       $('#return-admin-modal').classList.add('open');
     } catch (error) {
-      alert(error.message);
+      window.RelogioUI.notice(error.message);
     }
   }
 
@@ -108,7 +109,7 @@
       closeModal();
       await loadRequests();
     } catch (error) {
-      alert(error.message);
+      window.RelogioUI.notice(error.message);
     } finally {
       button.disabled = false;
       button.textContent = 'Salvar status';

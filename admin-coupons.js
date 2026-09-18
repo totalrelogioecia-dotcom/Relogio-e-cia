@@ -105,7 +105,7 @@
   }
 
   async function remove(coupon) {
-    if (!confirm(`Excluir o cupom ${coupon.code}?`)) return;
+    if (!await window.RelogioUI.confirm(`Excluir o cupom ${coupon.code}?`)) return;
     try {
       await api(`/api/admin/coupons/${coupon.id}`, { method: 'DELETE' });
       feedback('Cupom excluído.', true);

@@ -218,6 +218,11 @@
       if (button) cardAction(button);
     });
 
+    await loadAddresses();
+  }
+
+  async function loadAddresses() {
+    window.RelogioUI.loading(field('address-list'), 'Carregando endereços…');
     try {
       const data = await api('/api/auth/addresses', { method: 'GET' });
       addresses = data.addresses || [];
@@ -225,7 +230,8 @@
       render();
     } catch (error) {
       setStatus(error.message, 'error');
-    }
+      window.RelogioUI.error(field('address-list'), error.message, loadAddresses);
+    } finally { window.RelogioUI.ready(field('address-list')); }
   }
 
   document.addEventListener('DOMContentLoaded', start);

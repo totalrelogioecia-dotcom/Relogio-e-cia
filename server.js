@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
+const { authenticatedRequest } = require('./admin-session');
 const { registerStockAlertRoutes, queueStockAvailableEmails } = require('./stock-alerts');
 const { createPublicStaticGuard } = require('./public-static-policy');
 const { buildHomeCatalog } = require('./home-catalog');
@@ -33,36 +33,10 @@ registerStockAlertRoutes(app);
 app.use(createPublicStaticGuard());
 app.use(express.static(ROOT, { index: 'index.html' }));
 
-function safeEqual(a, b) {
-  const x = Buffer.from(String(a || ''));
-  const y = Buffer.from(String(b || ''));
-  return x.length === y.length && crypto.timingSafeEqual(x, y);
-}
-
-function makeToken(payload) {
-  const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
-  if (!secret) throw new Error('ADMIN_SESSION_SECRET não configurado.');
-  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const sig = crypto.createHmac('sha256', secret).update(body).digest('base64url');
-  return `${body}.${sig}`;
-}
-
-function validToken(value) {
-  try {
-    const [body, sig] = String(value || '').split('.');
-    if (!body || !sig) return false;
-    const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
-    if (!secret) return false;
-    const expected = crypto.createHmac('sha256', secret).update(body).digest('base64url');
-    if (!safeEqual(sig, expected)) return false;
-    const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
-    return payload.role === 'admin' && payload.exp > Date.now();
-  } catch { return false; }
-}
-
 function admin(req, res, next) {
-  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  if (!validToken(token)) return res.status(401).json({ error: 'Sessão administrativa inválida ou expirada.' });
+  const session = authenticatedRequest(req);
+  if (!session) return res.status(401).json({ error: 'Sessão administrativa inválida ou expirada.' });
+  req.admin = session;
   next();
 }
 
@@ -218,21 +192,8 @@ app.get('/api/casio-image', async (req, res) => {
   } catch { res.status(404).end(); }
 });
 
-app.post('/api/admin/login', (req, res) => {
-  try {
-    const email = String(req.body?.email || '').trim().toLowerCase();
-    const senha = String(req.body?.senha || '');
-    const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
-    const adminPass = String(process.env.ADMIN_PASSWORD || '');
-    const secret = String(process.env.ADMIN_SESSION_SECRET || '').trim();
-    if (!adminEmail || !adminPass || !secret) return res.status(503).json({ error: 'Painel administrativo não configurado.' });
-    if (!safeEqual(email, adminEmail) || !safeEqual(senha, adminPass)) return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
-    res.json({ token: makeToken({ role: 'admin', email: adminEmail, exp: Date.now() + 8 * 60 * 60 * 1000 }), admin: { email: adminEmail } });
-  } catch (error) {
-    console.error('Erro no login administrativo:', error);
-    res.status(500).json({ error: 'Não foi possível entrar no painel.' });
-  }
-});
+// Login, cookie, níveis de acesso e revogação pertencem exclusivamente ao
+// admin-security-bootstrap/admin-session carregados por startup.js.
 
 app.get('/api/admin/products', admin, (req, res) => res.json(getProducts()));
 app.post('/api/admin/products', admin, (req, res) => {

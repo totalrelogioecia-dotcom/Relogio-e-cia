@@ -135,7 +135,7 @@
 
     return new Promise(resolve => {
       activeResolve = resolve;
-      requestAnimationFrame(() => primary.focus());
+      requestAnimationFrame(() => (secondaryLabel ? secondary : primary).focus());
     });
   }
 

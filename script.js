@@ -283,75 +283,33 @@ function fotoCasio(sku, linha, variante) {
 }
 
 /* ---------- Catálogo de produtos ---------- */
-let PRODUTOS = [
-  { id:1,  nome:'Technos Legacy Automatic',      marca:'Technos',  categoria:'Relógios', preco:899.90,  sku:'TEC-LG-2201', desc:'Caixa em aço escovado 40mm, movimento automático visível pelo fundo em vidro mineral.' },
-  { id:2,  nome:'Technos Skydiver Solar',        marca:'Technos',  categoria:'Relógios', preco:649.00,  sku:'TEC-SK-1187', desc:'Carga solar, resistência a 100m e cronógrafo — ideal para o dia a dia ativo.' },
-  { id:3,  nome:'Technos Elos Feminino',         marca:'Technos',  categoria:'Relógios', preco:429.90,  sku:'TEC-EL-0942', desc:'Pulseira em malha milanesa, mostrador madrepérola e caixa 32mm.' },
-  { id:4,  nome:'Casio Vintage A168',            marca:'Casio',    categoria:'Relógios', preco:349.00,  sku:'CAS-A168-01', desc:'O clássico digital retrô, caixa dourada e alarme com iluminação LED.' },
-  { id:5,  nome:'Casio Edifice Cronógrafo',      marca:'Casio',    categoria:'Relógios', preco:799.00,  sku:'CAS-EDI-330', desc:'Inspirado na performance automotiva, taquímetro e resistência a 100m.' },
-  { id:6,  nome:'Casio Standard Digital F91W',   marca:'Casio',    categoria:'Relógios', preco:129.90,  sku:'CAS-F91W',    desc:'O digital mais vendido do mundo — leve, discreto e à prova d\'água.' },
-  { id:7,  nome:'G-Shock GA-2100 "CasiOak"',     marca:'G-Shock',  categoria:'Relógios', preco:1099.00, sku:'GSH-GA2100',  desc:'Estrutura em carbono ultrafina, resistente a choques e à água até 200m.' },
-  { id:8,  nome:'G-Shock Mudmaster',             marca:'G-Shock',  categoria:'Relógios', preco:2299.00, sku:'GSH-MUD-40',  desc:'Proteção total contra lama, choque e pressão barométrica para uso extremo.' },
-  { id:9,  nome:'G-Shock DW-5600 Clássico',      marca:'G-Shock',  categoria:'Relógios', preco:699.00,  sku:'GSH-DW5600',  desc:'O modelo original de 1983 em nova geração, resistência a choques garantida.' },
-  { id:10, nome:'Citizen Eco-Drive Sapphire',    marca:'Citizen',  categoria:'Relógios', preco:1899.00, sku:'CIT-ECO-778', desc:'Movimento alimentado por luz, nunca precisa trocar pilha. Vidro de safira.' },
-  { id:11, nome:'Citizen Promaster Diver',       marca:'Citizen',  categoria:'Relógios', preco:2599.00, sku:'CIT-PRO-200', desc:'Mergulho profissional, resistente a 200m, coroa protegida e luneta unidirecional.' },
-  { id:12, nome:'Citizen Elegance Feminino',     marca:'Citizen',  categoria:'Relógios', preco:1349.00, sku:'CIT-ELG-514', desc:'Design refinado com cristais aplicados e pulseira em aço banhado a ouro rosé.' },
-  { id:13, nome:'Orient Automatic Classic',      marca:'Orient',   categoria:'Relógios', preco:1199.00, sku:'ORI-AUT-621', desc:'Corda automática tradicional, visor do movimento e reserva de marcha de 40h.' },
-  { id:14, nome:'Orient King Diver',             marca:'Orient',   categoria:'Relógios', preco:1799.00, sku:'ORI-KD-303',  desc:'Ícone da mergulhia japonesa, caixa robusta e resistência a 200m.' },
-  { id:15, nome:'Orient Sports Chronograph',     marca:'Orient',   categoria:'Relógios', preco:949.00,  sku:'ORI-SPT-118', desc:'Cronógrafo esportivo com mostrador em camadas e pulseira em couro legítimo.' },
-
-  { id:16, nome:'Pulseira Couro Legítimo 20mm',  marca:'Universal', categoria:'Pulseiras', preco:79.90,  sku:'ACC-PUL-020', desc:'Couro curtido artesanalmente, disponível em preto, marrom e caramelo.' },
-  { id:17, nome:'Pulseira Aço Milanesa 18mm',    marca:'Universal', categoria:'Pulseiras', preco:119.90, sku:'ACC-PUL-018', desc:'Malha milanesa ajustável com fecho magnético, acabamento prata ou dourado.' },
-  { id:18, nome:'Pulseira Silicone Esportiva',   marca:'G-Shock',   categoria:'Pulseiras', preco:89.90,  sku:'GSH-PUL-SIL', desc:'Compatível com linha G-Shock, resistente a suor e água.' },
-  { id:19, nome:'Pulseira NATO Nylon',           marca:'Universal', categoria:'Pulseiras', preco:59.90,  sku:'ACC-PUL-NAT', desc:'Tecido balístico de alta resistência, estilo militar, várias cores.' },
-
-  { id:20, nome:'Pilha SR626SW (kit 2un)',       marca:'Universal', categoria:'Pilhas',    preco:19.90,  sku:'ACC-PIL-626', desc:'Pilha de óxido de prata para relógios de quartzo, alta durabilidade.' },
-  { id:21, nome:'Pilha CR2032 (kit 2un)',        marca:'Universal', categoria:'Pilhas',    preco:17.90,  sku:'ACC-PIL-2032',desc:'Compatível com a maioria dos relógios digitais e analógicos.' },
-  { id:22, nome:'Kit Pilhas Sortidas (10un)',    marca:'Universal', categoria:'Pilhas',    preco:69.90,  sku:'ACC-PIL-KIT', desc:'Kit com as pilhas mais usadas em relojoaria para reposição doméstica.' },
-
-  { id:23, nome:'Estojo Porta-Relógios 6 Nichos',marca:'Universal', categoria:'Acessórios', preco:189.90, sku:'ACC-EST-006', desc:'Estrutura em madeira laqueada com veludo interno, ideal para coleções.' },
-  { id:24, nome:'Kit Ferramentas Relojoeiro',    marca:'Universal', categoria:'Acessórios', preco:99.90,  sku:'ACC-FER-KIT', desc:'Chaves, alicates e abridores para troca de pilha e ajustes de pulseira.' },
-  { id:25, nome:'Protetor de Tela Curvo (3un)',  marca:'Universal', categoria:'Acessórios', preco:34.90,  sku:'ACC-PRO-003', desc:'Película curva de alta transparência para vidros de relógio esportivo.' },
-
-  /* ---- G-Shock (linha ampliada) ---- */
-  { id:26, nome:'G-Shock Rangeman GPR-H1000-9DR', marca:'G-Shock', categoria:'Relógios', preco:3999.00, sku:'GPR-H1000-9', desc:'Master of G com GPS integrado, monitor de frequência cardíaca no pulso e tela MIP de alto contraste, feito para expedições extremas.', fotos:[fotoCasio('GPR-H1000-9','gshock'), fotoCasio('GPR-H1000-9','gshock',true)] },
-  { id:27, nome:'G-Shock DW-5600UBB-1DR All Black', marca:'G-Shock', categoria:'Relógios', preco:479.00, sku:'DW-5600UBB-1', desc:'O clássico quadrado G-Shock em visual totalmente preto, resistência a choques e à água até 200m.', fotos:[fotoCasio('DW-5600UBB-1','gshock'), fotoCasio('DW-5600UBB-1','gshock',true)] },
-  { id:28, nome:'G-Shock GA-2100-1A "CasiOak"', marca:'G-Shock', categoria:'Relógios', preco:799.00, sku:'GA-2100-1A', desc:'Estrutura Carbon Core Guard ultrafina, formato octogonal que virou ícone, resistente a choques e à água até 200m.', fotos:[fotoCasio('GA-2100-1A','gshock'), fotoCasio('GA-2100-1A','gshock',true)] },
-  { id:29, nome:'G-Shock GA-2100-1A1 "CasiOak" Preto', marca:'G-Shock', categoria:'Relógios', preco:799.00, sku:'GA-2100-1A1', desc:'Versão monocromática preta do icônico GA-2100, caixa em resina com fibra de carbono e apenas 11,8mm de espessura.', fotos:[fotoCasio('GA-2100-1A1','gshock'), fotoCasio('GA-2100-1A1','gshock',true)] },
-  { id:30, nome:'G-Shock DW-5600UHR-1DR', marca:'G-Shock', categoria:'Relógios', preco:549.00, sku:'DW-5600UHR-1', desc:'Quadrado clássico da série 5600 com detalhes em vermelho, resistência a choques e à água até 200m.', fotos:[fotoCasio('DW-5600UHR-1','gshock'), fotoCasio('DW-5600UHR-1','gshock',true)] },
-  { id:31, nome:'G-Shock DW-5600RL-1DR', marca:'G-Shock', categoria:'Relógios', preco:599.00, sku:'DW-5600RL-1', desc:'Edição da série 5600 com padronagem exclusiva na pulseira, resistência a choques e à água até 200m.', fotos:[fotoCasio('DW-5600RL-1','gshock'), fotoCasio('DW-5600RL-1','gshock',true)] },
-  { id:32, nome:'G-Shock GA-100-1A4DR', marca:'G-Shock', categoria:'Relógios', preco:699.00, sku:'GA-100-1A4', desc:'Anadigi robusto com detalhes em verde, cronógrafo e resistência a choques e à água até 200m.', fotos:[fotoCasio('GA-100-1A4','gshock'), fotoCasio('GA-100-1A4','gshock',true)] },
-  { id:33, nome:'G-Shock GA-100-1A2DR', marca:'G-Shock', categoria:'Relógios', preco:699.00, sku:'GA-100-1A2', desc:'Anadigi robusto com detalhes em azul, cronógrafo e resistência a choques e à água até 200m.', fotos:[fotoCasio('GA-100-1A2','gshock'), fotoCasio('GA-100-1A2','gshock',true)] },
-  { id:34, nome:'G-Shock GA-100-1A1DR', marca:'G-Shock', categoria:'Relógios', preco:699.00, sku:'GA-100-1A1', desc:'Anadigi robusto totalmente preto, cronógrafo e resistência a choques e à água até 200m.', fotos:[fotoCasio('GA-100-1A1','gshock'), fotoCasio('GA-100-1A1','gshock',true)] },
-  { id:35, nome:'G-Shock G-7900-2DR Tábua de Maré', marca:'G-Shock', categoria:'Relógios', preco:599.00, sku:'G-7900-2', desc:'Linha G-Rescue com tábua de maré e fase lunar, ideal para atividades ao ar livre e esportes aquáticos.', fotos:[fotoCasio('G-7900-2','gshock'), fotoCasio('G-7900-2','gshock',true)] },
-  { id:36, nome:'G-Shock G-7900A-4DR Tábua de Maré', marca:'G-Shock', categoria:'Relógios', preco:599.00, sku:'G-7900A-4', desc:'Linha G-Rescue com tábua de maré e fase lunar em nova colorização, resistência a choques e à água até 200m.', fotos:[fotoCasio('G-7900A-4','gshock'), fotoCasio('G-7900A-4','gshock',true)] },
-  { id:37, nome:'G-Shock DW-5600UE-1DR', marca:'G-Shock', categoria:'Relógios', preco:449.00, sku:'DW-5600UE-1', desc:'O quadrado essencial da série 5600, simples, resistente e com o DNA original do G-Shock de 1983.', fotos:[fotoCasio('DW-5600UE-1','gshock'), fotoCasio('DW-5600UE-1','gshock',true)] },
-  { id:38, nome:'G-Shock DW-5750UE-1DR', marca:'G-Shock', categoria:'Relógios', preco:549.00, sku:'DW-5750UE-1', desc:'Variação da série 5600 com caixa levemente maior, resistência a choques e à água até 200m.', fotos:[fotoCasio('DW-5750UE-1','gshock'), fotoCasio('DW-5750UE-1','gshock',true)] },
-
-  /* ---- Casio Vintage / Standard ---- */
-  { id:39, nome:'Casio Vintage AQ-230A-1DMQ', marca:'Casio', categoria:'Relógios', preco:259.00, sku:'AQ-230A-1DMQ', desc:'Analógico-digital combinado em aço inox, calendário automático e cronômetro, visual atemporal.', fotos:[fotoCasio('AQ-230A-1DMQ','casio'), fotoCasio('AQ-230A-1DMQ','casio',true)] },
-  { id:40, nome:'Casio Vintage AQ-230A-7DMQ', marca:'Casio', categoria:'Relógios', preco:259.00, sku:'AQ-230A-7DMQ', desc:'Analógico-digital combinado em prata, calendário automático e cronômetro, visual atemporal.', fotos:[fotoCasio('AQ-230A-7DMQ','casio'), fotoCasio('AQ-230A-7DMQ','casio',true)] },
-  { id:41, nome:'Casio Vintage A158WA-1', marca:'Casio', categoria:'Relógios', preco:259.00, sku:'A158WA-1', desc:'O digital retrô mais icônico da Casio, caixa e pulseira em aço inox prateado, LED de fundo.', fotos:[fotoCasio('A158WA-1','casio'), fotoCasio('A158WA-1','casio',true)] },
-  { id:42, nome:'Casio Vintage LA680WA-1B', marca:'Casio', categoria:'Relógios', preco:219.00, sku:'LA680WA-1B', desc:'Digital vintage feminino, caixa compacta em preto, alarme e cronômetro.', fotos:[fotoCasio('LA680WA-1B','casio'), fotoCasio('LA680WA-1B','casio',true)] },
-  { id:43, nome:'Casio Vintage LA680WA-7', marca:'Casio', categoria:'Relógios', preco:219.00, sku:'LA680WA-7', desc:'Digital vintage feminino, caixa compacta prateada, alarme e cronômetro.', fotos:[fotoCasio('LA680WA-7','casio'), fotoCasio('LA680WA-7','casio',true)] },
-  { id:44, nome:'Casio Duro MDV-107D-1A1V', marca:'Casio', categoria:'Relógios', preco:459.00, sku:'MDV-107D-1A1V', desc:'Mergulhador robusto com resistência à água de 200m, luneta unidirecional e mostrador de alta legibilidade.', fotos:[fotoCasio('MDV-107D-1A1V','casio'), fotoCasio('MDV-107D-1A1V','casio',true)] },
-  { id:45, nome:'Casio Duro MDV-107D-1A3V', marca:'Casio', categoria:'Relógios', preco:459.00, sku:'MDV-107D-1A3V', desc:'Mergulhador robusto com resistência à água de 200m, detalhes em azul e luneta unidirecional.', fotos:[fotoCasio('MDV-107D-1A3V','casio'), fotoCasio('MDV-107D-1A3V','casio',true)] },
-  { id:46, nome:'Casio Duro MDV-107D-1A2V', marca:'Casio', categoria:'Relógios', preco:459.00, sku:'MDV-107D-1A2V', desc:'Mergulhador robusto com resistência à água de 200m, detalhes em verde e luneta unidirecional.', fotos:[fotoCasio('MDV-107D-1A2V','casio'), fotoCasio('MDV-107D-1A2V','casio',true)] },
-  { id:47, nome:'Casio Vintage LA670WGA-1', marca:'Casio', categoria:'Relógios', preco:289.00, sku:'LA670WGA-1', desc:'Digital vintage feminino em tom dourado, caixa fina e visual elegante.', fotos:[fotoCasio('LA670WGA-1','casio'), fotoCasio('LA670WGA-1','casio',true)] },
-  { id:48, nome:'Casio Vintage LA670WGA-9', marca:'Casio', categoria:'Relógios', preco:289.00, sku:'LA670WGA-9', desc:'Digital vintage feminino em tom dourado claro, caixa fina e visual elegante.', fotos:[fotoCasio('LA670WGA-9','casio'), fotoCasio('LA670WGA-9','casio',true)] },
-  { id:49, nome:'Casio Vintage A171WEG-9A', marca:'Casio', categoria:'Relógios', preco:329.00, sku:'A171WEG-9A', desc:'Digital retrô em banho dourado, pulseira em aço inox e visual sofisticado.', fotos:[fotoCasio('A171WEG-9A','casio'), fotoCasio('A171WEG-9A','casio',true)] },
-  { id:50, nome:'Casio Vintage B640WB-1A', marca:'Casio', categoria:'Relógios', preco:349.00, sku:'B640WB-1A', desc:'Digital vintage com caixa preta e detalhes dourados, pulseira em aço inox.', fotos:[fotoCasio('B640WB-1A','casio'), fotoCasio('B640WB-1A','casio',true)] },
-  { id:51, nome:'Casio Vintage LA670WA-1', marca:'Casio', categoria:'Relógios', preco:249.00, sku:'LA670WA-1', desc:'Digital vintage feminino em prata, caixa fina e pulseira em aço inox.', fotos:[fotoCasio('LA670WA-1','casio'), fotoCasio('LA670WA-1','casio',true)] },
-  { id:52, nome:'Casio Vintage B640WC-5A', marca:'Casio', categoria:'Relógios', preco:349.00, sku:'B640WC-5A', desc:'Digital vintage com caixa em tom ouro rosé, pulseira em aço inox.', fotos:[fotoCasio('B640WC-5A','casio'), fotoCasio('B640WC-5A','casio',true)] },
-  { id:53, nome:'Casio Vintage A159WGEA-1', marca:'Casio', categoria:'Relógios', preco:309.00, sku:'A159WGEA-1', desc:'Digital retrô com caixa preta e dourada, pulseira em aço inox banhado a ouro.', fotos:[fotoCasio('A159WGEA-1','casio'), fotoCasio('A159WGEA-1','casio',true)] },
-  { id:54, nome:'Casio Vintage AQ-230GA-9DMQ', marca:'Casio', categoria:'Relógios', preco:289.00, sku:'AQ-230GA-9DMQ', desc:'Analógico-digital combinado em tom dourado, calendário automático e cronômetro.', fotos:[fotoCasio('AQ-230GA-9DMQ','casio'), fotoCasio('AQ-230GA-9DMQ','casio',true)] },
-];
+let PRODUTOS = []; // Apenas a API oficial preenche o catálogo.
 
 /* ---------- Carregamento do catálogo pelo backend ---------- */
 let catalogoCarregamento = null;
+let catalogoErro = null;
+const catalogoCallbacks = new Set();
+
+function tentarCatalogoNovamente() {
+  catalogoCarregamento = null;
+  catalogoErro = null;
+  catalogoCallbacks.forEach(callback => quandoCatalogoPronto(callback));
+}
+
+function mostrarErroCatalogo() {
+  ['product-grid', 'home-selection-grid', 'cart-list'].forEach(id => {
+    const host = document.getElementById(id);
+    if (host) window.RelogioUI.error(host, 'Não foi possível carregar os produtos. Nenhuma disponibilidade pode ser confirmada agora.', tentarCatalogoNovamente);
+  });
+  const count = document.getElementById('result-count');
+  if (count) count.textContent = 'Catálogo temporariamente indisponível';
+}
 
 function quandoCatalogoPronto(callback) {
+  catalogoCallbacks.add(callback);
   if (!catalogoCarregamento) {
+    catalogoErro = null;
+    ['product-grid', 'home-selection-grid', 'cart-list'].forEach(id => window.RelogioUI.loading(document.getElementById(id), 'Carregando produtos…'));
     const endpointCatalogo = document.querySelector('#marcas .brand-index')
       ? '/api/products/home'
       : '/api/products';
@@ -363,16 +321,20 @@ function quandoCatalogoPronto(callback) {
       .then(produtos => {
         if (!Array.isArray(produtos)) throw new Error('Resposta de produtos inválida.');
         // O backend é a fonte oficial do catálogo.
-        if (produtos.length) PRODUTOS = produtos;
+        PRODUTOS = produtos;
+        ['product-grid', 'home-selection-grid', 'cart-list'].forEach(id => window.RelogioUI.ready(document.getElementById(id)));
         return PRODUTOS;
       })
       .catch(err => {
-        // Mantém o catálogo embutido como fallback caso a API fique temporariamente indisponível.
+        // Nunca anuncia preço ou disponibilidade de um catálogo antigo após falha.
         console.error('Não foi possível carregar o catálogo do servidor:', err);
+        catalogoErro = err;
+        PRODUTOS = [];
+        mostrarErroCatalogo();
         return PRODUTOS;
       });
   }
-  return catalogoCarregamento.then(() => callback());
+  return catalogoCarregamento.then(() => { if (!catalogoErro) return callback(); });
 }
 
 /* ---------- Lógica da página de produtos ---------- */

@@ -154,7 +154,7 @@
       window.setTimeout(() => $('#product-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
       return;
     }
-    window.alert('Não foi possível abrir o produto automaticamente. Procure-o na lista de produtos.');
+    window.RelogioUI.notice('Não foi possível abrir o produto automaticamente. Procure-o na lista de produtos.');
   }
 
   async function loadStoreHealth() {

@@ -8,8 +8,43 @@ let currentInvoiceOrder=null;
 
 async function api(url,opts={}){opts.headers={...(opts.headers||{}),Authorization:`Bearer ${token()}`,'Content-Type':'application/json'};const r=await fetch(url,opts);const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Erro');return d;}
 function msg(text,ok=false){const e=$('#admin-msg');e.className=ok?'form-success':'form-error';e.textContent=text;e.style.display='block';setTimeout(()=>e.style.display='none',3500);}
-function showDash(admin=null){ $('#login-screen').style.display='none';$('#dashboard').style.display='block';if(admin&&admin.access_level!=='atendimento')loadProducts(); }
-async function login(){try{const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('#admin-email').value,senha:$('#admin-senha').value})});const d=await r.json();if(!r.ok)throw Error(d.error);localStorage.setItem(tokenKey,d.token);showDash(d.admin);}catch(e){const m=$('#login-msg');m.textContent=e.message;m.style.display='block';}}
+let loginPending=false;
+let sessionRevision=0;
+let sessionIdentity=null;
+function applyAdminSession(admin=null){
+  const switched=admin?.id!==sessionIdentity?.id;
+  sessionRevision++;
+  sessionIdentity=admin;
+  const authenticated=Boolean(admin);
+  if(authenticated)localStorage.setItem(tokenKey,'cookie-session');
+  else localStorage.removeItem(tokenKey);
+  $('#login-screen').style.display=authenticated?'none':'block';
+  $('#dashboard').style.display=authenticated?'block':'none';
+  $('#dashboard').setAttribute('aria-busy','false');
+  if(authenticated&&switched){
+    document.querySelectorAll('#dashboard > [id^="tab-"]').forEach(panel=>panel.style.display=panel.id==='tab-overview'?'block':'none');
+    document.querySelectorAll('.admin-tabs button').forEach(button=>button.classList.toggle('active',button.dataset.tab==='overview'));
+  }
+  if(!authenticated){$('#admin-senha').value='';$('#products-list').replaceChildren();$('#orders-list').replaceChildren();}
+  window.dispatchEvent(new CustomEvent('reloja:admin-session',{detail:{authenticated,admin}}));
+  if(admin&&admin.access_level!=='atendimento')loadProducts();
+}
+function showDash(admin=null){if(admin)applyAdminSession(admin);}
+async function login(){
+  if(loginPending)return;
+  loginPending=true;
+  const button=$('#login-btn');const previous=button.textContent;
+  button.disabled=true;button.textContent='Entrando…';button.setAttribute('aria-busy','true');
+  $('#login-msg').style.display='none';
+  try{
+    const r=await fetch('/api/admin/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('#admin-email').value,senha:$('#admin-senha').value})});
+    const d=await r.json();if(!r.ok)throw Error(d.error||'Não foi possível entrar.');
+    if(!d.admin)throw Error('Resposta de sessão inválida.');
+    $('#admin-senha').value='';showDash(d.admin);
+  }catch(e){const m=$('#login-msg');m.textContent=e.message;m.style.display='block';}
+  finally{loginPending=false;button.disabled=false;button.textContent=previous;button.removeAttribute('aria-busy');}
+}
+window.RelogioAdminClient={applySession:applyAdminSession,get admin(){return sessionIdentity;}};
 
 function resetPhotos(){currentPhotos=[];renderPhotoPreview();}
 function setPhotos(list){currentPhotos=Array.isArray(list)?list.filter(Boolean).slice(0,MAX_PHOTOS):[];renderPhotoPreview();}
@@ -77,14 +112,14 @@ function setupPhotoDropzone(){
 function fill(p){
   $('#p-id').value=p?.id||'';$('#p-nome').value=p?.nome||'';$('#p-marca').value=p?.marca||'';$('#p-categoria').value=p?.categoria||'Relógios';$('#p-sku').value=p?.sku||'';$('#p-preco').value=p?.preco??'';$('#p-estoque').value=p?.estoque??0;$('#p-desc').value=p?.desc||'';$('#p-fotos').value=(p?.fotos||[]).filter(x=>!String(x).startsWith('data:image/')).join('\n');setPhotos((p?.fotos||[]));$('#p-ativo').checked=p?.ativo!==false;$('#editor-title').textContent=p?'Editar produto':'Novo produto';$('#product-editor').style.display='block';window.scrollTo({top:0,behavior:'smooth'});
 }
-async function loadProducts(){try{const ps=await api('/api/admin/products');$('#products-list').innerHTML=`<table class="admin-table"><thead><tr><th>Produto</th><th>SKU</th><th>Preço</th><th>Estoque</th><th>Status</th><th>Ações</th></tr></thead><tbody>${ps.map(p=>`<tr><td><strong>${esc(p.nome)}</strong><br><small>${esc(p.marca)}</small></td><td>${esc(p.sku)}</td><td>${brl(p.preco)}</td><td>${p.estoque}</td><td>${p.ativo!==false?'Ativo':'Oculto'}</td><td><div class="admin-actions"><button data-edit="${p.id}">Editar</button>${p.ativo!==false?`<button data-del="${p.id}">Ocultar</button>`:''}<button data-delete-permanent="${p.id}" data-product-name="${escAttr(p.nome)}">Excluir</button></div></td></tr>`).join('')}</tbody></table>`;ps.forEach(p=>{const b=document.querySelector(`[data-edit="${p.id}"]`);if(b)b.onclick=()=>fill(p);const d=document.querySelector(`[data-del="${p.id}"]`);if(d)d.onclick=()=>delProduct(p.id);const x=document.querySelector(`[data-delete-permanent="${p.id}"]`);if(x)x.onclick=()=>deleteProductPermanently(p.id,p.nome);});}catch(e){msg(e.message);}}
+async function loadProducts(){const revision=sessionRevision;window.RelogioUI.loading($('#products-list'),'Carregando produtos…');try{const ps=await api('/api/admin/products');if(revision!==sessionRevision)return;$('#products-list').innerHTML=`<table class="admin-table"><thead><tr><th>Produto</th><th>SKU</th><th>Preço</th><th>Estoque</th><th>Status</th><th>Ações</th></tr></thead><tbody>${ps.map(p=>`<tr><td><strong>${esc(p.nome)}</strong><br><small>${esc(p.marca)}</small></td><td>${esc(p.sku)}</td><td>${brl(p.preco)}</td><td>${p.estoque}</td><td>${p.ativo!==false?'Ativo':'Oculto'}</td><td><div class="admin-actions"><button data-edit="${p.id}">Editar</button>${p.ativo!==false?`<button data-del="${p.id}">Ocultar</button>`:''}<button data-delete-permanent="${p.id}" data-product-name="${escAttr(p.nome)}">Excluir</button></div></td></tr>`).join('')}</tbody></table>`;ps.forEach(p=>{const b=document.querySelector(`[data-edit="${p.id}"]`);if(b)b.onclick=()=>fill(p);const d=document.querySelector(`[data-del="${p.id}"]`);if(d)d.onclick=()=>delProduct(p.id);const x=document.querySelector(`[data-delete-permanent="${p.id}"]`);if(x)x.onclick=()=>deleteProductPermanently(p.id,p.nome);});}catch(e){if(revision===sessionRevision)window.RelogioUI.error($('#products-list'),e.message,loadProducts);}finally{if(revision===sessionRevision)window.RelogioUI.ready($('#products-list'));}}
 async function saveProduct(){
   const id=$('#p-id').value;
   const urlPhotos=$('#p-fotos').value.split('\n').map(x=>x.trim()).filter(Boolean);
   const body={nome:$('#p-nome').value,marca:$('#p-marca').value,categoria:$('#p-categoria').value,sku:$('#p-sku').value,preco:Number($('#p-preco').value),estoque:Number($('#p-estoque').value),desc:$('#p-desc').value,fotos:[...currentPhotos,...urlPhotos].slice(0,MAX_PHOTOS),ativo:$('#p-ativo').checked};
   try{await api(id?`/api/admin/products/${id}`:'/api/admin/products',{method:id?'PUT':'POST',body:JSON.stringify(body)});$('#product-editor').style.display='none';msg('Produto salvo com sucesso.',true);loadProducts();}catch(e){msg(e.message);}
 }
-async function delProduct(id){if(!confirm('Ocultar este produto da loja?'))return;try{await api('/api/admin/products/'+id,{method:'DELETE'});msg('Produto ocultado.',true);loadProducts();}catch(e){msg(e.message);}}
+async function delProduct(id){if(!await window.RelogioUI.confirm('Ocultar este produto da loja?'))return;try{await api('/api/admin/products/'+id,{method:'DELETE'});msg('Produto ocultado.',true);loadProducts();}catch(e){msg(e.message);}}
 let productDeleteResolver=null;
 function ensureProductDeleteModal(){
   if($('#product-delete-modal'))return;
@@ -206,27 +241,34 @@ async function saveInvoice(){
   finally{btn.disabled=false;btn.textContent='Salvar NF-e';}
 }
 async function loadOrders(){
+  const revision=sessionRevision;
+  window.RelogioUI.loading($('#orders-list'),'Carregando pedidos…');
   try{
     const os=await api('/api/admin/orders');
+    if(revision!==sessionRevision)return;
     $('#orders-list').innerHTML=`<table class="admin-table orders-table"><thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Pagamento</th><th>Nota fiscal</th><th>Data</th><th>Ações</th></tr></thead><tbody>${os.map(o=>`<tr><td><strong>${esc(o.id)}</strong></td><td>${esc(o.payer?.nome||'')}<br><small>${esc(o.payer?.email||'')}</small></td><td>${brl(o.total)}</td><td><span class="status ${escAttr(o.status)}">${esc(o.payment_status||o.status)}</span>${o.stock_conflict?'<br><small class="form-error">Estoque insuficiente — revisar antes de faturar</small>':''}</td><td>${invoiceCell(o)}</td><td>${new Date(o.created_at).toLocaleString('pt-BR')}</td><td><div class="admin-actions">${paidOrder(o)&&!o.stock_conflict?`<button data-invoice="${escAttr(o.id)}">${invoiceStatus(o)==='pending'?'Registrar NF-e':'Editar NF-e'}</button>`:`<button disabled title="${o.stock_conflict?'Revise o estoque ou cancele e estorne o pedido':'Aguarde a confirmação do pagamento'}">Registrar NF-e</button>`}</div></td></tr>`).join('')||'<tr><td colspan="7">Nenhum pedido ainda.</td></tr>'}</tbody></table>`;
     os.forEach(o=>{const b=document.querySelector(`[data-invoice="${CSS.escape(String(o.id))}"]`);if(b)b.onclick=()=>openInvoiceModal(o);});
-  }catch(e){msg(e.message);}
+  }catch(e){if(revision===sessionRevision)window.RelogioUI.error($('#orders-list'),e.message,loadOrders);}
+  finally{if(revision===sessionRevision)window.RelogioUI.ready($('#orders-list'));}
 }
 function brl(v){return Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-$('#login-btn').onclick=login;$('#admin-senha').onkeydown=e=>{if(e.key==='Enter')login()};$('#logout-btn').onclick=()=>{localStorage.removeItem(tokenKey);location.reload()};$('#novo-produto').onclick=()=>{resetPhotos();fill()};$('#salvar-produto').onclick=saveProduct;$('#cancelar-produto').onclick=()=>$('#product-editor').style.display='none';$('#refresh-orders').onclick=loadOrders;
+$('#login-btn').onclick=login;$('#admin-senha').onkeydown=e=>{if(e.key==='Enter')login()};$('#logout-btn').onclick=()=>window.RelogioAdminClient.logout?.();$('#novo-produto').onclick=()=>{resetPhotos();fill()};$('#salvar-produto').onclick=saveProduct;$('#cancelar-produto').onclick=()=>$('#product-editor').style.display='none';$('#refresh-orders').onclick=loadOrders;
 document.querySelectorAll('.admin-tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.admin-tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');const p=b.dataset.tab==='produtos';$('#tab-produtos').style.display=p?'block':'none';$('#tab-pedidos').style.display=p?'none':'block';if(!p)loadOrders();});
 setupPhotoDropzone();
 ensureInvoiceModal();
 ensureProductDeleteModal();
 async function restoreDash(){
-  if(!token())return;
-  showDash();
+  const revision=sessionRevision;
   try{
     const r=await fetch('/api/admin/session',{headers:{Accept:'application/json'},cache:'no-store',credentials:'same-origin'});
     const d=await r.json().catch(()=>({}));
-    if(r.ok&&d.authenticated&&d.admin)showDash(d.admin);
-  }catch{}
+    if(!r.ok)throw Error('Não foi possível verificar sua sessão.');
+    if(revision!==sessionRevision)return;
+    const admin=d.authenticated?d.admin:null;
+    if(JSON.stringify(admin)!==JSON.stringify(sessionIdentity)||$('#dashboard').style.display==='none'&&admin)applyAdminSession(admin);
+  }catch{const m=$('#login-msg');m.textContent='Não foi possível verificar sua sessão. Tente entrar novamente.';m.style.display='block';}
 }
+window.RelogioAdminClient.syncSession=restoreDash;
 restoreDash();

@@ -259,9 +259,7 @@
 
   function applyRoleVisibility() {
     if (!currentAdmin) return;
-    if (currentAdmin.access_level === 'atendimento') {
-      ['produtos', 'cupons', 'audit'].forEach(tab => { const button = document.querySelector(`.admin-tabs [data-tab="${tab}"]`); if (button) button.style.display = 'none'; });
-    }
+    ['produtos', 'cupons', 'audit'].forEach(tab => { const button = document.querySelector(`.admin-tabs [data-tab="${tab}"]`); if (button) button.style.display = currentAdmin.access_level === 'atendimento' ? 'none' : ''; });
   }
 
   function openUsersTab() {
@@ -322,10 +320,10 @@
       const changedOwnPassword = editingId && currentAdmin?.id === editingId && Boolean(password);
       closeEditor();
       if (changedOwnPassword || response.session_invalidated) {
-        alert('A alteração foi salva. Por segurança, entre novamente com sua senha.');
+        await window.RelogioUI.notice('A alteração foi salva. Por segurança, entre novamente com sua senha.');
         await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {});
         localStorage.removeItem(TOKEN_KEY);
-        location.reload();
+        window.RelogioAdminClient.applySession(null);
         return;
       }
       await loadUsers();
@@ -392,7 +390,7 @@
   async function syncIdentity() {
     try {
       const session = await api('/api/admin/session');
-      if (!session.authenticated || !session.admin) return;
+      if (!session.authenticated || !session.admin) { currentAdmin = null; return; }
       currentAdmin = session.admin;
       const loginCopy = document.querySelector('#login-screen .admin-muted');
       if (loginCopy) loginCopy.textContent = 'Entre com seu usuário administrativo.';
@@ -406,7 +404,9 @@
     addStyles();
     ensureModal();
     syncIdentity();
-    const loginButton = $('#login-btn');
-    if (loginButton) loginButton.addEventListener('click', () => setTimeout(syncIdentity, 350));
+    window.addEventListener('reloja:admin-session', event => {
+      if (event.detail.authenticated) syncIdentity();
+      else { currentAdmin = null; users = []; closeEditor(); }
+    });
   });
 })();

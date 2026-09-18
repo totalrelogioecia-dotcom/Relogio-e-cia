@@ -237,18 +237,25 @@
   async function loadOrders() {
     const box = document.getElementById('account-box');
     if (!box) return;
+    if (!box.querySelector('.account-profile')) return;
     if (loading) return;
     loading = true;
+    let panel = document.getElementById('account-orders-panel');
+    if (!panel) { panel = document.createElement('section'); panel.id = 'account-orders-panel'; panel.className = 'account-orders-panel'; box.appendChild(panel); }
+    window.RelogioUI.loading(panel, 'Carregando seus pedidos…');
     try {
       const response = await fetch('/api/auth/orders', { credentials: 'same-origin', headers: { Accept: 'application/json' }, cache: 'no-store' });
       if (response.status === 401) {
         document.getElementById('account-orders-panel')?.remove();
         return;
       }
-      if (!response.ok) return;
+      if (!response.ok) throw new Error('Não foi possível carregar seus pedidos.');
       const data = await response.json().catch(() => ({}));
       render(Array.isArray(data.orders) ? data.orders : []);
+    } catch (error) {
+      window.RelogioUI.error(panel, error.message || 'Falha de conexão ao carregar os pedidos.', loadOrders);
     } finally {
+      window.RelogioUI.ready(panel);
       loading = false;
     }
   }

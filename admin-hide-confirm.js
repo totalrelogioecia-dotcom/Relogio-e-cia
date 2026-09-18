@@ -202,7 +202,7 @@
       button.disabled = false;
       button.textContent = old;
       if (typeof window.msg === 'function') window.msg(error.message || 'Não foi possível liberar a compra.');
-      else window.alert(error.message || 'Não foi possível liberar a compra.');
+      else window.RelogioUI.notice(error.message || 'Não foi possível liberar a compra.');
     }
   }
 
@@ -234,7 +234,7 @@
       button.disabled = false;
       button.textContent = old;
       if (typeof window.msg === 'function') window.msg(error.message || 'Não foi possível revogar a liberação.');
-      else window.alert(error.message || 'Não foi possível revogar a liberação.');
+      else window.RelogioUI.notice(error.message || 'Não foi possível revogar a liberação.');
     }
   }
 
@@ -254,7 +254,7 @@
       if (typeof window.loadProducts === 'function') await window.loadProducts();
     } catch (error) {
       if (typeof window.msg === 'function') window.msg(error.message || 'Não foi possível ocultar o produto.');
-      else window.alert(error.message || 'Não foi possível ocultar o produto.');
+      else window.RelogioUI.notice(error.message || 'Não foi possível ocultar o produto.');
     }
   }
 

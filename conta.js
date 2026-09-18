@@ -305,9 +305,11 @@
   async function iniciar() {
     const box = getBox();
     if (!box) return;
+    window.RelogioUI.loading(box, 'Carregando sua conta…');
 
     const resetToken = new URLSearchParams(location.search).get('reset_token');
     if (resetToken) {
+      window.RelogioUI.ready(box);
       renderReset(resetToken);
       return;
     }
@@ -318,12 +320,15 @@
     try {
       const data = await api('/api/auth/me');
       saveSession(data.user);
+      window.RelogioUI.ready(box);
       renderLogado(data.user);
       return;
-    } catch {
+    } catch (error) {
+      if (error.status !== 401) { window.RelogioUI.error(box, error.message, iniciar); return; }
       clearSession();
     }
 
+    window.RelogioUI.ready(box);
     renderDeslogado();
   }
 

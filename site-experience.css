@@ -1,0 +1,66 @@
+/* Camada comum de estados e legibilidade; mantém as cores e a identidade. */
+.ui-loading{display:flex;align-items:center;justify-content:center;gap:.65rem;min-height:3rem;padding:1rem;color:var(--ink-soft,#555);font:400 .9rem/1.5 var(--font-body,sans-serif)}
+.ui-spinner,button[data-ui-busy]::before{display:inline-block;flex:0 0 auto;width:1rem;height:1rem;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:ui-spin .8s linear infinite;vertical-align:middle}
+button[data-ui-busy]::before{content:"";margin-right:.6rem}
+.ui-error{grid-column:1/-1;padding:1.5rem;border:1px solid var(--line,#ccc);color:var(--ink,#111);background:var(--bg-soft,#fafafa)}
+.ui-error p{margin:0 0 1rem;line-height:1.6}
+.ui-modal-open{overflow:hidden}
+@keyframes ui-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.ui-spinner,button[data-ui-busy]::before{animation:none}.home-selection-card,.home-selection-card img{transition:none}}
+
+/* A apresentação ocupa menos espaço; a seleção fica antes da lista de marcas. */
+body .hero .frame>div:last-child{padding-top:36px}
+body .hero-inner{gap:32px;padding-bottom:30px;grid-template-columns:minmax(0,1.4fr) minmax(240px,.6fr)}
+body .hero h1{font-size:clamp(2rem,3.3vw,3rem);max-width:24ch;margin-bottom:18px}
+body .hero p.lede{max-width:64ch;font-size:1rem;margin-bottom:24px}
+body .hero-actions{margin-bottom:24px;gap:12px}
+body .hero-stats div{padding-top:12px}
+body .hero-stats div strong{font-size:1.55rem}
+body .hero-stats div span{font-size:.75rem;letter-spacing:.06em}
+body .clock-panel{padding:12px 0 0 28px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+body .clock-panel .stopwatch-label{font-size:.75rem;letter-spacing:.1em;text-align:center}
+body .clock-panel .clock-face-wrap{width:min(240px,100%);height:auto;aspect-ratio:1}
+body .clock-panel .stopwatch-caption{font-size:.85rem;line-height:1.5;max-width:32ch;margin:16px 0 0;text-align:center}
+.home-selection{padding:36px max(24px,calc((100vw - 1260px)/2));border-bottom:1px solid var(--line)}
+.home-selection-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:20px}
+.home-selection-head h2{margin:0 0 8px;font:700 clamp(1.5rem,2.4vw,2rem)/1.2 var(--font-display,sans-serif)}
+.home-selection-head p{margin:0;color:var(--ink-soft);font-size:.95rem;max-width:65ch}
+.home-selection-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;min-height:300px}
+.home-selection-grid>.ui-loading{grid-column:1/-1;align-self:center}
+.home-selection-card{display:flex;flex-direction:column;min-width:0;border:1px solid var(--line);background:var(--bg);padding:14px;color:var(--ink);text-decoration:none;transition:border-color .2s}
+.home-selection-card:hover,.home-selection-card:focus-visible{border-color:var(--red);outline:2px solid var(--red);outline-offset:3px}
+.home-selection-photo{height:160px;display:grid;place-items:center;margin-bottom:12px}
+.home-selection-photo img{width:100%;height:100%;object-fit:contain;display:block}
+.home-selection-ref{font:500 .75rem/1.5 var(--font-mono,monospace);color:var(--muted);overflow-wrap:anywhere}
+.home-selection-card h3{margin:6px 0 10px;font:600 1rem/1.4 var(--font-body,sans-serif);overflow-wrap:anywhere}
+.home-selection-price{margin-top:auto;font:700 1.12rem/1.5 var(--font-display,sans-serif)}
+.home-selection-status{display:block;font:500 .8rem/1.5 var(--font-body,sans-serif);margin:8px 0 0;color:var(--ink-soft)}
+.home-selection-link{font-size:.85rem;text-decoration:underline;margin-top:8px}
+body #marcas .brand-showcase.is-open{height:auto;max-height:none}
+body #marcas .brand-showcase-head{height:auto;min-height:64px;flex-wrap:wrap}
+body #marcas .brand-showcase-viewport{height:auto;contain:layout paint;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--red) var(--bg-soft);padding-bottom:8px}
+body #marcas .brand-showcase-track{height:auto;align-items:stretch}
+body #marcas .home-watch-card{height:auto;min-height:0;display:flex;flex-direction:column}
+body #marcas .home-watch-photo{height:160px;flex:0 0 160px}
+body #marcas .home-watch-body{display:flex;flex-direction:column;align-items:stretch;flex:1;gap:8px;padding:12px}
+body #marcas .home-watch-body h3{font-size:1rem;line-height:1.4;margin:0;white-space:normal;overflow-wrap:anywhere}
+body #marcas .home-watch-ref,body #marcas .brand-showcase-kicker{font-size:.75rem;letter-spacing:.02em}
+body #marcas .home-watch-price{text-align:left;font-size:1rem;margin-top:auto}
+body #marcas .home-watch-actions{justify-content:flex-start;flex-wrap:wrap}
+body #marcas .home-watch-actions .btn{font-size:.75rem;min-height:44px;padding:10px}
+body #marcas .brand-showcase-footer{font-size:.8rem;height:auto;min-height:36px}
+body #marcas .brand-showcase-viewport::-webkit-scrollbar{display:block;height:6px}
+body #marcas .brand-showcase-viewport::-webkit-scrollbar-thumb{background:var(--red)}
+.card-sku,.card-category,.product-ref,.product-category,.related-availability strong,.related-availability small{font-size:.75rem;line-height:1.5}
+.reloja-dialog .reloja-dialog__kicker,.reloja-dialog .reloja-dialog__button{font-size:.8rem}
+body #sobre-teaser .rail{display:none}
+body #sobre-teaser .frame{grid-template-columns:1fr}
+body #sobre-teaser .frame>div:last-child{padding:40px 36px}
+.admin-secondary{margin:20px 0;border:1px solid var(--line,#ccc);padding:16px}
+.admin-secondary>summary{cursor:pointer;font:600 1rem/1.5 var(--font-body,sans-serif);min-height:44px;display:list-item}
+.admin-secondary[open]>summary{margin-bottom:16px}
+body .admin-muted,body .dashboard-note{font-size:.85rem;line-height:1.6}
+@media(max-width:1000px){body .hero-inner{grid-template-columns:minmax(0,1fr) 260px}.home-selection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){body .hero-inner{grid-template-columns:1fr;padding:0 24px 24px;gap:24px}body .hero .frame>div:last-child{padding-top:24px}body .clock-panel{border-left:0;border-top:1px solid var(--line);padding:20px 0 0}body .clock-panel .clock-face-wrap{width:180px}body .hero h1{font-size:2rem}.home-selection{padding:28px 20px}.home-selection-head{align-items:start;flex-direction:column}.home-selection-grid{gap:10px}.home-selection-card{padding:10px}.home-selection-photo{height:130px}.home-selection-card h3{font-size:.9rem}body #marcas .home-watch-card{flex-basis:82%;width:82%;max-width:82%}body #sobre-teaser .frame>div:last-child{padding:32px 24px}}
+@media(max-width:360px){.home-selection-grid{grid-template-columns:1fr}}
+@media(hover:none){.home-watch-card:hover,.card:hover{transform:none}.home-watch-card:hover img,.card:hover img{scale:1}}

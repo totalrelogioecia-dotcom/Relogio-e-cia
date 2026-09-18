@@ -19,6 +19,7 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'admin-hide-confirm.js',
   'admin-invoice-files.js',
   'admin-login-refresh.js',
+  'admin-icon-system.js',
   'admin-melhorenvio.js',
   'admin-order-cancellation.js',
   'admin-order-shipping.js',
@@ -69,6 +70,8 @@ const PUBLIC_BROWSER_SCRIPTS = new Set([
   'shipping-addresses.js',
   'shipping-cart.js',
   'site-dialog.js',
+  'site-ui.js',
+  'modal-accessibility.js',
   'site-search.js'
 ]);
 

@@ -165,13 +165,13 @@
       setTimeout(loadConfirmations, 950);
     } catch (error) {
       if (button) { button.disabled = false; button.textContent = old; }
-      alert(error.message);
+      window.RelogioUI.notice(error.message);
     }
   }
 
   async function releasePurchase(id) {
     if (!canManagePurchaseAuthorization()) {
-      alert('Somente Gerente ou Proprietário pode liberar a compra.');
+      window.RelogioUI.notice('Somente Gerente ou Proprietário pode liberar a compra.');
       return;
     }
     const row = document.querySelector(`[data-confirmation-row="${CSS.escape(String(id))}"]`);
@@ -179,7 +179,7 @@
     const quantity = Math.max(1, Math.min(9, Number(row.querySelector('[data-release-quantity]')?.value) || 1));
     const hours = Math.max(1, Math.min(168, Number(row.querySelector('[data-release-hours]')?.value) || 48));
     const button = row.querySelector('[data-release-purchase]');
-    if (!confirm(`Confirmar a disponibilidade e liberar ${quantity} unidade(s) para este cliente por ${hours} hora(s)?`)) return;
+    if (!await window.RelogioUI.confirm(`Confirmar a disponibilidade e liberar ${quantity} unidade(s) para este cliente por ${hours} hora(s)?`)) return;
     const old = button?.textContent || 'Confirmar e liberar compra';
     if (button) { button.disabled = true; button.textContent = 'Liberando...'; }
     try {
@@ -190,16 +190,16 @@
       await loadConfirmations();
     } catch (error) {
       if (button) { button.disabled = false; button.textContent = old; }
-      alert(error.message);
+      window.RelogioUI.notice(error.message);
     }
   }
 
   async function revokePurchase(id) {
     if (!canManagePurchaseAuthorization()) {
-      alert('Somente Gerente ou Proprietário pode revogar a liberação.');
+      window.RelogioUI.notice('Somente Gerente ou Proprietário pode revogar a liberação.');
       return;
     }
-    if (!confirm('Revogar a liberação deste cliente? O link deixará de permitir a compra.')) return;
+    if (!await window.RelogioUI.confirm('Revogar a liberação deste cliente? O link deixará de permitir a compra.')) return;
     try {
       await api(`/api/admin/availability-requests/${encodeURIComponent(id)}/revoke-purchase`, {
         method: 'POST',
@@ -207,12 +207,12 @@
       });
       await loadConfirmations();
     } catch (error) {
-      alert(error.message);
+      window.RelogioUI.notice(error.message);
     }
   }
 
   async function copyPurchaseLink(id, link) {
-    if (!link) return alert('Esta liberação não possui link ativo.');
+    if (!link) return window.RelogioUI.notice('Esta liberação não possui link ativo.');
     try {
       await navigator.clipboard.writeText(link);
       const button = document.querySelector(`[data-copy-purchase="${CSS.escape(String(id))}"]`);
@@ -341,6 +341,8 @@
     $('#refresh-confirmations')?.addEventListener('click', loadConfirmations);
     $('#refresh-store-cancellations')?.addEventListener('click', loadCancellations);
   }
+
+  window.addEventListener('reloja:admin-session', event => { currentAccessLevel = event.detail.admin?.access_level || ''; });
 
   document.addEventListener('DOMContentLoaded', () => {
     addStyles();

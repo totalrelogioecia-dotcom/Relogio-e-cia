@@ -207,7 +207,7 @@
       overviewLoaded = false;
       await loadReviews();
     } catch (error) {
-      alert(error.message);
+      window.RelogioUI.notice(error.message);
       button.disabled = false;
       button.textContent = old;
     }
@@ -256,6 +256,8 @@
     const active = document.querySelector('.admin-tabs button.active')?.dataset?.tab;
     if (!active || active === 'produtos' || active === 'overview') showOwnTab('overview');
   }
+
+  window.addEventListener('reloja:admin-session', event => { overviewLoaded = false; if (event.detail.authenticated) loadDashboard(true); });
 
   document.addEventListener('DOMContentLoaded', () => {
     const tabs = document.querySelector('.admin-tabs');

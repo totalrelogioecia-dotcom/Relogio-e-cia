@@ -132,7 +132,10 @@
     addStyles();
     ensureShell();
     syncIdentity();
-    document.getElementById('login-btn')?.addEventListener('click', () => setTimeout(syncIdentity, 500));
+    window.addEventListener('reloja:admin-session', event => {
+      if (event.detail.authenticated) render(event.detail.admin);
+      else { currentAdmin = null; close(); ensureShell().hidden = true; }
+    });
   }
 
   document.addEventListener('click', close);

@@ -128,7 +128,7 @@
       if (!data.url) throw new Error('O servidor não retornou a URL de autorização.');
       location.href = data.url;
     } catch (error) {
-      alert(error.message);
+      window.RelogioUI.notice(error.message);
       if (button) { button.disabled = false; button.textContent = 'Conectar Melhor Envio'; }
     }
   }

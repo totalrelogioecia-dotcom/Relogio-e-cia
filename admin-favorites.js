@@ -27,7 +27,6 @@
       .admin-loading-copy strong,.admin-loading-copy small{display:block}
       .admin-loading-copy strong{font-family:var(--font-display);font-size:1rem}
       .admin-loading-copy small{margin-top:3px;color:var(--ink-soft,#5f5f5f)}
-      .admin-loading-spinner{width:22px;height:22px;flex:0 0 22px;border:2px solid var(--line-strong,#b8b8b8);border-top-color:var(--red,#d71920);animation:admin-loading-spin .75s linear infinite}
       .admin-loading-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
       .admin-loading-card{min-height:132px;padding:18px;border:2px solid var(--line-strong,#b8b8b8);border-top:5px solid var(--ink,#151515);background:var(--paper,#fff)}
       .admin-loading-line{display:block;height:9px;margin-bottom:12px;background:var(--line,#dedede);animation:admin-loading-pulse 1.05s ease-in-out infinite alternate}
@@ -37,7 +36,7 @@
       html.reloja-dark .admin-loading-card{border-color:var(--line-strong,#555);border-top-color:var(--red,#ff4a50);background:var(--bg-soft,#181818)}
       html.reloja-high-contrast .admin-loading-card{border:2px solid #000!important;border-top-width:5px!important;background:#fff!important}
       html.reloja-high-contrast .admin-loading-line{background:#000!important}
-      @keyframes admin-loading-spin{to{transform:rotate(360deg)}}
+      
       @keyframes admin-loading-pulse{from{opacity:.38}to{opacity:.9}}
       @media(max-width:760px){.admin-loading-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
       @media(max-width:460px){.admin-loading-cards{grid-template-columns:1fr}.admin-loading-card:nth-child(n+3){display:none}}
@@ -55,7 +54,7 @@
     loader.setAttribute('aria-live','polite');
     loader.setAttribute('aria-atomic','true');
     loader.innerHTML=`
-      <div class="admin-loading-copy"><span class="admin-loading-spinner" aria-hidden="true"></span><span><strong>Preparando o painel</strong><small>Carregando permissões e áreas administrativas...</small></span></div>
+      <div class="admin-loading-copy"><span class="admin-loading-spinner ui-spinner" aria-hidden="true"></span><span><strong>Preparando o painel</strong><small>Carregando permissões e áreas administrativas...</small></span></div>
       <div class="admin-loading-cards" aria-hidden="true">
         <span class="admin-loading-card"><span class="admin-loading-line short"></span><span class="admin-loading-line medium"></span><span class="admin-loading-line"></span></span>
         <span class="admin-loading-card"><span class="admin-loading-line short"></span><span class="admin-loading-line medium"></span><span class="admin-loading-line"></span></span>
@@ -120,7 +119,7 @@
       const hubCards=document.querySelectorAll('#admin-hub .admin-hub-card').length;
       const badge=document.getElementById('admin-user-badge');
       const badgeReady=Boolean(badge&&String(badge.textContent||'').trim());
-      const ownerCardReady=accessLevel!=='owner'||Boolean(document.querySelector('#admin-hub [data-hub-tab="usuarios-admin"]'));
+      const ownerCardReady=accessLevel!=='owner'||Boolean(document.querySelector('.admin-identity'));
       const ready=dashboardVisible()&&hubCards>0&&badgeReady&&ownerCardReady&&finalAccessibilityReady();
       stableFrames=ready?stableFrames+1:0;
       if(stableFrames>=3||performance.now()-started>DASHBOARD_STABILITY_TIMEOUT_MS){
@@ -179,7 +178,7 @@
 
   function clickTab(tab){const b=document.querySelector(`.admin-tabs button[data-tab="${CSS.escape(tab)}"]`);if(b){b.click();return true}return false}
   function visibleHubItems(){return HUB_ITEMS.filter(item=>{const button=document.querySelector(`.admin-tabs button[data-tab="${CSS.escape(item.tab)}"]`);return button&&!button.hidden&&getComputedStyle(button).display!=='none'})}
-  function renderHubCards(hub){const grid=hub?.querySelector('.admin-hub-grid');if(!grid)return;const items=visibleHubItems();const signature=items.map(item=>item.tab).join('|');if(grid.dataset.signature===signature)return;grid.dataset.signature=signature;grid.innerHTML=items.map(i=>`<button type="button" class="admin-hub-card" data-hub-tab="${esc(i.tab)}"><span class="admin-hub-icon" aria-hidden="true">${i.icon}</span><span><strong>${esc(i.title)}</strong><small>${esc(i.text)}</small></span><span class="admin-hub-open">Abrir área →</span></button>`).join('');grid.querySelectorAll('[data-hub-tab]').forEach(b=>b.addEventListener('click',()=>{if(!clickTab(b.dataset.hubTab))alert('Esta área ainda está carregando. Tente novamente em um instante.')}))}
+  function renderHubCards(hub){const grid=hub?.querySelector('.admin-hub-grid');if(!grid)return;const items=visibleHubItems();const signature=items.map(item=>item.tab).join('|');if(grid.dataset.signature===signature)return;grid.dataset.signature=signature;grid.innerHTML=items.map(i=>`<button type="button" class="admin-hub-card" data-hub-tab="${esc(i.tab)}"><span class="admin-hub-icon" aria-hidden="true">${i.icon}</span><span><strong>${esc(i.title)}</strong><small>${esc(i.text)}</small></span><span class="admin-hub-open">Abrir área →</span></button>`).join('');grid.querySelectorAll('[data-hub-tab]').forEach(b=>b.addEventListener('click',()=>{if(!clickTab(b.dataset.hubTab))window.RelogioUI.notice('Esta área ainda está carregando. Tente novamente em um instante.')}))}
   function ensureBreadcrumb(){if(document.getElementById('admin-module-breadcrumb'))return;const dash=document.getElementById('dashboard');if(!dash)return;const crumb=document.createElement('div');crumb.id='admin-module-breadcrumb';crumb.className='admin-module-breadcrumb';crumb.innerHTML='<button type="button" class="admin-back-hub">← Central administrativa</button><span class="admin-current-module"></span>';const tabs=document.querySelector('.admin-tabs');tabs?.insertAdjacentElement('afterend',crumb);crumb.querySelector('.admin-back-hub').addEventListener('click',()=>clickTab('overview'));const sync=()=>{const active=document.querySelector('.admin-tabs button.active');const tab=active?.dataset.tab||'overview';const visible=tab!=='overview';crumb.classList.toggle('visible',visible);crumb.querySelector('.admin-current-module').textContent=visible?(active.textContent||'').replace(/^[^\wÀ-ÿ]+/,'').trim():''};document.querySelector('.admin-tabs')?.addEventListener('click',()=>setTimeout(sync,0));const tabHost=document.querySelector('.admin-tabs');if(tabHost)new MutationObserver(sync).observe(tabHost,{attributes:true,subtree:true,attributeFilter:['class']});sync()}
   function installHub(){const overview=document.getElementById('tab-overview');if(!overview)return;let hub=document.getElementById('admin-hub');if(!hub){hub=document.createElement('section');hub.id='admin-hub';hub.className='admin-hub';hub.innerHTML='<div class="admin-hub-head"><div><p class="eyebrow">Central administrativa</p><h2>Escolha uma área para administrar</h2><p>O painel abre somente o módulo que você precisa, sem deixar todas as opções disputando espaço.</p></div></div><div class="admin-hub-grid"></div>';overview.prepend(hub)}renderHubCards(hub);ensureBreadcrumb()}
 

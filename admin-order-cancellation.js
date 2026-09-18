@@ -74,6 +74,7 @@
       if (event.target === modal) closeModal();
     });
     document.getElementById('store-cancel-close').addEventListener('click', closeModal);
+    modal.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); closeModal(); } });
     document.getElementById('store-cancel-confirm').addEventListener('change', event => {
       document.getElementById('store-cancel-submit').disabled = !event.target.checked;
     });

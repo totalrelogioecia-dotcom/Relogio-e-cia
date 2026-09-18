@@ -342,8 +342,41 @@
     });
   }
 
+  function iniciarSelecaoVisivel() {
+    const host = document.getElementById('home-selection-grid');
+    if (!host || typeof quandoCatalogoPronto !== 'function') return;
+    quandoCatalogoPronto(() => {
+      const active = PRODUTOS.filter(produto => produto?.ativo !== false && ehRelogio(produto));
+      const available = active.filter(produtoDisponivel);
+      const candidates = available.length ? available : active;
+      const selected = [];
+      const brands = new Set();
+      for (const product of candidates) {
+        if (!brands.has(product.marca)) { selected.push(product); brands.add(product.marca); }
+        if (selected.length === 4) break;
+      }
+      for (const product of candidates) {
+        if (selected.length === 4) break;
+        if (!selected.includes(product)) selected.push(product);
+      }
+      window.RelogioUI.ready(host);
+      if (!selected.length) { host.innerHTML = '<p>Nenhum produto disponível no catálogo neste momento.</p>'; return; }
+      host.innerHTML = selected.map(product => {
+        const name = escapeHtml(product.nome || 'Relógio');
+        const photo = fotoProduto(product);
+        const status = produtoDisponivel(product) ? 'Pronta-entrega · estoque cadastrado' : 'Sem unidade em pronta-entrega';
+        return `<a class="home-selection-card" href="produto.html?id=${encodeURIComponent(product.id)}">
+          <span class="home-selection-photo">${photo ? `<img src="${escapeHtml(photo)}" alt="${name}" loading="lazy" width="240" height="160" onerror="tratarErroFoto(this)">` : '<span>Foto em breve</span>'}</span>
+          <span class="home-selection-ref">${escapeHtml(product.marca)} · ${escapeHtml(product.sku || '')}</span>
+          <h3>${name}</h3><span class="home-selection-price">${formatarPreco(Number(product.preco || 0))}</span>
+          <span class="home-selection-status">${status}</span><span class="home-selection-link">Ver detalhes e disponibilidade</span></a>`;
+      }).join('');
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     iniciarRelogioBrasilia();
+    iniciarSelecaoVisivel();
     iniciarMostruariosMarcas();
   });
 })();
