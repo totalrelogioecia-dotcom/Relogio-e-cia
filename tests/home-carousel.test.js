@@ -118,6 +118,26 @@ test('loop volta ao primeiro slide; interação pausa sem recriar controles foca
   app.controls.children[2].emit('click'); assert.equal(app.photo().src,'/image-2'); assert.equal(app.tick,null);
   app.stage.emit('pointerdown',{clientX:200}); app.stage.emit('pointerup',{clientX:100}); assert.equal(app.photo().src,'/image-3');
 });
+test('controles compactos usam bolinhas e ícone com descrição acessível e alvo de 44px', async () => {
+  const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]});
+  await new Promise(resolve=>setImmediate(resolve));
+  const dots=app.controls.querySelectorAll('[data-slide]');
+  assert.equal(dots.length,2);
+  assert.equal(dots[0].textContent,'');
+  assert.equal(dots[0].attrs['aria-label'],'Mostrar slide 1');
+  assert.equal(dots[0].attrs['aria-current'],'true');
+  const play=app.controls.querySelector('[data-play]'),icon=play.children[0];
+  assert.equal(play.textContent,'');
+  assert.equal(icon.attrs['aria-hidden'],'true');
+  assert.equal(play.dataset.state,'pause');
+  assert.equal(play.attrs['aria-label'],'Pausar troca automática');
+  play.emit('click');
+  assert.equal(play.dataset.state,'play');
+  assert.equal(play.attrs['aria-label'],'Reproduzir troca automática');
+  assert.equal(play.children[0],icon);
+  assert.match(read('home-carousel.css'),/width:44px;height:44px;min-width:44px;min-height:44px/);
+  assert.match(read('home-carousel.css'),/home-carousel-dots button::before.*width:8px;height:8px/);
+});
 test('movimento reduzido impede avanço automático e ausência de fotos não mostra controles', async () => {
   const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]},true);
   await new Promise(resolve=>setImmediate(resolve));

@@ -18,7 +18,7 @@
     clearInterval(timer); timer = null;
     if (playing && !reduced.matches && !document.hidden && visible && slides.length > 1) timer = setInterval(() => show(index + 1), interval * 1000);
     const play = controls.querySelector('[data-play]');
-    if (play) { play.textContent = playing ? 'Pausar' : 'Reproduzir'; play.setAttribute('aria-label', playing ? 'Pausar troca automática' : 'Reproduzir troca automática'); play.disabled = reduced.matches; }
+    if (play) { const label = playing ? 'Pausar troca automática' : 'Reproduzir troca automática'; play.dataset.state = playing ? 'pause' : 'play'; play.setAttribute('aria-label', label); play.setAttribute('title', label); play.disabled = reduced.matches; }
     stage.setAttribute('aria-live', playing ? 'off' : 'polite');
   }
   function pause() { playing = false; schedule(); }
@@ -46,8 +46,9 @@
     const previous = button('←', () => { pause(); show(index - 1); }); previous.setAttribute('aria-label', 'Slide anterior');
     const next = button('→', () => { pause(); show(index + 1); }); next.setAttribute('aria-label', 'Próximo slide');
     const dots = document.createElement('div'); dots.className = 'home-carousel-dots';
-    slides.forEach((slide, n) => { const b = button(String(n + 1), () => { pause(); show(n); }); b.dataset.slide = n; b.setAttribute('aria-label', `Mostrar slide ${n + 1}`); dots.append(b); });
-    const play = button('Pausar', () => { playing = !playing && !reduced.matches; schedule(); }); play.dataset.play = '1';
+    slides.forEach((slide, n) => { const b = button('', () => { pause(); show(n); }); b.dataset.slide = n; b.setAttribute('aria-label', `Mostrar slide ${n + 1}`); dots.append(b); });
+    const play = button('', () => { playing = !playing && !reduced.matches; schedule(); }); play.dataset.play = '1';
+    const icon = document.createElement('span'); icon.className = 'home-carousel-play-icon'; icon.setAttribute('aria-hidden', 'true'); play.append(icon);
     controls.append(previous, dots, next, play);
   }
   root.addEventListener('pointerenter', pause);

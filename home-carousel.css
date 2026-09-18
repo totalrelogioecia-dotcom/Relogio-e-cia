@@ -6,12 +6,20 @@
 .home-carousel-placeholder span{font-family:var(--font-mono,monospace);font-size:.85rem;letter-spacing:.13em;color:var(--red,#e51b23)}
 .home-carousel-placeholder strong{font-family:var(--font-display,sans-serif);font-size:clamp(1.5rem,3vw,2.5rem);line-height:1.2}
 .home-carousel-placeholder p{max-width:40ch;color:var(--ink-soft,#555);margin:0;font-size:1rem}
-.home-carousel-controls{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px;flex-wrap:wrap;border-top:1px solid var(--line,#ddd)}
+.home-carousel-controls{display:flex;align-items:center;justify-content:center;gap:4px;padding:4px 8px;flex-wrap:wrap;border-top:1px solid var(--line,#ddd)}
 .home-carousel-controls[hidden]{display:none}
-.home-carousel-controls button{min-width:44px;min-height:44px;background:var(--paper,#fff);color:var(--ink,#151515);border:1px solid var(--line-strong,#aaa);font:inherit;cursor:pointer;padding:8px 12px}
-.home-carousel-controls button[aria-current="true"]{background:var(--ink,#151515);color:var(--paper,#fff);border-color:var(--ink,#151515)}
+.home-carousel-controls button{display:inline-flex;align-items:center;justify-content:center;position:relative;box-sizing:border-box;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;background:transparent;color:var(--ink,#151515);border:0;box-shadow:none;font:400 19px/1 var(--font-display,sans-serif);cursor:pointer;border-radius:50%;transition:background-color .15s ease}
+.home-carousel-controls button:hover{background:var(--bg-soft,#f5f5f5)}
+.home-carousel-controls button:disabled{opacity:.45;cursor:default}
+.home-carousel-dots button::before{content:'';width:8px;height:8px;box-sizing:border-box;border:1px solid var(--ink-soft,#555);border-radius:50%;background:transparent}
+.home-carousel-dots button[aria-current="true"]::before{width:18px;border-color:var(--ink,#151515);border-radius:5px;background:var(--ink,#151515)}
+.home-carousel-play-icon{display:block;position:relative;width:14px;height:14px;pointer-events:none}
+.home-carousel-controls [data-play][data-state="pause"] .home-carousel-play-icon::before,.home-carousel-controls [data-play][data-state="pause"] .home-carousel-play-icon::after{content:'';position:absolute;top:1px;width:3px;height:12px;background:currentColor;border-radius:1px}
+.home-carousel-controls [data-play][data-state="pause"] .home-carousel-play-icon::before{left:3px}
+.home-carousel-controls [data-play][data-state="pause"] .home-carousel-play-icon::after{right:3px}
+.home-carousel-controls [data-play][data-state="play"] .home-carousel-play-icon::before{content:'';position:absolute;top:1px;left:4px;width:0;height:0;border-top:6px solid transparent;border-bottom:6px solid transparent;border-left:9px solid currentColor}
 .home-carousel-controls button:focus-visible,.home-carousel-stage a:focus-visible{outline:3px solid var(--red,#e51b23);outline-offset:-4px}
-.home-carousel-dots{display:flex;gap:6px}
+.home-carousel-dots{display:flex;gap:0}
 .carousel-editor-list{display:grid;gap:18px;margin:20px 0}
 .carousel-editor-card{border:1px solid var(--line-strong,#aaa);background:var(--paper,#fff);padding:20px}
 .carousel-editor-head,.carousel-editor-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -29,5 +37,5 @@
 .carousel-editor-help{line-height:1.5;font-size:.95rem;color:var(--ink-soft,#555)}
 .carousel-editor-status{min-height:1.5em;font-size:1rem;color:var(--ink,#151515)}
 @keyframes home-slide-in{from{opacity:.4}to{opacity:1}}
-@media(max-width:760px){.home-carousel-stage{height:260px}.home-carousel-placeholder{padding:22px}.carousel-editor-grid{grid-template-columns:1fr}.home-carousel-controls{gap:6px}.home-carousel-controls button{padding:8px}.carousel-editor-card{padding:14px}}
+@media(max-width:760px){.home-carousel-stage{height:260px}.home-carousel-placeholder{padding:22px}.carousel-editor-grid{grid-template-columns:1fr}.home-carousel-controls{gap:0}.carousel-editor-card{padding:14px}}
 @media(prefers-reduced-motion:reduce){.home-carousel-stage img{animation:none}}
