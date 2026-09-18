@@ -200,6 +200,7 @@ function adminPath(req) {
 function canAccessAdminRequest(payload, req) {
   const level = normalizeAccessLevel(payload?.access_level || 'owner');
   if (level === 'owner') return true;
+  if (adminPath(req).startsWith('/api/admin/home-carousel')) return false;
 
   const method = String(req.method || 'GET').toUpperCase();
   const requestPath = adminPath(req);

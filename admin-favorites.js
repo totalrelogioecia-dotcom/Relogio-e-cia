@@ -148,6 +148,7 @@
   installStabilityGuard();
 
   const HUB_ITEMS=[
+    {tab:'home-carousel',icon:'▧',title:'Carrossel da home',text:'Fotos, ordem e exibição dos destaques. Exclusivo do proprietário.',requiresTab:true},
     {tab:'pedidos',icon:'🛒',title:'Pedidos',text:'Pagamentos, NF-e, envio e acompanhamento de pedidos.'},
     {tab:'produtos',icon:'⌚',title:'Produtos',text:'Catálogo, fotos, preços, estoque e fichas dos relógios.'},
     {tab:'reviews',icon:'★',title:'Avaliações',text:'Modere avaliações de compradores verificados.'},

@@ -21,7 +21,8 @@ const FILES = new Map([
   [path.resolve(path.join(DATA, 'invoice-files.json')), 'invoice_files'],
   [path.resolve(path.join(DATA, 'admin-audit.json')), 'admin_audit'],
   [path.resolve(path.join(DATA, 'admin-users.json')), 'admin_users'],
-  [path.resolve(path.join(DATA, 'product-reviews.json')), 'product_reviews']
+  [path.resolve(path.join(DATA, 'product-reviews.json')), 'product_reviews'],
+  [path.resolve(path.join(DATA, 'home-carousel.json')), 'home_carousel']
 ]);
 
 const PRODUCT_RESTORE_MARKER = 'products_restored_from_commit_1055198_2026_08_25';
@@ -230,7 +231,7 @@ async function initPersistentStore() {
       continue;
     }
 
-    const seedFallback = ['shipping_products', 'product_details', 'melhorenvio_auth', 'account_reset', 'invoice_files'].includes(key) ? {} : [];
+    const seedFallback = ['shipping_products', 'product_details', 'melhorenvio_auth', 'account_reset', 'invoice_files', 'home_carousel'].includes(key) ? {} : [];
     const seed = readLocalJson(file, seedFallback);
     await upsertState(key, seed);
     writeLocalJson(file, seed);

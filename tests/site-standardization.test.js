@@ -139,11 +139,12 @@ test('autenticação legada não reaparece e login não depende de recarregar a 
   for (const name of fs.readdirSync(root).filter(name => /^admin.*\.js$/.test(name))) assert.doesNotMatch(read(name), /(?<![\w.])(?:alert|confirm)\(/, name);
 });
 
-test('seleção visível vem antes das marcas e conteúdo secundário do Admin é recolhível', () => {
+test('destaques vêm antes das marcas e conteúdo secundário do Admin é recolhível', () => {
   const html = read('index.html');
   assert.ok(html.indexOf('id="home-selection"') < html.indexOf('id="marcas"'));
   assert.match(html, /analog-clock-brasilia/);
-  assert.match(read('home-enhancements.js'), /Sem unidade em pronta-entrega/);
+  assert.match(html, /id="home-carousel"/);
+  assert.doesNotMatch(html, /id="home-selection-grid"/);
   assert.match(read('admin.html'), /<details class="admin-secondary"><summary>Análises de vendas e estoque/);
   assert.match(read('admin.html'), /<details class="admin-secondary"><summary>Diagnóstico técnico/);
   assert.doesNotMatch(read('home-enhancements.css'), /@import.*mobile-fixes/);

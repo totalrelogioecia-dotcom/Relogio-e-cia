@@ -9,6 +9,7 @@ const { createPublicStaticGuard } = require('./public-static-policy');
 const { buildHomeCatalog } = require('./home-catalog');
 const { withPublicProductList } = require('./public-product-media');
 const { fetchAllowedImage } = require('./remote-image');
+const { registerHomeCarouselRoutes } = require('./home-carousel');
 
 const app = express();
 // Render encaminha cada requisição por um único proxy; não confiar em toda a cadeia enviada pelo cliente.
@@ -28,6 +29,7 @@ const getProducts = () => read(PRODUCTS, []);
 const getOrders = () => read(ORDERS, []);
 
 app.use(express.json({ limit: '10mb' }));
+registerHomeCarouselRoutes(app);
 app.use('/data/stock-alerts.json', (req, res) => res.status(404).end());
 registerStockAlertRoutes(app);
 app.use(createPublicStaticGuard());
