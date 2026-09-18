@@ -135,6 +135,8 @@ test('seleção visível vem antes das marcas e conteúdo secundário do Admin �
   assert.match(read('admin.html'), /<details class="admin-secondary"><summary>Diagnóstico técnico/);
   assert.doesNotMatch(read('home-enhancements.css'), /@import.*mobile-fixes/);
   assert.match(read('site-experience.css'), /prefers-reduced-motion/);
+  assert.match(read('site-experience.css'), /\.home-selection-photo\{[^}]*display:flex[^}]*overflow:hidden/);
+  assert.match(read('site-experience.css'), /\.home-selection-photo img\{[^}]*max-height:100%/);
 });
 
 test('carregamentos e diálogos têm sintaxe válida e não alteram APIs globais', () => {

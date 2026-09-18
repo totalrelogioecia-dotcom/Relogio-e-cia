@@ -29,8 +29,8 @@ body .clock-panel .stopwatch-caption{font-size:.85rem;line-height:1.5;max-width:
 .home-selection-grid>.ui-loading{grid-column:1/-1;align-self:center}
 .home-selection-card{display:flex;flex-direction:column;min-width:0;border:1px solid var(--line);background:var(--bg);padding:14px;color:var(--ink);text-decoration:none;transition:border-color .2s}
 .home-selection-card:hover,.home-selection-card:focus-visible{border-color:var(--red);outline:2px solid var(--red);outline-offset:3px}
-.home-selection-photo{height:160px;display:grid;place-items:center;margin-bottom:12px}
-.home-selection-photo img{width:100%;height:100%;object-fit:contain;display:block}
+.home-selection-photo{height:160px;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;margin-bottom:12px}
+.home-selection-photo img{width:100%;height:100%;max-height:100%;min-height:0;object-fit:contain;display:block}
 .home-selection-ref{font:500 .75rem/1.5 var(--font-mono,monospace);color:var(--muted);overflow-wrap:anywhere}
 .home-selection-card h3{margin:6px 0 10px;font:600 1rem/1.4 var(--font-body,sans-serif);overflow-wrap:anywhere}
 .home-selection-price{margin-top:auto;font:700 1.12rem/1.5 var(--font-display,sans-serif)}
