@@ -138,6 +138,15 @@ test('controles compactos usam bolinhas e ícone com descrição acessível e al
   assert.match(read('home-carousel.css'),/width:44px;height:44px;min-width:44px;min-height:44px/);
   assert.match(read('home-carousel.css'),/home-carousel-dots button::before.*width:8px;height:8px/);
 });
+test('título e CTA compactos ficam restritos ao cabeçalho do carrossel e preservam toque no celular', () => {
+  const css=read('home-carousel.css');
+  assert.match(css,/\.home-selection \.home-selection-head h2\{[^}]*font:700 1\.5rem\/1\.25/);
+  assert.match(css,/\.home-selection \.home-selection-head>\.btn\{[^}]*min-height:40px;[^}]*padding:8px 14px;[^}]*font-size:\.75rem/);
+  assert.match(css,/@media\(max-width:760px\)\{\.home-selection \.home-selection-head h2\{font-size:1\.25rem\}\.home-selection \.home-selection-head>\.btn\{min-height:44px\}/);
+  assert.match(read('index.html'),/home-carousel\.css\?v=20260918-heading-3/);
+  assert.match(read('index.html'),/class="btn btn-outline" href="produtos.html">Ver todos os produtos/);
+  assert.match(read('style.css'),/\.btn\{[^}]*padding:14px 26px/);
+});
 test('movimento reduzido impede avanço automático e ausência de fotos não mostra controles', async () => {
   const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]},true);
   await new Promise(resolve=>setImmediate(resolve));

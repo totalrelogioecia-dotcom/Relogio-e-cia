@@ -1,3 +1,5 @@
+.home-selection .home-selection-head h2{margin:0 0 6px;font:700 1.5rem/1.25 var(--font-display,sans-serif)}
+.home-selection .home-selection-head>.btn{box-sizing:border-box;flex-shrink:0;justify-content:center;max-width:100%;min-height:40px;padding:8px 14px;font-size:.75rem;line-height:1.3;letter-spacing:.04em}
 .home-carousel{border:1px solid var(--line,#ddd);background:var(--paper,#fff);overflow:hidden}
 .home-carousel-stage{height:380px;position:relative;overflow:hidden;touch-action:pan-y}
 .home-carousel-stage>div,.home-carousel-stage>a,.home-carousel-stage picture{display:block;width:100%;height:100%}
@@ -37,5 +39,5 @@
 .carousel-editor-help{line-height:1.5;font-size:.95rem;color:var(--ink-soft,#555)}
 .carousel-editor-status{min-height:1.5em;font-size:1rem;color:var(--ink,#151515)}
 @keyframes home-slide-in{from{opacity:.4}to{opacity:1}}
-@media(max-width:760px){.home-carousel-stage{height:260px}.home-carousel-placeholder{padding:22px}.carousel-editor-grid{grid-template-columns:1fr}.home-carousel-controls{gap:0}.carousel-editor-card{padding:14px}}
+@media(max-width:760px){.home-selection .home-selection-head h2{font-size:1.25rem}.home-selection .home-selection-head>.btn{min-height:44px}.home-carousel-stage{height:260px}.home-carousel-placeholder{padding:22px}.carousel-editor-grid{grid-template-columns:1fr}.home-carousel-controls{gap:0}.carousel-editor-card{padding:14px}}
 @media(prefers-reduced-motion:reduce){.home-carousel-stage img{animation:none}}
