@@ -1,6 +1,6 @@
 /* =========================================================
    RELÓGIO E CIA — filtros técnicos do catálogo
-   Complementa marca/categoria/preço sem alterar script.js.
+   Filtra os dados antes da renderização progressiva do catálogo.
    Os filtros só são efetivados ao clicar em "Aplicar filtros".
    ========================================================= */
 (function () {
@@ -183,6 +183,8 @@
     return okMovement && okDisplay && okColor && okCase && okStrap;
   }
 
+  window.RelogioCatalogTechnical = { matches: product => matchesTechnical(product, appliedTechnicalFilters) };
+
   function cardProductId(card) {
     const detailLink = card.querySelector('[data-produto]');
     const addButton = card.querySelector('[data-add-carrinho]');
@@ -223,12 +225,13 @@
     });
 
     const count = document.getElementById('result-count');
+    const total = Number(grid.dataset.catalogTotal ?? visible);
     if (count && cards.length) {
-      count.innerHTML = `<strong>${visible}</strong> produto${visible === 1 ? '' : 's'} encontrado${visible === 1 ? '' : 's'}`;
+      count.innerHTML = `<strong>${total}</strong> produto${total === 1 ? '' : 's'} encontrado${total === 1 ? '' : 's'}`;
     }
 
     const empty = ensureEmptyMessage(grid);
-    empty.hidden = !hasTechnicalFilter || visible > 0 || cards.length === 0;
+    empty.hidden = !hasTechnicalFilter || total > 0 || cards.length === 0;
   }
 
   function optionMarkup(name, value, count) {
@@ -432,7 +435,7 @@
     /* Neste ponto o parâmetro ?marca=, se existir, já foi processado pelo
        script da página. Ele passa a ser o estado oficialmente aplicado. */
     appliedCoreFilters = readCoreFilters();
-    appliedTechnicalFilters = { movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: [] };
+    triggerCoreFilterRender();
     applyTechnicalFilters();
   }
 

@@ -420,7 +420,8 @@ function iniciarPaginaProdutos() {
       const okMarca = marcas.length === 0 || marcas.includes(p.marca);
       const okCategoria = categorias.length === 0 || categorias.includes(p.categoria);
       const okPreco = p.preco >= min && p.preco <= max;
-      return okMarca && okCategoria && okPreco;
+      const okTecnico = !window.RelogioCatalogTechnical || window.RelogioCatalogTechnical.matches(p);
+      return okMarca && okCategoria && okPreco && okTecnico;
     });
 
     switch (ordenar) {
@@ -448,6 +449,7 @@ function iniciarPaginaProdutos() {
   }
 
   function renderizar(lista) {
+    grid.dataset.catalogTotal = String(lista.length);
     countEl.innerHTML = `<strong>${lista.length}</strong> produto${lista.length === 1 ? '' : 's'} encontrado${lista.length === 1 ? '' : 's'}`;
 
     if (lista.length === 0) {

@@ -23,6 +23,19 @@ test('catálogo oficial vazio não recupera produtos antigos embutidos', async (
   assert.equal(app.context.resultado.length, 0);
 });
 
+test('catálogo progressivo preserva o total encontrado e filtra dados antes dos lotes', () => {
+  const technical = read('catalog-technical-filters.js');
+  const source = technical.split('  function applyTechnicalFilters() {')[1].split('  function optionMarkup')[0];
+  const count = {};
+  const cards = Array.from({ length: 18 }, (_, id) => ({ id, hidden: false }));
+  const grid = { dataset: { catalogTotal: '137' }, querySelectorAll: () => cards };
+  const context = vm.createContext({ document: { getElementById: id => id === 'product-grid' ? grid : count }, PRODUTOS: cards.map(card => ({ id: card.id })), appliedTechnicalFilters: { movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: [] }, cardProductId: card => card.id, matchesTechnical: () => true, ensureEmptyMessage: () => ({}) });
+  vm.runInContext('function applyTechnicalFilters() {' + source + '\napplyTechnicalFilters();', context);
+  assert.match(count.innerHTML, /<strong>137<\/strong>/);
+  assert.match(read('script.js'), /okMarca && okCategoria && okPreco && okTecnico/);
+  assert.match(technical, /window\.RelogioCatalogTechnical = \{ matches:/);
+});
+
 test('falha do catálogo mostra erro e não executa renderização com dados antigos', async () => {
   const app = catalogHarness(async () => { throw Error('offline'); });
   await app.run('quandoCatalogoPronto(() => { renderizado = true; })');
