@@ -37,7 +37,7 @@ function normalizeCarousel(body) {
   if (!body || !Array.isArray(body.slides) || body.slides.length > 5) throw error('Cadastre no máximo 5 slides.');
   const seen = new Set();
   const slides = body.slides.map(slide => {
-    if (!slide || !/^[a-zA-Z0-9_-]{1,60}$/.test(slide.id) || seen.has(slide.id)) throw error('Identificação de slide inválida ou repetida.');
+    if (!slide || typeof slide.id !== 'string' || !/^[a-zA-Z0-9_-]{1,60}$/.test(slide.id) || seen.has(slide.id)) throw error('Identificação de slide inválida ou repetida.');
     seen.add(slide.id);
     const image = imageData(slide.image);
     const mobile_image = imageData(slide.mobile_image);

@@ -22,6 +22,7 @@ test('carrossel começa sem fotos e aceita até cinco espaços vazios', () => {
   assert.equal(normalizeCarousel(input([{ id:'empty', enabled:true }])).slides[0].image, '');
   assert.throws(() => normalizeCarousel(input(Array.from({length:6},(_,n)=>slide('s'+n)))), /5 slides/);
   assert.throws(() => normalizeCarousel(input([slide(),slide()])), /repetida/);
+  assert.throws(() => normalizeCarousel(input([{enabled:true}])), /Identificação/);
 });
 test('fotos, descrições e destinos são validados sem aceitar SVG ou links externos', () => {
   assert.equal(normalizeCarousel(input([slide()])).slides[0].image, png);
