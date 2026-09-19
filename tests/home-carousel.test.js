@@ -151,7 +151,7 @@ test('título e CTA compactos ficam restritos ao cabeçalho do carrossel e prese
   assert.match(css,/\.home-selection \.home-selection-head h2\{[^}]*font:700 1\.5rem\/1\.25/);
   assert.match(css,/\.home-selection \.home-selection-head>\.btn\{[^}]*min-height:40px;[^}]*padding:8px 14px;[^}]*font-size:\.75rem/);
   assert.match(css,/@media\(max-width:760px\)\{\.home-selection \.home-selection-head h2\{font-size:1\.25rem\}\.home-selection \.home-selection-head>\.btn\{min-height:44px\}/);
-  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-dark-1/);
+  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-fade-1/);
   assert.match(read('index.html'),/class="btn btn-outline" href="produtos.html">Ver todos os produtos/);
   assert.match(read('style.css'),/\.btn\{[^}]*padding:14px 26px/);
 });
@@ -171,6 +171,13 @@ test('modo escuro troca as fotos de computador e celular e volta às claras', as
   app.setDark(true); assert.equal(app.photo().src,'/dark-desktop'); assert.equal(app.source().srcset,'/dark-mobile');
   app.setDark(false); assert.equal(app.photo().src,'/light-desktop'); assert.equal(app.source().srcset,'/light-mobile');
   assert.match(read('admin-home-carousel.js'),/dark_image.*dark_mobile_image/);
+});
+test('troca de slide usa transição cruzada suave sem contrariar movimento reduzido', () => {
+  const client=read('home-carousel-client.js'),css=read('home-carousel.css');
+  assert.match(client,/duration:700/);
+  assert.match(client,/cubic-bezier\(\.4,0,\.2,1\)/);
+  assert.match(client,/reduced\.matches.*frame\.animate/s);
+  assert.match(css,/\.home-carousel-frame\{position:absolute;inset:0;will-change:opacity/);
 });
 test('arraste horizontal captura o ponteiro, ignora movimento vertical e bloqueia o arraste nativo da imagem', async () => {
   const app=clientHarness({slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]});

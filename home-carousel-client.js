@@ -24,11 +24,30 @@
   function pauseTemporarily() { temporarilyPaused = true; schedule(); }
   function resumeAutomatic() { temporarilyPaused = false; schedule(); }
   function darkMode() { return document.documentElement.classList.contains('reloja-dark'); }
+  function replaceSlide(frame) {
+    const previous = stage.children[stage.children.length - 1];
+    if (!previous || reduced.matches || typeof frame.animate !== 'function' || typeof previous.animate !== 'function') {
+      stage.replaceChildren(frame);
+      return;
+    }
+    frame.style.opacity = '0';
+    frame.style.zIndex = '2';
+    previous.style.zIndex = '1';
+    previous.style.pointerEvents = 'none';
+    stage.append(frame);
+    const options = { duration:700, easing:'cubic-bezier(.4,0,.2,1)', fill:'forwards' };
+    const incoming = frame.animate([{ opacity:0 }, { opacity:1 }], options);
+    const outgoing = previous.animate([{ opacity:1 }, { opacity:0 }], options);
+    incoming.finished.then(() => { frame.style.opacity = ''; frame.style.zIndex = ''; incoming.cancel(); }, () => {});
+    const removePrevious = () => { if (previous.parentNode === stage) previous.remove(); };
+    outgoing.finished.then(removePrevious, removePrevious);
+  }
   function show(next) {
     if (!slides.length) return;
     index = (next + slides.length) % slides.length;
     const slide = slides[index];
     const frame = document.createElement(slide.href ? 'a' : 'div');
+    frame.className = 'home-carousel-frame';
     if (slide.href) frame.href = slide.href;
     frame.setAttribute('role', slide.href ? 'link' : 'group');
     frame.setAttribute('aria-roledescription', 'slide');
@@ -41,7 +60,7 @@
     const image = document.createElement('img');
     image.src = desktopImage; image.alt = slide.alt; image.width = 1920; image.height = 600; image.decoding = 'async'; image.draggable = false;
     image.addEventListener('error', () => { pauseTemporarily(); placeholder(); }, { once: true });
-    picture.append(image); frame.append(picture); stage.replaceChildren(frame);
+    picture.append(image); frame.append(picture); replaceSlide(frame);
     controls.querySelectorAll('[data-slide]').forEach(button => button.setAttribute('aria-current', Number(button.dataset.slide) === index ? 'true' : 'false'));
   }
   function button(label, action) { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.addEventListener('click', action); return b; }
