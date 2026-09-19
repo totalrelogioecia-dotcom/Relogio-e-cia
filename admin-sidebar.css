@@ -47,3 +47,11 @@ html.reloja-dark .admin-side-nav{background:#080808;border-color:#303030}
   .admin-page.admin-sidebar-ready .admin-side-group:first-child button{min-height:46px;font-weight:700}
   .admin-page.admin-sidebar-ready #tab-overview .admin-overview-head{margin-top:0}
 }
+
+
+/* Menu lateral: mantém navegação e Administração acessíveis em telas mais baixas */
+@media(min-width:901px){
+  .admin-page.admin-sidebar-ready .admin-side-nav{overflow:hidden}
+  .admin-page.admin-sidebar-ready .admin-side-groups{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-bottom:14px}
+  .admin-page.admin-sidebar-ready .admin-side-footer{flex:0 0 auto;background:#111}
+}
