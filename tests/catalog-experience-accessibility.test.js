@@ -87,6 +87,13 @@ test('Admin mantém ranking, navegação em hub e watchdog de visibilidade', () 
 
 test('Admin mostra progresso imediato enquanto estabiliza permissões e módulos', () => {
   const admin = read('admin-favorites.js');
+  const html = read('admin.html');
+  const design = read('admin-design-system.css');
+  assert.match(html, /<html lang="pt-BR" class="admin-ui-booting">/);
+  assert.match(html, /id="admin-boot-screen"[^>]*role="status"/);
+  assert.ok(html.indexOf('admin-favorites.js?v=2') < html.indexOf('admin.js'), 'a proteção visual deve carregar antes da restauração da sessão');
+  assert.match(design, /html\.admin-ui-booting \.admin-page #dashboard\{display:none!important\}/);
+  assert.match(admin, /root\.classList\.remove\('admin-ui-booting'\)/);
   assert.match(admin, /loader\.id='admin-loading-state'/);
   assert.match(admin, /loader\.setAttribute\('role','status'\)/);
   assert.match(admin, /dashboard\.setAttribute\('aria-busy'/);

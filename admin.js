@@ -26,6 +26,7 @@ function applyAdminSession(admin=null){
     document.querySelectorAll('.admin-tabs button').forEach(button=>button.classList.toggle('active',button.dataset.tab==='overview'));
   }
   if(!authenticated){$('#admin-senha').value='';$('#products-list').replaceChildren();$('#orders-list').replaceChildren();}
+  if(!authenticated)document.documentElement?.classList.remove('admin-ui-booting');
   window.dispatchEvent(new CustomEvent('reloja:admin-session',{detail:{authenticated,admin}}));
   if(admin&&admin.access_level!=='atendimento')loadProducts();
 }
@@ -268,7 +269,7 @@ async function restoreDash(){
     if(revision!==sessionRevision)return;
     const admin=d.authenticated?d.admin:null;
     if(JSON.stringify(admin)!==JSON.stringify(sessionIdentity)||$('#dashboard').style.display==='none'&&admin||!admin&&localStorage.getItem(tokenKey))applyAdminSession(admin);
-  }catch{const m=$('#login-msg');m.textContent='Não foi possível verificar sua sessão. Tente entrar novamente.';m.style.display='block';}
+  }catch{document.documentElement?.classList.remove('admin-ui-booting');const m=$('#login-msg');m.textContent='Não foi possível verificar sua sessão. Tente entrar novamente.';m.style.display='block';}
 }
 window.RelogioAdminClient.syncSession=restoreDash;
 restoreDash();

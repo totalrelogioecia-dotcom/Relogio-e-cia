@@ -69,6 +69,7 @@
 
   function setDashboardLoading(active){
     root.classList.toggle('admin-ui-stabilizing',Boolean(active));
+    root.classList.remove('admin-ui-booting');
     const dashboard=document.getElementById('dashboard');
     if(dashboard)dashboard.setAttribute('aria-busy',active?'true':'false');
   }
