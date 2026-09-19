@@ -33,3 +33,17 @@ html.reloja-dark .admin-side-nav{background:#080808;border-color:#303030}
   .admin-page .site-header .nav{gap:10px}
 }
 @media(prefers-reduced-motion:reduce){.admin-side-nav,.admin-side-group button{transition:none!important}}
+
+/* Ajuste da home do Admin: menu lateral como navegação única */
+@media(min-width:901px){
+  .admin-page.admin-sidebar-ready .admin-main{padding-top:26px}
+  .admin-page.admin-sidebar-ready.admin-overview-active .admin-head{display:none}
+  .admin-page.admin-sidebar-ready.admin-overview-active #tab-overview{display:block!important}
+  .admin-page.admin-sidebar-ready .admin-side-nav{top:88px;width:232px;overflow-y:auto;scrollbar-width:thin}
+  .admin-page.admin-sidebar-ready .admin-main{padding-left:266px}
+  .admin-page.admin-sidebar-ready .admin-side-brand{display:none}
+  .admin-page.admin-sidebar-ready .admin-side-groups{padding-top:12px}
+  .admin-page.admin-sidebar-ready .admin-side-group:first-child{padding-top:0;padding-bottom:10px}
+  .admin-page.admin-sidebar-ready .admin-side-group:first-child button{min-height:46px;font-weight:700}
+  .admin-page.admin-sidebar-ready #tab-overview .admin-overview-head{margin-top:0}
+}
