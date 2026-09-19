@@ -222,6 +222,15 @@
     host.querySelectorAll('[data-manual-tab]').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.manualTab)));
   }
 
+  window.relogioAdminManual = {
+    open(){
+      ensure();
+      const tab=sourceButton('manual');
+      if(tab) tab.click();
+    },
+    ensure
+  };
+
   window.addEventListener('reloja:admin-session',e=>{currentIdentity=e.detail?.admin||null;requestAnimationFrame(ensure);});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensure,{once:true});else ensure();
 })();
