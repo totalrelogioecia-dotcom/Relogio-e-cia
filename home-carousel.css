@@ -398,3 +398,15 @@ footer .frame>div:last-child{
     gap:26px;
   }
 }
+
+
+/* História sem bloco lateral de números */
+.home-story-grid{
+  grid-template-columns:minmax(0,1fr);
+}
+.home-story-copy{
+  max-width:860px;
+}
+.home-story-copy h2{
+  max-width:22ch;
+}
