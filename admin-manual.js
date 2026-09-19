@@ -114,16 +114,18 @@
       notes:['O sistema restringe o envio de avaliação a clientes com compra paga daquele produto; a publicação depende da moderação da loja.']
     },
     {
-      id:'cupons', icon:'%', title:'Cupons', tab:'cupons', tags:'cupom frete grátis código compra mínima usos validade cliente',
-      intro:'Crie e mantenha cupons de frete grátis.',
+      id:'cupons', icon:'%', title:'Cupons', tab:'cupons', tags:'cupom desconto percentual valor fixo frete grátis código compra mínima usos validade cliente',
+      intro:'Crie e mantenha cupons de desconto ou frete grátis.',
       steps:[
         'Abra Cupons e inicie um novo cupom.',
+        'Escolha Frete grátis ou Desconto no pedido.',
+        'Para desconto, escolha Percentual (%) ou Valor fixo (R$). No percentual, você também pode definir um desconto máximo em reais.',
         'Defina o código, valor mínimo da compra, limite total de usos, limite por cliente, início e expiração quando aplicável.',
         'Deixe o cupom ativo somente durante o período em que ele deve ser aceito.',
         'Salve e confira o status: Ativo, Inativo, Agendado, Expirado ou Esgotado.',
         'Para alterar uma regra, use “Editar”. Para remover definitivamente, use “Excluir” e confirme.'
       ],
-      notes:['Excluir é diferente de apenas deixar o cupom inativo. Para preservar o cadastro, prefira desativar quando fizer sentido.']
+      notes:['Excluir é diferente de apenas deixar o cupom inativo. Para preservar o cadastro, prefira desativar quando fizer sentido.','O desconto do cupom é validado novamente no servidor antes do pagamento. No PIX, os 5% são calculados depois do desconto do cupom.']
     },
     {
       id:'carrossel', icon:'▣', title:'Carrossel da Home', tab:'home-carousel', owner:true, tags:'banner home carrossel slide imagem pc mobile claro escuro link autoplay',
