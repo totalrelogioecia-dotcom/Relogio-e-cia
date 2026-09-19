@@ -5,7 +5,7 @@
     { label: '', items: [['overview','Visão geral','overview']] },
     { label: 'Operação', items: [['pedidos','Pedidos','orders'],['confirmacoes','Confirmações','confirm'],['trocas','Pós-venda','returns'],['cancelamentos-loja','Cancelamentos','cancel']] },
     { label: 'Loja', items: [['produtos','Produtos','products'],['reviews','Avaliações','reviews'],['cupons','Cupons','coupons'],['home-carousel','Carrossel da Home','carousel']] },
-    { label: 'Administração', items: [['usuarios-admin','Usuários do Admin','users'],['audit','Auditoria','audit']] }
+    { label: 'Administração', items: [['manual','Manual do Admin','manual'],['usuarios-admin','Usuários do Admin','users'],['audit','Auditoria','audit']] }
   ];
 
   const ICONS = {
@@ -19,7 +19,8 @@
     coupons:'<path d="M3 8a2 2 0 0 0 0 4v5h18v-5a2 2 0 0 0 0-4V3H3v5Z"/><path d="M12 6v2m0 4v2"/>',
     carousel:'<rect x="3" y="5" width="18" height="14" rx="1"/><path d="m6 15 4-4 3 3 2-2 3 3"/>',
     users:'<path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
-    audit:'<path d="M6 3h12v18H6zM9 8h6m-6 4h6m-6 4h4"/>'
+    audit:'<path d="M6 3h12v18H6zM9 8h6m-6 4h6m-6 4h4"/>',
+    manual:'<path d="M4 5.5A3.5 3.5 0 0 1 7.5 2H12v18H7.5A3.5 3.5 0 0 0 4 23V5.5Z"/><path d="M20 5.5A3.5 3.5 0 0 0 16.5 2H12v18h4.5A3.5 3.5 0 0 1 20 23V5.5Z"/>'
   };
 
   const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS.overview}</svg>`;
