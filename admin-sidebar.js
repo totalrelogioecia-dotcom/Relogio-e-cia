@@ -77,6 +77,8 @@
     const aside=document.getElementById('admin-side-nav'); if(!aside) return;
     const dashboard=document.getElementById('dashboard');
     const active=!!dashboard && getComputedStyle(dashboard).display !== 'none';
+    const currentTab=document.querySelector('.admin-tabs button.active')?.dataset?.tab || '';
+    document.body.classList.toggle('admin-overview-active',active && currentTab === 'overview');
     aside.hidden=!active;
     document.body.classList.toggle('admin-sidebar-ready',active);
     aside.querySelectorAll('[data-side-tab]').forEach(button=>{
