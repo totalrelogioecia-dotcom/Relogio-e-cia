@@ -5,7 +5,7 @@
     { label: '', items: [['overview','Visão geral','overview']] },
     { label: 'Operação', items: [['pedidos','Pedidos','orders'],['confirmacoes','Confirmações','confirm'],['trocas','Pós-venda','returns'],['cancelamentos-loja','Cancelamentos','cancel']] },
     { label: 'Loja', items: [['produtos','Produtos','products'],['reviews','Avaliações','reviews'],['cupons','Cupons','coupons'],['home-carousel','Carrossel da Home','carousel']] },
-    { label: 'Administração', items: [['manual','Manual do Admin','manual'],['usuarios-admin','Usuários do Admin','users'],['audit','Auditoria','audit']] }
+    { label: 'Administração', items: [['usuarios-admin','Usuários do Admin','users'],['audit','Auditoria','audit']] }
   ];
 
   const ICONS = {
@@ -38,7 +38,7 @@
     aside.innerHTML = `
       <div class="admin-side-brand"><span class="admin-side-brand-mark">R</span><span><strong>Relógio e Cia</strong><small>Administração</small></span></div>
       <nav class="admin-side-groups"></nav>
-      <div class="admin-side-footer"><a href="index.html" target="_blank" rel="noopener">Ver loja <span aria-hidden="true">↗</span></a></div>`;
+      <div class="admin-side-footer"><button type="button" class="admin-side-manual"><span class="admin-side-icon">${icon('manual')}</span><span>Manual do Admin</span></button><a href="index.html" target="_blank" rel="noopener">Ver loja <span aria-hidden="true">↗</span></a></div>`;
 
     const nav = aside.querySelector('.admin-side-groups');
     GROUPS.forEach(group => {
@@ -62,6 +62,8 @@
       });
       nav.appendChild(section);
     });
+
+    aside.querySelector('.admin-side-manual')?.addEventListener('click',()=>{window.relogioAdminManual?.open?.();closeMobile();});
 
     dashboard.before(aside);
     const toggle=document.createElement('button');
