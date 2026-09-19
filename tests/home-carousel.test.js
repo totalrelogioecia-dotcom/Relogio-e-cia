@@ -12,7 +12,7 @@ process.env.ADMIN_SESSION_SECRET = 'test-carousel-session-secret-not-production'
 const { registerHomeCarouselRoutes, normalizeCarousel, publicCarousel, readCarousel, FILE } = require('../home-carousel');
 const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aL1sAAAAASUVORK5CYII=';
 const input = (slides = []) => ({ revision: 0, autoplay:true, interval:7, slides });
-const slide = (id='one', enabled=true) => ({ id, enabled, image:png, mobile_image:'', alt:'Relógio em fundo claro', href:'produtos.html?marca=Casio' });
+const slide = (id='one', enabled=true) => ({ id, enabled, image:png, mobile_image:'', dark_image:'', dark_mobile_image:'', alt:'Relógio em fundo claro', href:'produtos.html?marca=Casio' });
 const read = name => fs.readFileSync(path.join(__dirname,'..',name),'utf8');
 test.after(() => fs.rmSync(dataDir, { recursive:true, force:true }));
 
@@ -33,11 +33,14 @@ test('fotos, descrições e destinos são validados sem aceitar SVG ou links ext
   assert.throws(() => normalizeCarousel(input([{...slide(),href:'https://example.com/'}])), /destino/);
   assert.throws(() => normalizeCarousel(input([{...slide(),href:'/api/admin/users'}])), /destino/);
   assert.throws(() => normalizeCarousel(input([{...slide(),image:'',mobile_image:png}])), /principal/);
+  assert.throws(() => normalizeCarousel(input([{...slide(),image:'',dark_image:png}])), /principal/);
 });
 test('resposta pública preserva ordem e omite fotos inativas e dados brutos', () => {
-  const data = publicCarousel({...normalizeCarousel(input([slide('second'),slide('off',false),slide('first')])),revision:4});
+  const data = publicCarousel({...normalizeCarousel(input([{...slide('second'),dark_image:png,dark_mobile_image:png},slide('off',false),slide('first')])),revision:4});
   assert.deepEqual(data.slides.map(s=>s.id), ['second','first']);
   assert.equal(data.slides[0].image, '/api/home-carousel/images/second/desktop?v=4');
+  assert.equal(data.slides[0].dark_image, '/api/home-carousel/images/second/dark-desktop?v=4');
+  assert.equal(data.slides[0].dark_mobile_image, '/api/home-carousel/images/second/dark-mobile?v=4');
   assert.doesNotMatch(JSON.stringify(data), /data:image|updated_at/);
 });
 test('scripts e estilos do carrossel são válidos e apenas clientes são públicos', () => {
@@ -70,13 +73,15 @@ test('API exige proprietário, persiste mudanças, protege concorrência e respe
     for (const role of ['manager','atendimento']) for (const method of ['GET','PUT']) assert.equal((await request('/api/admin/home-carousel',role,method,method==='PUT'?input():undefined)).status,403);
     const initial = await (await request('/api/admin/home-carousel','owner')).json();
     assert.equal(initial.revision,0);
-    const savedResponse = await request('/api/admin/home-carousel','owner','PUT',input([slide('one'),slide('disabled',false)]));
+    const savedResponse = await request('/api/admin/home-carousel','owner','PUT',input([{...slide('one'),dark_image:png,dark_mobile_image:png},slide('disabled',false)]));
     assert.equal(savedResponse.status,200);
     const saved = await savedResponse.json(); assert.equal(saved.revision,1);
     assert.equal(JSON.parse(fs.readFileSync(FILE,'utf8')).slides[0].image,png);
     assert.equal((await request('/api/admin/home-carousel','owner','PUT',input())).status,409);
     const publicData = await (await request('/api/home-carousel')).json(); assert.equal(publicData.slides.length,1);
     const photo = await request(publicData.slides[0].image); assert.equal(photo.status,200); assert.equal(photo.headers.get('content-type'),'image/png'); assert.equal(photo.headers.get('x-content-type-options'),'nosniff');
+    assert.equal((await request(publicData.slides[0].dark_image)).status,200);
+    assert.equal((await request(publicData.slides[0].dark_mobile_image)).status,200);
     assert.equal((await request('/api/home-carousel/images/disabled/desktop')).status,404);
     assert.equal((await request('/api/home-carousel/images/one/mobile')).status,404);
     const concurrent = await Promise.all([request('/api/admin/home-carousel','owner','PUT',{...saved,interval:8}),request('/api/admin/home-carousel','owner','PUT',{...saved,interval:9})]);
@@ -101,13 +106,14 @@ function clientHarness(data, reduce = false) {
     querySelectorAll(selector) { return this.children.flatMap(n=>[n,...n.querySelectorAll(selector)]).filter(n=>selector==='[data-slide]' ? n.dataset.slide !== undefined : selector==='[data-play]' ? n.dataset.play !== undefined : false); }
     querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
   }
-  const root=new Node(),stage=new Node(),controls=new Node(); root.append(stage,controls);
-  const document={ hidden:false,events:{},getElementById:id=>({'home-carousel':root,'home-carousel-stage':stage,'home-carousel-controls':controls}[id]),createElement:tag=>new Node(tag),addEventListener(event,fn){this.events[event]=fn;} };
+  const root=new Node(),stage=new Node(),controls=new Node(),documentElement=new Node('html'); root.append(stage,controls);
+  const document={ hidden:false,events:{},documentElement,getElementById:id=>({'home-carousel':root,'home-carousel-stage':stage,'home-carousel-controls':controls}[id]),createElement:tag=>new Node(tag),addEventListener(event,fn){this.events[event]=fn;} };
   const reduced={matches:reduce,events:{},addEventListener(event,fn){this.events[event]=fn;}};
-  let tick=null;
-  const context=vm.createContext({document,window:{},matchMedia:()=>reduced,fetch:async()=>({ok:true,json:async()=>data}),setInterval:fn=>{tick=fn;return 1;},clearInterval:()=>{tick=null;}});
+  let tick=null,themeObserver=null;
+  class MutationObserver { constructor(callback) { themeObserver=callback; } observe() {} }
+  const context=vm.createContext({document,window:{MutationObserver},matchMedia:()=>reduced,fetch:async()=>({ok:true,json:async()=>data}),setInterval:fn=>{tick=fn;return 1;},clearInterval:()=>{tick=null;}});
   vm.runInContext(read('home-carousel-client.js'),context);
-  return {root,stage,controls,reduced,get tick(){return tick;},photo(){return stage.children[0]?.children[0]?.children.find(n=>n.tagName==='img');}};
+  return {root,stage,controls,reduced,get tick(){return tick;},photo(){return stage.children[0]?.children[0]?.children.find(n=>n.tagName==='img');},source(){return stage.children[0]?.children[0]?.children.find(n=>n.tagName==='source');},setDark(value){documentElement.classList[value?'add':'remove']('reloja-dark'); themeObserver?.([{attributeName:'class'}]);}};
 }
 test('loop volta ao primeiro slide; interação pausa e retoma sem recriar controles', async () => {
   const app=clientHarness({autoplay:true,interval:7,slides:[1,2,3].map(n=>({image:'/image-'+n,alt:'Relógio '+n}))});
@@ -145,7 +151,7 @@ test('título e CTA compactos ficam restritos ao cabeçalho do carrossel e prese
   assert.match(css,/\.home-selection \.home-selection-head h2\{[^}]*font:700 1\.5rem\/1\.25/);
   assert.match(css,/\.home-selection \.home-selection-head>\.btn\{[^}]*min-height:40px;[^}]*padding:8px 14px;[^}]*font-size:\.75rem/);
   assert.match(css,/@media\(max-width:760px\)\{\.home-selection \.home-selection-head h2\{font-size:1\.25rem\}\.home-selection \.home-selection-head>\.btn\{min-height:44px\}/);
-  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-drag-5/);
+  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-dark-1/);
   assert.match(read('index.html'),/class="btn btn-outline" href="produtos.html">Ver todos os produtos/);
   assert.match(read('style.css'),/\.btn\{[^}]*padding:14px 26px/);
 });
@@ -157,6 +163,14 @@ test('movimento reduzido impede avanço automático e ausência de fotos não mo
   const empty=clientHarness({autoplay:true,slides:[]}); await new Promise(resolve=>setImmediate(resolve));
   assert.equal(empty.controls.hidden,true); assert.equal(empty.tick,null);
   assert.equal(empty.stage.children[0].className,'home-carousel-placeholder');
+});
+test('modo escuro troca as fotos de computador e celular e volta às claras', async () => {
+  const app=clientHarness({slides:[{image:'/light-desktop',mobile_image:'/light-mobile',dark_image:'/dark-desktop',dark_mobile_image:'/dark-mobile',alt:'Relógios'}]});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(app.photo().src,'/light-desktop'); assert.equal(app.source().srcset,'/light-mobile');
+  app.setDark(true); assert.equal(app.photo().src,'/dark-desktop'); assert.equal(app.source().srcset,'/dark-mobile');
+  app.setDark(false); assert.equal(app.photo().src,'/light-desktop'); assert.equal(app.source().srcset,'/light-mobile');
+  assert.match(read('admin-home-carousel.js'),/dark_image.*dark_mobile_image/);
 });
 test('arraste horizontal captura o ponteiro, ignora movimento vertical e bloqueia o arraste nativo da imagem', async () => {
   const app=clientHarness({slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]});

@@ -5,7 +5,7 @@ const { authenticatedRequest } = require('./admin-session');
 const { flushPersistentStore } = require('./persistent-store');
 const FILE = path.join(path.resolve(process.env.DATA_DIR || path.join(__dirname, 'data')), 'home-carousel.json');
 const MAX_IMAGE_BYTES = 600 * 1024;
-const defaults = () => ({ revision: 0, autoplay: true, interval: 7, slides: [1, 2, 3].map(n => ({ id: `slide-${n}`, enabled: true, alt: '', image: '', mobile_image: '', href: '' })) });
+const defaults = () => ({ revision: 0, autoplay: true, interval: 7, slides: [1, 2, 3].map(n => ({ id: `slide-${n}`, enabled: true, alt: '', image: '', mobile_image: '', dark_image: '', dark_mobile_image: '', href: '' })) });
 let saving = Promise.resolve();
 function error(message, statusCode = 400) { return Object.assign(new Error(message), { statusCode }); }
 function readCarousel() {
@@ -41,10 +41,12 @@ function normalizeCarousel(body) {
     seen.add(slide.id);
     const image = imageData(slide.image);
     const mobile_image = imageData(slide.mobile_image);
+    const dark_image = imageData(slide.dark_image);
+    const dark_mobile_image = imageData(slide.dark_mobile_image);
     const alt = String(slide.alt || '').trim().slice(0, 180);
-    if ((image || mobile_image) && !alt) throw error('Descreva cada foto para os leitores de tela.');
-    if (mobile_image && !image) throw error('Adicione a foto principal antes da versão para celular.');
-    return { id: slide.id, enabled: slide.enabled === true, alt, image, mobile_image, href: slideHref(slide.href) };
+    if ((image || mobile_image || dark_image || dark_mobile_image) && !alt) throw error('Descreva cada foto para os leitores de tela.');
+    if ((mobile_image || dark_image || dark_mobile_image) && !image) throw error('Adicione a foto principal antes das versões alternativas.');
+    return { id: slide.id, enabled: slide.enabled === true, alt, image, mobile_image, dark_image, dark_mobile_image, href: slideHref(slide.href) };
   });
   return { autoplay: body.autoplay === true, interval: Math.max(6, Math.min(12, Number(body.interval) || 7)), slides };
 }
@@ -53,7 +55,9 @@ function publicCarousel(value) {
   return { revision, autoplay: value.autoplay === true, interval: value.interval || 7,
     slides: value.slides.filter(s => s.enabled && s.image).map(s => ({ id: s.id, alt: s.alt, href: s.href,
       image: `/api/home-carousel/images/${encodeURIComponent(s.id)}/desktop?v=${revision}`,
-      mobile_image: s.mobile_image ? `/api/home-carousel/images/${encodeURIComponent(s.id)}/mobile?v=${revision}` : '' })) };
+      mobile_image: s.mobile_image ? `/api/home-carousel/images/${encodeURIComponent(s.id)}/mobile?v=${revision}` : '',
+      dark_image: s.dark_image ? `/api/home-carousel/images/${encodeURIComponent(s.id)}/dark-desktop?v=${revision}` : '',
+      dark_mobile_image: s.dark_mobile_image ? `/api/home-carousel/images/${encodeURIComponent(s.id)}/dark-mobile?v=${revision}` : '' })) };
 }
 function owner(req, res, next) {
   res.set('Cache-Control', 'no-store');
@@ -67,7 +71,8 @@ function registerHomeCarouselRoutes(app) {
   app.get('/api/home-carousel', (req, res) => { res.set('Cache-Control', 'no-store'); res.json(publicCarousel(readCarousel())); });
   app.get('/api/home-carousel/images/:id/:variant', (req, res) => {
     const slide = readCarousel().slides.find(s => s.id === req.params.id && s.enabled && s.image);
-    const data = slide && (req.params.variant === 'desktop' ? slide.image : req.params.variant === 'mobile' ? slide.mobile_image : '');
+    const variants = { desktop: 'image', mobile: 'mobile_image', 'dark-desktop': 'dark_image', 'dark-mobile': 'dark_mobile_image' };
+    const data = slide && variants[req.params.variant] ? slide[variants[req.params.variant]] : '';
     if (!data) return res.status(404).end();
     try {
       imageData(data);

@@ -23,6 +23,7 @@
   }
   function pauseTemporarily() { temporarilyPaused = true; schedule(); }
   function resumeAutomatic() { temporarilyPaused = false; schedule(); }
+  function darkMode() { return document.documentElement.classList.contains('reloja-dark'); }
   function show(next) {
     if (!slides.length) return;
     index = (next + slides.length) % slides.length;
@@ -33,9 +34,12 @@
     frame.setAttribute('aria-roledescription', 'slide');
     frame.setAttribute('aria-label', `${index + 1} de ${slides.length}${slide.href ? ': ' + slide.alt : ''}`);
     const picture = document.createElement('picture');
-    if (slide.mobile_image) { const source = document.createElement('source'); source.media = '(max-width: 760px)'; source.srcset = slide.mobile_image; picture.append(source); }
+    const dark = darkMode();
+    const desktopImage = dark && slide.dark_image ? slide.dark_image : slide.image;
+    const mobileImage = dark ? (slide.dark_mobile_image || slide.dark_image || slide.mobile_image || slide.image) : (slide.mobile_image || slide.image);
+    if (mobileImage !== desktopImage) { const source = document.createElement('source'); source.media = '(max-width: 760px)'; source.srcset = mobileImage; picture.append(source); }
     const image = document.createElement('img');
-    image.src = slide.image; image.alt = slide.alt; image.width = 1920; image.height = 600; image.decoding = 'async'; image.draggable = false;
+    image.src = desktopImage; image.alt = slide.alt; image.width = 1920; image.height = 600; image.decoding = 'async'; image.draggable = false;
     image.addEventListener('error', () => { pauseTemporarily(); placeholder(); }, { once: true });
     picture.append(image); frame.append(picture); stage.replaceChildren(frame);
     controls.querySelectorAll('[data-slide]').forEach(button => button.setAttribute('aria-current', Number(button.dataset.slide) === index ? 'true' : 'false'));
@@ -84,6 +88,7 @@
   stage.addEventListener('click', event => { if (swiped) { event.preventDefault(); swiped = false; } }, true);
   document.addEventListener('visibilitychange', schedule);
   reduced.addEventListener('change', schedule);
+  if ('MutationObserver' in window) new window.MutationObserver(mutations => { if (slides.length && mutations.some(mutation => mutation.attributeName === 'class')) show(index); }).observe(document.documentElement, { attributes:true, attributeFilter:['class'] });
   if ('IntersectionObserver' in window) new IntersectionObserver(entries => { visible = entries[0].isIntersecting; schedule(); }).observe(root);
   async function load() {
     try {
