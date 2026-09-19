@@ -50,8 +50,12 @@
         button.type='button'; button.dataset.sideTab=tab;
         button.innerHTML=`<span class="admin-side-icon">${icon(ico)}</span><span>${label}</span>`;
         button.addEventListener('click', () => {
-          const source=sourceButton(tab);
-          if (source && getComputedStyle(source).display !== 'none') source.click();
+          if(tab === 'manual'){
+            window.relogioAdminManual?.open?.();
+          }else{
+            const source=sourceButton(tab);
+            if (source && getComputedStyle(source).display !== 'none' && !source.hidden) source.click();
+          }
           closeMobile();
         });
         section.appendChild(button);
@@ -84,7 +88,7 @@
     document.body.classList.toggle('admin-sidebar-ready',active);
     aside.querySelectorAll('[data-side-tab]').forEach(button=>{
       const source=sourceButton(button.dataset.sideTab);
-      const available=!!source && (button.dataset.sideTab === 'manual' || (getComputedStyle(source).display !== 'none' && !source.hidden));
+      const available=button.dataset.sideTab === 'manual' ? true : (!!source && getComputedStyle(source).display !== 'none' && !source.hidden);
       button.hidden=!available;
       button.classList.toggle('active',!!source?.classList.contains('active'));
       if(source?.classList.contains('active')) button.setAttribute('aria-current','page'); else button.removeAttribute('aria-current');
