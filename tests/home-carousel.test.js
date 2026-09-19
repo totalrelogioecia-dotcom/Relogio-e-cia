@@ -127,7 +127,7 @@ test('loop volta ao primeiro slide; interação pausa e retoma sem recriar contr
   app.root.emit('focusin'); assert.equal(app.tick,null);
   app.root.emit('focusout',{relatedTarget:null}); assert.equal(typeof app.tick,'function');
   app.root.emit('pointerenter'); assert.equal(app.tick,null); app.root.emit('pointerleave'); assert.equal(typeof app.tick,'function');
-  app.controls.children[2].emit('click'); assert.equal(app.photo().src,'/image-2'); assert.equal(typeof app.tick,'function');
+  assert.equal(app.controls.hidden,true); assert.equal(app.controls.children.length,0);
   app.stage.emit('pointerdown',{clientX:200,clientY:100,pointerId:7,pointerType:'mouse',button:0});
   assert.equal(app.stage.captured,null); assert.equal(app.stage.classList.contains('is-dragging'),true);
   let prevented=false; app.stage.emit('pointermove',{clientX:130,clientY:103,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){prevented=true;}}); assert.equal(prevented,true); assert.equal(app.stage.captured,7); assert.equal(app.photo().src,'/image-2');
@@ -136,18 +136,15 @@ test('loop volta ao primeiro slide; interação pausa e retoma sem recriar contr
   app.stage.emit('pointerup',{clientX:70,clientY:105,pointerId:7}); assert.equal(app.photo().src,'/image-3');
   assert.equal(app.stage.captured,null); assert.equal(app.stage.classList.contains('is-dragging'),false); assert.equal(typeof app.tick,'function');
 });
-test('controles compactos usam bolinhas acessíveis e o carrossel automático não exibe botão extra', async () => {
+test('controles visuais ficam ocultos e navegação por teclado permanece disponível', async () => {
   const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]});
   await new Promise(resolve=>setImmediate(resolve));
-  const dots=app.controls.querySelectorAll('[data-slide]');
-  assert.equal(dots.length,2);
-  assert.equal(dots[0].textContent,'');
-  assert.equal(dots[0].attrs['aria-label'],'Mostrar slide 1');
-  assert.equal(dots[0].attrs['aria-current'],'true');
+  assert.equal(app.controls.hidden,true);
+  assert.equal(app.controls.children.length,0);
+  assert.equal(app.controls.querySelectorAll('[data-slide]').length,0);
   assert.equal(app.controls.querySelector('[data-play]'),null);
-  assert.equal(app.controls.children.length,3);
-  assert.match(read('home-carousel.css'),/width:44px;height:44px;min-width:44px;min-height:44px/);
-  assert.match(read('home-carousel.css'),/home-carousel-dots button::before.*width:8px;height:8px/);
+  assert.match(read('home-carousel-client.js'),/controls\.hidden = true/);
+  assert.match(read('home-carousel-client.js'),/ArrowLeft.*ArrowRight/s);
 });
 test('título e CTA compactos ficam restritos ao cabeçalho do carrossel e preservam toque no celular', () => {
   const css=read('home-carousel.css');
@@ -162,7 +159,8 @@ test('movimento reduzido impede avanço automático e ausência de fotos não mo
   const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]},true);
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(app.tick,null); assert.equal(app.controls.querySelector('[data-play]'),null);
-  app.controls.children[2].emit('click'); assert.equal(app.photo().src,'/two');
+  assert.equal(app.controls.hidden,true); assert.equal(app.controls.children.length,0);
+  assert.equal(app.photo().src,'/one');
   const empty=clientHarness({autoplay:true,slides:[]}); await new Promise(resolve=>setImmediate(resolve));
   assert.equal(empty.controls.hidden,true); assert.equal(empty.tick,null);
   assert.equal(empty.stage.children[0].className,'home-carousel-placeholder');
