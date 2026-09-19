@@ -4,7 +4,8 @@
 .home-carousel-stage{height:380px;position:relative;overflow:hidden;touch-action:pan-y;cursor:grab;user-select:none}
 .home-carousel-stage.is-dragging{cursor:grabbing}
 .home-carousel-stage>div,.home-carousel-stage>a,.home-carousel-stage picture{display:block;width:100%;height:100%}
-.home-carousel-frame{position:absolute;inset:0;will-change:opacity;background:var(--paper,#fff)}
+.home-carousel-frame{position:absolute;inset:0;will-change:opacity,transform;background:var(--paper,#fff);transform:translate3d(0,0,0)}
+.home-carousel-frame.is-drag-neighbor{pointer-events:none}
 .home-carousel-stage img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;-webkit-user-drag:none;user-select:none}
 .home-carousel-placeholder{display:flex!important;flex-direction:column;justify-content:center;align-items:center;gap:16px;text-align:center;padding:30px;box-sizing:border-box;background:linear-gradient(135deg,var(--paper,#fff),var(--bg-soft,#f5f5f5));border-top:4px solid var(--red,#e51b23);color:var(--ink,#151515)}
 .home-carousel-placeholder span{font-family:var(--font-mono,monospace);font-size:.85rem;letter-spacing:.13em;color:var(--red,#e51b23)}

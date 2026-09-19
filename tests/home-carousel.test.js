@@ -93,11 +93,13 @@ test('API exige proprietário, persiste mudanças, protege concorrência e respe
 
 function clientHarness(data, reduce = false) {
   class Node {
-    constructor(tag='div') { this.tagName=tag; this.children=[]; this.dataset={}; this.attrs={}; this.events={}; this.hidden=false; this.textContent=''; this.captured=null; this.classes=new Set(); this.classList={add:name=>this.classes.add(name),remove:name=>this.classes.delete(name),contains:name=>this.classes.has(name)}; }
-    append(...nodes) { this.children.push(...nodes); }
+    constructor(tag='div') { this.tagName=tag; this.children=[]; this.dataset={}; this.attrs={}; this.events={}; this.hidden=false; this.textContent=''; this.captured=null; this.classes=new Set(); this.style={}; this.clientWidth=1000; this.parentNode=null; this.classList={add:name=>this.classes.add(name),remove:name=>this.classes.delete(name),contains:name=>this.classes.has(name)}; }
+    append(...nodes) { nodes.forEach(node=>node.parentNode=this); this.children.push(...nodes); }
     contains(node) { return this===node || this.children.some(child=>child.contains?.(node)); }
-    replaceChildren(...nodes) { this.children=nodes; }
+    replaceChildren(...nodes) { this.children.forEach(node=>node.parentNode=null); nodes.forEach(node=>node.parentNode=this); this.children=nodes; }
+    remove() { if (!this.parentNode) return; this.parentNode.children=this.parentNode.children.filter(node=>node!==this); this.parentNode=null; }
     setAttribute(key,value) { this.attrs[key]=value; }
+    removeAttribute(key) { delete this.attrs[key]; }
     addEventListener(event,callback) { (this.events[event] ||= []).push(callback); }
     emit(event,value={}) { for (const fn of this.events[event] || []) fn(value); }
     setPointerCapture(id) { this.captured=id; }
@@ -111,7 +113,7 @@ function clientHarness(data, reduce = false) {
   const reduced={matches:reduce,events:{},addEventListener(event,fn){this.events[event]=fn;}};
   let tick=null,themeObserver=null;
   class MutationObserver { constructor(callback) { themeObserver=callback; } observe() {} }
-  const context=vm.createContext({document,window:{MutationObserver},matchMedia:()=>reduced,fetch:async()=>({ok:true,json:async()=>data}),setInterval:fn=>{tick=fn;return 1;},clearInterval:()=>{tick=null;}});
+  const context=vm.createContext({document,window:{MutationObserver},matchMedia:()=>reduced,fetch:async()=>({ok:true,json:async()=>data}),setInterval:fn=>{tick=fn;return 1;},clearInterval:()=>{tick=null;},setTimeout:fn=>{fn();return 1;}});
   vm.runInContext(read('home-carousel-client.js'),context);
   return {root,stage,controls,reduced,get tick(){return tick;},photo(){return stage.children[0]?.children[0]?.children.find(n=>n.tagName==='img');},source(){return stage.children[0]?.children[0]?.children.find(n=>n.tagName==='source');},setDark(value){documentElement.classList[value?'add':'remove']('reloja-dark'); themeObserver?.([{attributeName:'class'}]);}};
 }
@@ -127,9 +129,10 @@ test('loop volta ao primeiro slide; interação pausa e retoma sem recriar contr
   app.root.emit('pointerenter'); assert.equal(app.tick,null); app.root.emit('pointerleave'); assert.equal(typeof app.tick,'function');
   app.controls.children[2].emit('click'); assert.equal(app.photo().src,'/image-2'); assert.equal(typeof app.tick,'function');
   app.stage.emit('pointerdown',{clientX:200,clientY:100,pointerId:7,pointerType:'mouse',button:0});
-  assert.equal(app.stage.captured,7); assert.equal(app.stage.classList.contains('is-dragging'),true);
-  let prevented=false; app.stage.emit('pointermove',{clientX:130,clientY:103,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){prevented=true;}}); assert.equal(prevented,true); assert.equal(app.photo().src,'/image-3');
-  app.stage.emit('pointermove',{clientX:80,clientY:105,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){}}); assert.equal(app.photo().src,'/image-3');
+  assert.equal(app.stage.captured,null); assert.equal(app.stage.classList.contains('is-dragging'),true);
+  let prevented=false; app.stage.emit('pointermove',{clientX:130,clientY:103,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){prevented=true;}}); assert.equal(prevented,true); assert.equal(app.stage.captured,7); assert.equal(app.photo().src,'/image-2');
+  assert.equal(app.stage.children.length,2); assert.equal(app.stage.children[0].style.transform,'translate3d(-70px,0,0)'); assert.equal(app.stage.children[1].children[0].children.find(n=>n.tagName==='img').src,'/image-3');
+  app.stage.emit('pointermove',{clientX:80,clientY:105,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){}}); assert.equal(app.photo().src,'/image-2');
   app.stage.emit('pointerup',{clientX:70,clientY:105,pointerId:7}); assert.equal(app.photo().src,'/image-3');
   assert.equal(app.stage.captured,null); assert.equal(app.stage.classList.contains('is-dragging'),false); assert.equal(typeof app.tick,'function');
 });
@@ -151,7 +154,7 @@ test('título e CTA compactos ficam restritos ao cabeçalho do carrossel e prese
   assert.match(css,/\.home-selection \.home-selection-head h2\{[^}]*font:700 1\.5rem\/1\.25/);
   assert.match(css,/\.home-selection \.home-selection-head>\.btn\{[^}]*min-height:40px;[^}]*padding:8px 14px;[^}]*font-size:\.75rem/);
   assert.match(css,/@media\(max-width:760px\)\{\.home-selection \.home-selection-head h2\{font-size:1\.25rem\}\.home-selection \.home-selection-head>\.btn\{min-height:44px\}/);
-  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-fade-1/);
+  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-drag-6/);
   assert.match(read('index.html'),/class="btn btn-outline" href="produtos.html">Ver todos os produtos/);
   assert.match(read('style.css'),/\.btn\{[^}]*padding:14px 26px/);
 });
@@ -190,6 +193,18 @@ test('arraste horizontal captura o ponteiro, ignora movimento vertical e bloquei
   app.stage.emit('pointercancel',{clientX:120,clientY:100,pointerId:10}); assert.equal(app.photo().src,'/one'); assert.equal(app.stage.captured,null);
   assert.match(read('home-carousel.css'),/touch-action:pan-y;cursor:grab;user-select:none/);
   assert.match(read('home-carousel-client.js'),/setPointerCapture/);
+});
+test('clique simples permanece no link e somente um arraste real bloqueia a navegação acidental', async () => {
+  const app=clientHarness({slides:[{image:'/one',alt:'Um',href:'produtos.html'},{image:'/two',alt:'Dois',href:'produtos.html?marca=Casio'}]});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(app.stage.children[0].tagName,'a'); assert.equal(app.stage.children[0].href,'produtos.html');
+  app.stage.emit('pointerdown',{clientX:200,clientY:100,pointerId:21,pointerType:'mouse',button:0});
+  app.stage.emit('pointerup',{clientX:200,clientY:100,pointerId:21});
+  let simpleBlocked=false; app.stage.emit('click',{preventDefault(){simpleBlocked=true;}}); assert.equal(simpleBlocked,false);
+  app.stage.emit('pointerdown',{clientX:200,clientY:100,pointerId:22,pointerType:'mouse',button:0});
+  app.stage.emit('pointermove',{clientX:80,clientY:100,pointerId:22,pointerType:'mouse',cancelable:true,preventDefault(){}});
+  app.stage.emit('pointerup',{clientX:80,clientY:100,pointerId:22});
+  let dragBlocked=false; app.stage.emit('click',{preventDefault(){dragBlocked=true;}}); assert.equal(dragBlocked,true);
 });
 test('falha de persistência restaura o carrossel anterior e não responde sucesso', async () => {
   const handlers=new Map(); const fakeFile=new Map([[FILE,JSON.stringify({revision:0,slides:[]})]]);
