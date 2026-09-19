@@ -31,9 +31,9 @@
     box.innerHTML = `
       <summary class="coupon-box__summary"><span id="coupon-summary-label">Tenho um cupom</span><span class="coupon-box__toggle" aria-hidden="true"></span></summary>
       <div class="coupon-box__content">
-        <div class="coupon-box__title">Cupom de frete grátis</div>
+        <div class="coupon-box__title">Cupom de desconto ou frete grátis</div>
         <div class="coupon-form">
-          <input id="coupon-code" maxlength="32" autocomplete="off" placeholder="Digite seu cupom" aria-label="Cupom de frete grátis">
+          <input id="coupon-code" maxlength="32" autocomplete="off" placeholder="Digite seu cupom" aria-label="Cupom de desconto ou frete grátis">
           <button id="coupon-apply" type="button">Aplicar</button>
         </div>
         <div id="coupon-message" class="coupon-message" aria-live="polite"></div>
@@ -89,11 +89,11 @@
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.valid) throw new Error(data.error || 'Cupom inválido.');
-      saveApplied({ code: data.coupon.code, context: currentContext(), discount: Number(data.shipping_discount || s.price || 0) });
+      saveApplied({ code: data.coupon.code, context: currentContext(), type: data.coupon.coupon_type || 'free_shipping', shipping_discount: Number(data.shipping_discount || 0), product_discount: Number(data.product_discount || 0) });
       const box = document.getElementById('coupon-box');
       if (box) box.open = true;
       input.value = data.coupon.code;
-      setMessage(`Cupom ${data.coupon.code} aplicado. Seu frete ficou grátis!`, 'success');
+      setMessage(data.coupon.coupon_type === 'discount' ? `Cupom ${data.coupon.code} aplicado: ${brl(data.product_discount)} de desconto.` : `Cupom ${data.coupon.code} aplicado. Seu frete ficou grátis!`, 'success');
       updateSummary();
     } catch (error) {
       saveApplied(null);
@@ -112,11 +112,13 @@
     }
     if (!applied) return;
     const sub = subtotal();
-    const pixDiscount = pixSelected() ? sub * 0.05 : 0;
+    const productBase = Math.max(0, sub - Number(applied.product_discount || 0));
+    const pixDiscount = pixSelected() ? productBase * 0.05 : 0;
+    const shippingPrice = Number(shipping()?.price || 0) - Number(applied.shipping_discount || 0);
     const totalEl = document.getElementById('cart-total');
-    if (totalEl) totalEl.textContent = brl(sub - pixDiscount);
+    if (totalEl) totalEl.textContent = brl(productBase - pixDiscount + Math.max(0, shippingPrice));
     const shippingEl = document.getElementById('cart-shipping');
-    if (shippingEl) shippingEl.innerHTML = `<span class="coupon-old-freight">${brl(applied.discount)}</span> <strong>Grátis</strong>`;
+    if (shippingEl && applied.type === 'free_shipping') shippingEl.innerHTML = `<span class="coupon-old-freight">${brl(applied.shipping_discount)}</span> <strong>Grátis</strong>`;
   }
 
   function restore() {
@@ -128,7 +130,7 @@
       if (input) input.value = saved.code;
       const box = document.getElementById('coupon-box');
       if (box) box.open = true;
-      setMessage(`Cupom ${saved.code} aplicado. Seu frete está grátis!`, 'success');
+      setMessage(saved.type === 'discount' ? `Cupom ${saved.code} aplicado: ${brl(saved.product_discount)} de desconto.` : `Cupom ${saved.code} aplicado. Seu frete está grátis!`, 'success');
       updateSummary();
     } else {
       sessionStorage.removeItem(COUPON_KEY);
@@ -142,7 +144,7 @@
       if (!url.includes('/api/checkout') || String(init.method || 'GET').toUpperCase() !== 'POST' || !applied) return originalFetch(input, init);
       if (applied.context !== currentContext()) {
         invalidate('O carrinho ou o frete mudou. Aplique o cupom novamente.');
-        return new Response(JSON.stringify({ error: 'Aplique novamente o cupom de frete grátis.' }), { status: 409, headers: { 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: 'Aplique novamente o cupom.' }), { status: 409, headers: { 'Content-Type': 'application/json' } });
       }
       try {
         const body = JSON.parse(init.body || '{}');
