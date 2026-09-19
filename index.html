@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="home-showcase-v2.css">
 <link rel="stylesheet" href="site-search.css">
 <link rel="stylesheet" href="site-experience.css?v=20260918">
-<link rel="stylesheet" href="home-carousel.css?v=20260919-clock-carousel-1">
+<link rel="stylesheet" href="home-carousel.css?v=20260919-home-review-2">
 <script src="site-dialog.js?v=20260918"></script>
 <script src="site-ui.js?v=20260918"></script>
 <script src="modal-accessibility.js?v=20260918"></script>
@@ -48,8 +48,22 @@
     </div>
     <div class="home-opening-content">
       <div class="home-opening-grid">
+        <div class="home-selection home-selection--opening">
+          <div class="home-selection-head">
+            <div>
+              <p class="eyebrow">Destaques da loja</p>
+              <h1 id="home-selection-title">Encontre seu próximo relógio</h1>
+              <p>Explore os destaques e confira os modelos disponíveis no catálogo.</p>
+            </div>
+            <a class="btn btn-outline" href="produtos.html">Ver produtos</a>
+          </div>
+          <div id="home-carousel" class="home-carousel" role="region" aria-roledescription="carrossel" aria-label="Destaques da loja">
+            <div class="home-carousel-stage" id="home-carousel-stage"><div class="home-carousel-placeholder"><span aria-hidden="true">01 / RELÓGIO E CIA</span><strong>Novos destaques em breve</strong><p>Conheça os relógios e acessórios no nosso catálogo.</p></div></div>
+            <div class="home-carousel-controls" id="home-carousel-controls" hidden></div>
+          </div>
+        </div>
+
         <aside class="home-opening-clock" aria-label="Horário de Brasília">
-          <p class="eyebrow">Desde 2003 · Relógio e Cia</p>
           <div class="clock-panel clock-panel--opening">
             <p class="stopwatch-label">Horário de Brasília</p>
             <div class="clock-face-wrap">
@@ -68,24 +82,11 @@
             </div>
             <p class="stopwatch-caption" id="stopwatch-data">Carregando horário de Brasília...</p>
           </div>
+          <p class="home-opening-signature">Relógio e Cia · desde 2003</p>
           <div class="home-opening-trust" aria-label="Diferenciais da loja">
             <span>Loja física</span><span>Produtos originais</span><span>Nota fiscal</span>
           </div>
         </aside>
-
-        <div class="home-selection home-selection--opening">
-          <div class="home-selection-head">
-            <div>
-              <h1 id="home-selection-title">Encontre seu próximo relógio</h1>
-              <p>Explore os destaques da loja e encontre modelos disponíveis no catálogo.</p>
-            </div>
-            <a class="btn btn-outline" href="produtos.html">Ver produtos</a>
-          </div>
-          <div id="home-carousel" class="home-carousel" role="region" aria-roledescription="carrossel" aria-label="Destaques da loja">
-            <div class="home-carousel-stage" id="home-carousel-stage"><div class="home-carousel-placeholder"><span aria-hidden="true">01 / RELÓGIO E CIA</span><strong>Novos destaques em breve</strong><p>Conheça os relógios e acessórios no nosso catálogo.</p></div></div>
-            <div class="home-carousel-controls" id="home-carousel-controls" hidden></div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
