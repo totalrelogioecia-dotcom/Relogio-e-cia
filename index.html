@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="home-showcase-v2.css">
 <link rel="stylesheet" href="site-search.css">
 <link rel="stylesheet" href="site-experience.css?v=20260918">
-<link rel="stylesheet" href="home-carousel.css?v=20260919-home-review-3">
+<link rel="stylesheet" href="home-carousel.css?v=20260919-drag-6">
 <script src="site-dialog.js?v=20260918"></script>
 <script src="site-ui.js?v=20260918"></script>
 <script src="modal-accessibility.js?v=20260918"></script>
@@ -39,56 +39,61 @@
   </nav>
 </header>
 
-<section class="home-opening" id="home-selection" aria-labelledby="home-selection-title">
+<section class="hero">
   <div class="frame">
     <div class="rail">
       <div class="rail-ticks"></div>
       <span class="rail-mark"></span>
-      <span class="rail-label">Nº 01 — Vitrine</span>
+      <span class="rail-label">Nº 01 — Início</span>
     </div>
-    <div class="home-opening-content">
-      <div class="home-opening-grid">
-        <div class="home-selection home-selection--opening">
-          <div class="home-selection-head">
-            <div>
-              <p class="eyebrow">Destaques da loja</p>
-              <h1 id="home-selection-title">Encontre seu próximo relógio</h1>
-              <p>Explore os destaques e confira os modelos disponíveis no catálogo.</p>
-            </div>
-            <a class="btn btn-outline" href="produtos.html">Ver produtos</a>
+    <div>
+      <div class="hero-inner">
+        <div>
+          <p class="eyebrow">Desde 2003 · Loja física e online</p>
+          <h1>Precisão que se mede em <mark>décadas</mark>, não em segundos.</h1>
+          <p class="lede">Somos uma relojoaria com mais de 20 anos de estrada, especializada em relógios e acessórios das marcas mais confiáveis do mercado — com atendimento em loja física e entrega para todo o Brasil.</p>
+          <div class="hero-actions">
+            <a href="produtos.html" class="btn btn-primary">Explorar produtos</a>
+            <a href="sobre.html" class="btn btn-outline">Conhecer a história</a>
           </div>
-          <div id="home-carousel" class="home-carousel" role="region" aria-roledescription="carrossel" aria-label="Destaques da loja">
-            <div class="home-carousel-stage" id="home-carousel-stage"><div class="home-carousel-placeholder"><span aria-hidden="true">01 / RELÓGIO E CIA</span><strong>Novos destaques em breve</strong><p>Conheça os relógios e acessórios no nosso catálogo.</p></div></div>
-            <div class="home-carousel-controls" id="home-carousel-controls" hidden></div>
+          <div class="hero-stats">
+            <div><strong>20+</strong><span>Anos de mercado</span></div>
+            <div><strong>05</strong><span>Marcas oficiais</span></div>
+            <div><strong>01</strong><span>Loja física própria</span></div>
           </div>
         </div>
 
-        <aside class="home-opening-clock" aria-label="Horário de Brasília">
-          <div class="clock-panel clock-panel--opening">
-            <p class="stopwatch-label">Horário de Brasília</p>
-            <div class="clock-face-wrap">
-              <svg class="clock-svg" id="analog-clock-brasilia" viewBox="0 0 200 200" role="img" aria-label="Relógio analógico com o horário de Brasília">
-                <circle class="clock-ring" cx="100" cy="100" r="94"></circle>
-                <g id="clock-ticks"></g>
-                <line id="hand-hour" class="hand hand-hour" x1="100" y1="100" x2="100" y2="58"></line>
-                <line id="hand-minute" class="hand hand-minute" x1="100" y1="100" x2="100" y2="36"></line>
-                <g id="hand-second">
-                  <line class="hand hand-second" x1="100" y1="122" x2="100" y2="22"></line>
-                  <circle class="second-disc" cx="100" cy="78" r="6.5"></circle>
-                </g>
-                <circle class="clock-center-ring" cx="100" cy="100" r="7"></circle>
-                <circle class="clock-center" cx="100" cy="100" r="3.2"></circle>
-              </svg>
-            </div>
-            <p class="stopwatch-caption" id="stopwatch-data">Carregando horário de Brasília...</p>
+        <div class="clock-panel">
+          <p class="stopwatch-label">Horário de Brasília</p>
+          <div class="clock-face-wrap">
+            <svg class="clock-svg" id="analog-clock-brasilia" viewBox="0 0 200 200" role="img" aria-label="Relógio analógico com o horário de Brasília">
+              <circle class="clock-ring" cx="100" cy="100" r="94"></circle>
+              <g id="clock-ticks"></g>
+              <line id="hand-hour" class="hand hand-hour" x1="100" y1="100" x2="100" y2="58"></line>
+              <line id="hand-minute" class="hand hand-minute" x1="100" y1="100" x2="100" y2="36"></line>
+              <g id="hand-second">
+                <line class="hand hand-second" x1="100" y1="122" x2="100" y2="22"></line>
+                <circle class="second-disc" cx="100" cy="78" r="6.5"></circle>
+              </g>
+              <circle class="clock-center-ring" cx="100" cy="100" r="7"></circle>
+              <circle class="clock-center" cx="100" cy="100" r="3.2"></circle>
+            </svg>
           </div>
-          <p class="home-opening-signature">Relógio e Cia · desde 2003</p>
-          <div class="home-opening-trust" aria-label="Diferenciais da loja">
-            <span>Loja física</span><span>Produtos originais</span><span>Nota fiscal</span>
-          </div>
-        </aside>
+          <p class="stopwatch-caption" id="stopwatch-data">Carregando horário de Brasília...</p>
+        </div>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="home-selection" id="home-selection" aria-labelledby="home-selection-title">
+  <div class="home-selection-head">
+    <div><h2 id="home-selection-title">Encontre seu próximo relógio</h2><p>Explore nossas marcas e confira a disponibilidade dos modelos no catálogo.</p></div>
+    <a class="btn btn-outline" href="produtos.html">Ver todos os produtos</a>
+  </div>
+  <div id="home-carousel" class="home-carousel" role="region" aria-roledescription="carrossel" aria-label="Destaques da loja">
+    <div class="home-carousel-stage" id="home-carousel-stage"><div class="home-carousel-placeholder"><span aria-hidden="true">01 / RELÓGIO E CIA</span><strong>Novos destaques em breve</strong><p>Conheça os relógios e acessórios no nosso catálogo.</p></div></div>
+    <div class="home-carousel-controls" id="home-carousel-controls" hidden></div>
   </div>
 </section>
 
@@ -116,29 +121,13 @@
   </div>
 </section>
 
-<section class="section home-story" id="historia-resumo">
-  <div class="frame">
-    <div class="rail"><div class="rail-ticks"></div><span class="rail-label">Nº 03 — História</span></div>
-    <div>
-      <div class="section-content home-story-grid">
-        <div class="home-story-copy">
-          <p class="eyebrow">Desde 2003 · Loja física e online</p>
-          <h2>Precisão que se mede em décadas, não em segundos.</h2>
-          <p>Somos uma relojoaria com mais de 20 anos de estrada, especializada em relógios e acessórios das marcas mais confiáveis do mercado — com atendimento em loja física e entrega para todo o Brasil.</p>
-          <a href="sobre.html" class="btn btn-outline">Conhecer a história</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <section class="section" id="sobre-teaser">
   <div class="frame">
-    <div class="rail"><div class="rail-ticks"></div><span class="rail-label">Nº 04 — Referência</span></div>
+    <div class="rail"><div class="rail-ticks"></div><span class="rail-label">Nº 03 — Sobre</span></div>
     <div>
       <div class="section-content about-grid">
         <div class="stat-block">
-          <p class="big-num">2003</p><p class="big-num-label">O começo da Relógio e Cia</p><hr>
+          <p class="big-num">20+</p><p class="big-num-label">Anos no ramo de relojoaria</p><hr>
           <div class="badge-row"><span class="badge">Loja física</span><span class="badge">Assistência técnica</span><span class="badge">Produtos originais</span><span class="badge">Entrega para todo o Brasil</span></div>
         </div>
         <div class="about-copy">
@@ -154,7 +143,7 @@
 
 <section class="section-black">
   <div class="frame">
-    <div class="rail inverse"><div class="rail-ticks"></div><span class="rail-label">Nº 05 — Contato</span></div>
+    <div class="rail inverse"><div class="rail-ticks"></div><span class="rail-label">Nº 04 — Contato</span></div>
     <div>
       <div class="section-content">
         <div class="section-head"><h2>Fale com quem entende do assunto</h2><p>Visite nossa loja física ou fale com a gente pelos canais abaixo.</p></div>
@@ -215,7 +204,7 @@
 <script src="script.js"></script>
 <script src="legal-footer.js"></script>
 <script src="home-enhancements.js"></script>
-<script src="home-carousel-client.js?v=20260919-clock-carousel-1"></script>
+<script src="home-carousel-client.js?v=20260919-drag-6"></script>
 <script src="product-photo-normalizer.js?v=photo-fit-20260911-3"></script>
 <script src="site-search.js"></script>
 </body>
