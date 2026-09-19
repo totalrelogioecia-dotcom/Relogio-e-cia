@@ -1,12 +1,12 @@
 /* Relógio e Cia — navegação lateral do Admin */
 @media(min-width:901px){
-  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-main{max-width:none;margin:0;padding:34px 34px 60px 286px}
-  .admin-page:has(#dashboard:not([style*="display: none"])) #dashboard{max-width:1380px;margin:0 auto}
-  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-tabs{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-head{margin-bottom:26px}
-  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-head>div .eyebrow,
-  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-head>div h1,
-  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-head>div .admin-muted{display:none}
+  .admin-page.admin-sidebar-ready .admin-main{max-width:none;margin:0;padding:34px 34px 60px 286px}
+  .admin-page.admin-sidebar-ready #dashboard{max-width:1380px;margin:0 auto}
+  .admin-page.admin-sidebar-ready .admin-tabs{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+  .admin-page.admin-sidebar-ready .admin-head{margin-bottom:26px}
+  .admin-page.admin-sidebar-ready .admin-head>div .eyebrow,
+  .admin-page.admin-sidebar-ready .admin-head>div h1,
+  .admin-page.admin-sidebar-ready .admin-head>div .admin-muted{display:none}
 }
 .admin-side-nav{position:fixed;z-index:55;top:var(--admin-side-top,86px);left:0;bottom:0;width:252px;display:flex;flex-direction:column;background:#111;color:#f7f7f3;border-right:1px solid #2d2d2d;box-shadow:8px 0 28px rgba(0,0,0,.08);overflow-y:auto}
 .admin-side-nav[hidden]{display:none!important}
@@ -22,8 +22,8 @@
 .admin-side-toggle,.admin-side-backdrop{display:none}
 html.reloja-dark .admin-side-nav{background:#080808;border-color:#303030}
 @media(max-width:900px){
-  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-tabs{display:none!important}
-  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-main{padding-top:24px}
+  .admin-page.admin-sidebar-ready .admin-tabs{display:none!important}
+  .admin-page.admin-sidebar-ready .admin-main{padding-top:24px}
   .admin-side-nav{top:0;width:min(290px,84vw);z-index:1002;transform:translateX(-105%);transition:transform .2s ease}
   body.admin-side-open .admin-side-nav{transform:translateX(0)}
   .admin-side-toggle{display:grid;width:42px;height:42px;place-content:center;gap:4px;flex:0 0 42px;border:1px solid var(--line-strong);background:var(--bg);color:var(--ink);cursor:pointer}
