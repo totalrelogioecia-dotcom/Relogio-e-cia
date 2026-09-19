@@ -1,0 +1,35 @@
+/* Relógio e Cia — navegação lateral do Admin */
+@media(min-width:901px){
+  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-main{max-width:none;margin:0;padding:34px 34px 60px 286px}
+  .admin-page:has(#dashboard:not([style*="display: none"])) #dashboard{max-width:1380px;margin:0 auto}
+  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-tabs{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-head{margin-bottom:26px}
+  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-head>div .eyebrow,
+  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-head>div h1,
+  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-head>div .admin-muted{display:none}
+}
+.admin-side-nav{position:fixed;z-index:55;top:var(--admin-side-top,86px);left:0;bottom:0;width:252px;display:flex;flex-direction:column;background:#111;color:#f7f7f3;border-right:1px solid #2d2d2d;box-shadow:8px 0 28px rgba(0,0,0,.08);overflow-y:auto}
+.admin-side-nav[hidden]{display:none!important}
+.admin-side-brand{display:flex;align-items:center;gap:11px;padding:22px 20px 18px;border-bottom:1px solid #303030}
+.admin-side-brand-mark{width:34px;height:34px;display:grid;place-items:center;flex:0 0 34px;background:var(--admin-red,#e31e24);color:#fff;font-family:var(--font-display);font-weight:800}
+.admin-side-brand strong,.admin-side-brand small{display:block}.admin-side-brand strong{font-family:var(--font-display);font-size:.92rem}.admin-side-brand small{margin-top:3px;color:#a9a9a4;font-family:var(--font-mono);font-size:.6rem;letter-spacing:.09em;text-transform:uppercase}
+.admin-side-groups{padding:13px 10px 20px}.admin-side-group{padding:8px 0}.admin-side-group+ .admin-side-group{border-top:1px solid #292929;margin-top:4px;padding-top:15px}.admin-side-group h2{margin:0 10px 7px;color:#8e8e89;font-family:var(--font-mono);font-size:.61rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+.admin-side-group button{appearance:none;width:100%;min-height:42px;display:flex;align-items:center;gap:11px;padding:9px 11px;border:0;border-left:3px solid transparent;background:transparent;color:#d7d7d2;font:inherit;font-size:.83rem;font-weight:600;text-align:left;cursor:pointer;transition:background .15s ease,color .15s ease,border-color .15s ease}
+.admin-side-group button:hover,.admin-side-group button:focus-visible{background:#1d1d1d;color:#fff;outline:none}.admin-side-group button:focus-visible{box-shadow:inset 0 0 0 2px var(--admin-red,#e31e24)}
+.admin-side-group button.active{border-left-color:var(--admin-red,#e31e24);background:#242424;color:#fff}
+.admin-side-icon{width:19px;height:19px;display:grid;place-items:center;flex:0 0 19px}.admin-side-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.admin-side-footer{margin-top:auto;padding:15px 20px;border-top:1px solid #303030}.admin-side-footer a{display:flex;justify-content:space-between;color:#cfcfca;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;text-decoration:none}.admin-side-footer a:hover{color:#fff}
+.admin-side-toggle,.admin-side-backdrop{display:none}
+html.reloja-dark .admin-side-nav{background:#080808;border-color:#303030}
+@media(max-width:900px){
+  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-tabs{display:none!important}
+  .admin-page:has(#dashboard:not([style*="display: none"])) .admin-main{padding-top:24px}
+  .admin-side-nav{top:0;width:min(290px,84vw);z-index:1002;transform:translateX(-105%);transition:transform .2s ease}
+  body.admin-side-open .admin-side-nav{transform:translateX(0)}
+  .admin-side-toggle{display:grid;width:42px;height:42px;place-content:center;gap:4px;flex:0 0 42px;border:1px solid var(--line-strong);background:var(--bg);color:var(--ink);cursor:pointer}
+  .admin-side-toggle span{display:block;width:18px;height:2px;background:currentColor}
+  .admin-side-backdrop{position:fixed;inset:0;z-index:1001;border:0;background:rgba(0,0,0,.48)}
+  body.admin-side-open .admin-side-backdrop{display:block}
+  .admin-page .site-header .nav{gap:10px}
+}
+@media(prefers-reduced-motion:reduce){.admin-side-nav,.admin-side-group button{transition:none!important}}
