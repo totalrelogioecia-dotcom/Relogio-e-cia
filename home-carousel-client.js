@@ -5,7 +5,7 @@
   const stage = document.getElementById('home-carousel-stage');
   const controls = document.getElementById('home-carousel-controls');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let slides = [], index = 0, timer = null, visible = true, interval = 7, startX = null, startY = null, activePointer = null, swiped = false, temporarilyPaused = false;
+  let slides = [], index = 0, timer = null, visible = true, interval = 7, startX = null, startY = null, activePointer = null, swiped = false, swipeCommitted = false, temporarilyPaused = false;
   function placeholder() {
     const box = document.createElement('div');
     box.className = 'home-carousel-placeholder';
@@ -58,7 +58,7 @@
   stage.addEventListener('dragstart', event => event.preventDefault());
   stage.addEventListener('pointerdown', event => {
     if (event.isPrimary === false || (event.button !== undefined && event.button !== 0)) return;
-    startX = event.clientX; startY = event.clientY; activePointer = event.pointerId ?? 1; swiped = false;
+    startX = event.clientX; startY = event.clientY; activePointer = event.pointerId ?? 1; swiped = false; swipeCommitted = false;
     stage.classList.add('is-dragging');
     if (stage.setPointerCapture && event.pointerId !== undefined) stage.setPointerCapture(event.pointerId);
     pauseTemporarily();
@@ -67,14 +67,17 @@
     if (activePointer === null || (event.pointerId !== undefined && event.pointerId !== activePointer)) return;
     const dx = event.clientX - startX, dy = event.clientY - startY;
     if (event.pointerType === 'mouse' && Math.abs(dx) > Math.abs(dy) && event.cancelable) event.preventDefault();
+    if (!swipeCommitted && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      swipeCommitted = true; swiped = true; show(index + (dx < 0 ? 1 : -1));
+    }
   });
   function finishPointer(event, cancelled = false) {
     if (activePointer === null || (event.pointerId !== undefined && event.pointerId !== activePointer)) return;
     const dx = event.clientX === undefined ? 0 : event.clientX - startX;
     const dy = event.clientY === undefined ? 0 : event.clientY - startY;
-    if (!cancelled && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { swiped = true; show(index + (dx < 0 ? 1 : -1)); }
+    if (!cancelled && !swipeCommitted && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { swipeCommitted = true; swiped = true; show(index + (dx < 0 ? 1 : -1)); }
     if (stage.releasePointerCapture && event.pointerId !== undefined && stage.hasPointerCapture?.(event.pointerId)) stage.releasePointerCapture(event.pointerId);
-    startX = startY = null; activePointer = null; stage.classList.remove('is-dragging'); resumeAutomatic();
+    startX = startY = null; activePointer = null; swipeCommitted = false; stage.classList.remove('is-dragging'); resumeAutomatic();
   }
   stage.addEventListener('pointerup', event => finishPointer(event));
   stage.addEventListener('pointercancel', event => finishPointer(event, true));

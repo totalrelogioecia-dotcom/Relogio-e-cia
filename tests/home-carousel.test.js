@@ -122,8 +122,9 @@ test('loop volta ao primeiro slide; interação pausa e retoma sem recriar contr
   app.controls.children[2].emit('click'); assert.equal(app.photo().src,'/image-2'); assert.equal(typeof app.tick,'function');
   app.stage.emit('pointerdown',{clientX:200,clientY:100,pointerId:7,pointerType:'mouse',button:0});
   assert.equal(app.stage.captured,7); assert.equal(app.stage.classList.contains('is-dragging'),true);
-  let prevented=false; app.stage.emit('pointermove',{clientX:130,clientY:103,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){prevented=true;}}); assert.equal(prevented,true);
-  app.stage.emit('pointerup',{clientX:100,clientY:105,pointerId:7}); assert.equal(app.photo().src,'/image-3');
+  let prevented=false; app.stage.emit('pointermove',{clientX:130,clientY:103,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){prevented=true;}}); assert.equal(prevented,true); assert.equal(app.photo().src,'/image-3');
+  app.stage.emit('pointermove',{clientX:80,clientY:105,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){}}); assert.equal(app.photo().src,'/image-3');
+  app.stage.emit('pointerup',{clientX:70,clientY:105,pointerId:7}); assert.equal(app.photo().src,'/image-3');
   assert.equal(app.stage.captured,null); assert.equal(app.stage.classList.contains('is-dragging'),false); assert.equal(typeof app.tick,'function');
 });
 test('controles compactos usam bolinhas acessíveis e o carrossel automático não exibe botão extra', async () => {
@@ -144,7 +145,7 @@ test('título e CTA compactos ficam restritos ao cabeçalho do carrossel e prese
   assert.match(css,/\.home-selection \.home-selection-head h2\{[^}]*font:700 1\.5rem\/1\.25/);
   assert.match(css,/\.home-selection \.home-selection-head>\.btn\{[^}]*min-height:40px;[^}]*padding:8px 14px;[^}]*font-size:\.75rem/);
   assert.match(css,/@media\(max-width:760px\)\{\.home-selection \.home-selection-head h2\{font-size:1\.25rem\}\.home-selection \.home-selection-head>\.btn\{min-height:44px\}/);
-  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-drag-4/);
+  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-drag-5/);
   assert.match(read('index.html'),/class="btn btn-outline" href="produtos.html">Ver todos os produtos/);
   assert.match(read('style.css'),/\.btn\{[^}]*padding:14px 26px/);
 });
