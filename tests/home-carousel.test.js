@@ -128,6 +128,7 @@ test('loop volta ao primeiro slide; interação pausa e retoma sem recriar contr
   app.root.emit('focusout',{relatedTarget:null}); assert.equal(typeof app.tick,'function');
   app.root.emit('pointerenter'); assert.equal(app.tick,null); app.root.emit('pointerleave'); assert.equal(typeof app.tick,'function');
   assert.equal(app.controls.hidden,true); assert.equal(app.controls.children.length,0);
+  app.root.emit('keydown',{key:'ArrowRight',preventDefault(){}}); assert.equal(app.photo().src,'/image-2');
   app.stage.emit('pointerdown',{clientX:200,clientY:100,pointerId:7,pointerType:'mouse',button:0});
   assert.equal(app.stage.captured,null); assert.equal(app.stage.classList.contains('is-dragging'),true);
   let prevented=false; app.stage.emit('pointermove',{clientX:130,clientY:103,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){prevented=true;}}); assert.equal(prevented,true); assert.equal(app.stage.captured,7); assert.equal(app.photo().src,'/image-2');
