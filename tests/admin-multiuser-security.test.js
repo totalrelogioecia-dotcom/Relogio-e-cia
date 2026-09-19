@@ -24,8 +24,10 @@ test('menu lateral exibe somente módulos cujas abas estão disponíveis e subst
   assert.match(sidebar, /getComputedStyle\(source\)\.display !== ['"]none['"]/);
   assert.match(sidebar, /button\.hidden=!available/);
   assert.match(sidebar, /attributeFilter:\[['"]class['"],['"]style['"],['"]hidden['"]\]/);
-  assert.doesNotMatch(favorites, /installHub\(\)/);
-  assert.doesNotMatch(favorites, /renderHubCards\(hub\)/);
+  const runBlock = favorites.match(/function run\(\)\{[^\n]+\}/)?.[0] || '';
+  assert.ok(runBlock, 'função run do admin-favorites.js deve existir');
+  assert.doesNotMatch(runBlock, /installHub\(\)/);
+  assert.doesNotMatch(runBlock, /renderHubCards\(hub\)/);
 });
 
 test('painel aguarda a identidade antes de carregar produtos restritos', () => {
