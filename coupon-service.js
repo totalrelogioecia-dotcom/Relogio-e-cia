@@ -27,6 +27,10 @@ async function ensureSchema() {
         code TEXT NOT NULL UNIQUE,
         active BOOLEAN NOT NULL DEFAULT TRUE,
         min_order_value NUMERIC(12,2) NOT NULL DEFAULT 0,
+        coupon_type TEXT NOT NULL DEFAULT 'free_shipping',
+        discount_type TEXT,
+        discount_value NUMERIC(12,2),
+        max_discount NUMERIC(12,2),
         max_uses INTEGER,
         per_customer_limit INTEGER,
         starts_at TIMESTAMPTZ,
@@ -35,6 +39,10 @@ async function ensureSchema() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+    await client.query("ALTER TABLE relogio_coupons ADD COLUMN IF NOT EXISTS coupon_type TEXT NOT NULL DEFAULT 'free_shipping'");
+    await client.query('ALTER TABLE relogio_coupons ADD COLUMN IF NOT EXISTS discount_type TEXT');
+    await client.query('ALTER TABLE relogio_coupons ADD COLUMN IF NOT EXISTS discount_value NUMERIC(12,2)');
+    await client.query('ALTER TABLE relogio_coupons ADD COLUMN IF NOT EXISTS max_discount NUMERIC(12,2)');
     await client.query(`
       CREATE TABLE IF NOT EXISTS relogio_coupon_uses (
         id BIGSERIAL PRIMARY KEY,
@@ -99,6 +107,10 @@ function publicCoupon(row) {
     code: row.code,
     active: Boolean(row.active),
     min_order_value: Number(row.min_order_value || 0),
+    coupon_type: row.coupon_type === 'discount' ? 'discount' : 'free_shipping',
+    discount_type: row.discount_type === 'fixed' ? 'fixed' : (row.discount_type === 'percent' ? 'percent' : null),
+    discount_value: row.discount_value == null ? null : Number(row.discount_value),
+    max_discount: row.max_discount == null ? null : Number(row.max_discount),
     max_uses: row.max_uses == null ? null : Number(row.max_uses),
     per_customer_limit: row.per_customer_limit == null ? null : Number(row.per_customer_limit),
     starts_at: row.starts_at || null,
@@ -126,19 +138,25 @@ async function saveCoupon(input, id = null) {
   const code = normalizeCode(input.code);
   if (code.length < 3) throw Object.assign(new Error('O cupom precisa ter pelo menos 3 caracteres.'), { status: 400 });
   const min = Math.max(0, Number(input.min_order_value || 0));
+  const couponType = input.coupon_type === 'discount' ? 'discount' : 'free_shipping';
+  const discountType = couponType === 'discount' && input.discount_type === 'fixed' ? 'fixed' : (couponType === 'discount' ? 'percent' : null);
+  const discountValue = couponType === 'discount' ? Number(input.discount_value || 0) : null;
+  const maxDiscount = couponType === 'discount' && discountType === 'percent' ? numberOrNull(input.max_discount) : null;
+  if (couponType === 'discount' && (!Number.isFinite(discountValue) || discountValue <= 0)) throw Object.assign(new Error('Informe um desconto maior que zero.'), { status: 400 });
+  if (couponType === 'discount' && discountType === 'percent' && discountValue > 100) throw Object.assign(new Error('O desconto percentual não pode ser maior que 100%.'), { status: 400 });
   const maxUses = numberOrNull(input.max_uses);
   const perCustomer = numberOrNull(input.per_customer_limit);
   const startsAt = dateOrNull(input.starts_at);
   const expiresAt = dateOrNull(input.expires_at);
   if (startsAt && expiresAt && new Date(expiresAt) <= new Date(startsAt)) throw Object.assign(new Error('A validade final precisa ser posterior à data inicial.'), { status: 400 });
-  const values = [code, input.active !== false, min, maxUses && maxUses > 0 ? Math.floor(maxUses) : null, perCustomer && perCustomer > 0 ? Math.floor(perCustomer) : null, startsAt, expiresAt];
+  const values = [code, input.active !== false, min, couponType, discountType, discountValue, maxDiscount && maxDiscount > 0 ? maxDiscount : null, maxUses && maxUses > 0 ? Math.floor(maxUses) : null, perCustomer && perCustomer > 0 ? Math.floor(perCustomer) : null, startsAt, expiresAt];
   try {
     let result;
     if (id) {
-      result = await db().query(`UPDATE relogio_coupons SET code=$1,active=$2,min_order_value=$3,max_uses=$4,per_customer_limit=$5,starts_at=$6,expires_at=$7,updated_at=NOW() WHERE id=$8 RETURNING *`, [...values, Number(id)]);
+      result = await db().query(`UPDATE relogio_coupons SET code=$1,active=$2,min_order_value=$3,coupon_type=$4,discount_type=$5,discount_value=$6,max_discount=$7,max_uses=$8,per_customer_limit=$9,starts_at=$10,expires_at=$11,updated_at=NOW() WHERE id=$12 RETURNING *`, [...values, Number(id)]);
       if (!result.rows.length) throw Object.assign(new Error('Cupom não encontrado.'), { status: 404 });
     } else {
-      result = await db().query(`INSERT INTO relogio_coupons(code,active,min_order_value,max_uses,per_customer_limit,starts_at,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`, values);
+      result = await db().query(`INSERT INTO relogio_coupons(code,active,min_order_value,coupon_type,discount_type,discount_value,max_discount,max_uses,per_customer_limit,starts_at,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`, values);
     }
     const row = result.rows[0];
     const count = await db().query("SELECT COUNT(*)::int AS n FROM relogio_coupon_uses WHERE coupon_id=$1 AND status='approved'", [row.id]);
@@ -188,12 +206,23 @@ async function validateCoupon({ code, subtotal, shippingCost, email }) {
     `, [row.id, normalizedEmail]);
     if (Number(count.rows[0]?.n || 0) >= Number(row.per_customer_limit)) return { valid: false, error: 'Você já atingiu o limite de usos deste cupom.' };
   }
+  const coupon = publicCoupon(row);
+  let productDiscount = 0;
+  if (coupon.coupon_type === 'discount') {
+    productDiscount = coupon.discount_type === 'fixed'
+      ? Number(coupon.discount_value || 0)
+      : Number(subtotal || 0) * Number(coupon.discount_value || 0) / 100;
+    if (coupon.max_discount != null) productDiscount = Math.min(productDiscount, Number(coupon.max_discount));
+    productDiscount = Math.min(Number(subtotal || 0), Math.max(0, Number(productDiscount.toFixed(2))));
+  }
+  const freeShipping = coupon.coupon_type === 'free_shipping';
   return {
     valid: true,
-    coupon: publicCoupon(row),
-    free_shipping: true,
+    coupon,
+    free_shipping: freeShipping,
     original_shipping: Number(shippingCost || 0),
-    shipping_discount: Number(shippingCost || 0)
+    shipping_discount: freeShipping ? Number(shippingCost || 0) : 0,
+    product_discount: productDiscount
   };
 }
 
