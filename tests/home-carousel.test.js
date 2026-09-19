@@ -88,12 +88,16 @@ test('API exige proprietário, persiste mudanças, protege concorrência e respe
 
 function clientHarness(data, reduce = false) {
   class Node {
-    constructor(tag='div') { this.tagName=tag; this.children=[]; this.dataset={}; this.attrs={}; this.events={}; this.hidden=false; this.textContent=''; }
+    constructor(tag='div') { this.tagName=tag; this.children=[]; this.dataset={}; this.attrs={}; this.events={}; this.hidden=false; this.textContent=''; this.captured=null; this.classes=new Set(); this.classList={add:name=>this.classes.add(name),remove:name=>this.classes.delete(name),contains:name=>this.classes.has(name)}; }
     append(...nodes) { this.children.push(...nodes); }
+    contains(node) { return this===node || this.children.some(child=>child.contains?.(node)); }
     replaceChildren(...nodes) { this.children=nodes; }
     setAttribute(key,value) { this.attrs[key]=value; }
     addEventListener(event,callback) { (this.events[event] ||= []).push(callback); }
     emit(event,value={}) { for (const fn of this.events[event] || []) fn(value); }
+    setPointerCapture(id) { this.captured=id; }
+    hasPointerCapture(id) { return this.captured===id; }
+    releasePointerCapture(id) { if (this.captured===id) this.captured=null; }
     querySelectorAll(selector) { return this.children.flatMap(n=>[n,...n.querySelectorAll(selector)]).filter(n=>selector==='[data-slide]' ? n.dataset.slide !== undefined : selector==='[data-play]' ? n.dataset.play !== undefined : false); }
     querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
   }
@@ -105,7 +109,7 @@ function clientHarness(data, reduce = false) {
   vm.runInContext(read('home-carousel-client.js'),context);
   return {root,stage,controls,reduced,get tick(){return tick;},photo(){return stage.children[0]?.children[0]?.children.find(n=>n.tagName==='img');}};
 }
-test('loop volta ao primeiro slide; interação pausa sem recriar controles focados', async () => {
+test('loop volta ao primeiro slide; interação pausa e retoma sem recriar controles', async () => {
   const app=clientHarness({autoplay:true,interval:7,slides:[1,2,3].map(n=>({image:'/image-'+n,alt:'Relógio '+n}))});
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(app.photo().src,'/image-1');
@@ -113,12 +117,16 @@ test('loop volta ao primeiro slide; interação pausa sem recriar controles foca
   for (const src of ['/image-2','/image-3','/image-1']) { app.tick(); assert.equal(app.photo().src,src); }
   assert.equal(app.controls.children,buttons);
   app.root.emit('focusin'); assert.equal(app.tick,null);
-  app.controls.querySelector('[data-play]').emit('click'); assert.equal(typeof app.tick,'function');
-  app.root.emit('pointerenter'); assert.equal(app.tick,null);
-  app.controls.children[2].emit('click'); assert.equal(app.photo().src,'/image-2'); assert.equal(app.tick,null);
-  app.stage.emit('pointerdown',{clientX:200}); app.stage.emit('pointerup',{clientX:100}); assert.equal(app.photo().src,'/image-3');
+  app.root.emit('focusout',{relatedTarget:null}); assert.equal(typeof app.tick,'function');
+  app.root.emit('pointerenter'); assert.equal(app.tick,null); app.root.emit('pointerleave'); assert.equal(typeof app.tick,'function');
+  app.controls.children[2].emit('click'); assert.equal(app.photo().src,'/image-2'); assert.equal(typeof app.tick,'function');
+  app.stage.emit('pointerdown',{clientX:200,clientY:100,pointerId:7,pointerType:'mouse',button:0});
+  assert.equal(app.stage.captured,7); assert.equal(app.stage.classList.contains('is-dragging'),true);
+  let prevented=false; app.stage.emit('pointermove',{clientX:130,clientY:103,pointerId:7,pointerType:'mouse',cancelable:true,preventDefault(){prevented=true;}}); assert.equal(prevented,true);
+  app.stage.emit('pointerup',{clientX:100,clientY:105,pointerId:7}); assert.equal(app.photo().src,'/image-3');
+  assert.equal(app.stage.captured,null); assert.equal(app.stage.classList.contains('is-dragging'),false); assert.equal(typeof app.tick,'function');
 });
-test('controles compactos usam bolinhas e ícone com descrição acessível e alvo de 44px', async () => {
+test('controles compactos usam bolinhas acessíveis e o carrossel automático não exibe botão extra', async () => {
   const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]});
   await new Promise(resolve=>setImmediate(resolve));
   const dots=app.controls.querySelectorAll('[data-slide]');
@@ -126,15 +134,8 @@ test('controles compactos usam bolinhas e ícone com descrição acessível e al
   assert.equal(dots[0].textContent,'');
   assert.equal(dots[0].attrs['aria-label'],'Mostrar slide 1');
   assert.equal(dots[0].attrs['aria-current'],'true');
-  const play=app.controls.querySelector('[data-play]'),icon=play.children[0];
-  assert.equal(play.textContent,'');
-  assert.equal(icon.attrs['aria-hidden'],'true');
-  assert.equal(play.dataset.state,'pause');
-  assert.equal(play.attrs['aria-label'],'Pausar troca automática');
-  play.emit('click');
-  assert.equal(play.dataset.state,'play');
-  assert.equal(play.attrs['aria-label'],'Reproduzir troca automática');
-  assert.equal(play.children[0],icon);
+  assert.equal(app.controls.querySelector('[data-play]'),null);
+  assert.equal(app.controls.children.length,3);
   assert.match(read('home-carousel.css'),/width:44px;height:44px;min-width:44px;min-height:44px/);
   assert.match(read('home-carousel.css'),/home-carousel-dots button::before.*width:8px;height:8px/);
 });
@@ -143,18 +144,30 @@ test('título e CTA compactos ficam restritos ao cabeçalho do carrossel e prese
   assert.match(css,/\.home-selection \.home-selection-head h2\{[^}]*font:700 1\.5rem\/1\.25/);
   assert.match(css,/\.home-selection \.home-selection-head>\.btn\{[^}]*min-height:40px;[^}]*padding:8px 14px;[^}]*font-size:\.75rem/);
   assert.match(css,/@media\(max-width:760px\)\{\.home-selection \.home-selection-head h2\{font-size:1\.25rem\}\.home-selection \.home-selection-head>\.btn\{min-height:44px\}/);
-  assert.match(read('index.html'),/home-carousel\.css\?v=20260918-heading-3/);
+  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-drag-4/);
   assert.match(read('index.html'),/class="btn btn-outline" href="produtos.html">Ver todos os produtos/);
   assert.match(read('style.css'),/\.btn\{[^}]*padding:14px 26px/);
 });
 test('movimento reduzido impede avanço automático e ausência de fotos não mostra controles', async () => {
   const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]},true);
   await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(app.tick,null); assert.equal(app.controls.querySelector('[data-play]').disabled,true);
+  assert.equal(app.tick,null); assert.equal(app.controls.querySelector('[data-play]'),null);
   app.controls.children[2].emit('click'); assert.equal(app.photo().src,'/two');
   const empty=clientHarness({autoplay:true,slides:[]}); await new Promise(resolve=>setImmediate(resolve));
   assert.equal(empty.controls.hidden,true); assert.equal(empty.tick,null);
   assert.equal(empty.stage.children[0].className,'home-carousel-placeholder');
+});
+test('arraste horizontal captura o ponteiro, ignora movimento vertical e bloqueia o arraste nativo da imagem', async () => {
+  const app=clientHarness({slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(app.photo().draggable,false);
+  let nativePrevented=false; app.stage.emit('dragstart',{preventDefault(){nativePrevented=true;}}); assert.equal(nativePrevented,true);
+  app.stage.emit('pointerdown',{clientX:200,clientY:100,pointerId:9,pointerType:'touch',button:0});
+  app.stage.emit('pointerup',{clientX:190,clientY:180,pointerId:9}); assert.equal(app.photo().src,'/one');
+  app.stage.emit('pointerdown',{clientX:200,clientY:100,pointerId:10,pointerType:'touch',button:0});
+  app.stage.emit('pointercancel',{clientX:120,clientY:100,pointerId:10}); assert.equal(app.photo().src,'/one'); assert.equal(app.stage.captured,null);
+  assert.match(read('home-carousel.css'),/touch-action:pan-y;cursor:grab;user-select:none/);
+  assert.match(read('home-carousel-client.js'),/setPointerCapture/);
 });
 test('falha de persistência restaura o carrossel anterior e não responde sucesso', async () => {
   const handlers=new Map(); const fakeFile=new Map([[FILE,JSON.stringify({revision:0,slides:[]})]]);

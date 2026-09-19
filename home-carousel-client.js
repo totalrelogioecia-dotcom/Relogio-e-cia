@@ -5,7 +5,7 @@
   const stage = document.getElementById('home-carousel-stage');
   const controls = document.getElementById('home-carousel-controls');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let slides = [], index = 0, timer = null, visible = true, interval = 7, startX = null, swiped = false, temporarilyPaused = false;
+  let slides = [], index = 0, timer = null, visible = true, interval = 7, startX = null, startY = null, activePointer = null, swiped = false, temporarilyPaused = false;
   function placeholder() {
     const box = document.createElement('div');
     box.className = 'home-carousel-placeholder';
@@ -35,7 +35,7 @@
     const picture = document.createElement('picture');
     if (slide.mobile_image) { const source = document.createElement('source'); source.media = '(max-width: 760px)'; source.srcset = slide.mobile_image; picture.append(source); }
     const image = document.createElement('img');
-    image.src = slide.image; image.alt = slide.alt; image.width = 1920; image.height = 600; image.decoding = 'async';
+    image.src = slide.image; image.alt = slide.alt; image.width = 1920; image.height = 600; image.decoding = 'async'; image.draggable = false;
     image.addEventListener('error', () => { pauseTemporarily(); placeholder(); }, { once: true });
     picture.append(image); frame.append(picture); stage.replaceChildren(frame);
     controls.querySelectorAll('[data-slide]').forEach(button => button.setAttribute('aria-current', Number(button.dataset.slide) === index ? 'true' : 'false'));
@@ -51,13 +51,33 @@
     controls.append(previous, dots, next);
   }
   root.addEventListener('pointerenter', pauseTemporarily);
-  root.addEventListener('pointerleave', resumeAutomatic);
+  root.addEventListener('pointerleave', () => { if (activePointer === null) resumeAutomatic(); });
   root.addEventListener('focusin', pauseTemporarily);
   root.addEventListener('focusout', event => { if (!root.contains(event.relatedTarget)) resumeAutomatic(); });
   root.addEventListener('keydown', event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); show(index + (event.key === 'ArrowRight' ? 1 : -1)); schedule(); } });
-  stage.addEventListener('pointerdown', event => { startX = event.clientX; swiped = false; pauseTemporarily(); });
-  stage.addEventListener('pointerup', event => { if (startX !== null && Math.abs(event.clientX - startX) > 50) { swiped = true; show(index + (event.clientX < startX ? 1 : -1)); } startX = null; resumeAutomatic(); });
-  stage.addEventListener('pointercancel', () => { startX = null; resumeAutomatic(); });
+  stage.addEventListener('dragstart', event => event.preventDefault());
+  stage.addEventListener('pointerdown', event => {
+    if (event.isPrimary === false || (event.button !== undefined && event.button !== 0)) return;
+    startX = event.clientX; startY = event.clientY; activePointer = event.pointerId ?? 1; swiped = false;
+    stage.classList.add('is-dragging');
+    if (stage.setPointerCapture && event.pointerId !== undefined) stage.setPointerCapture(event.pointerId);
+    pauseTemporarily();
+  });
+  stage.addEventListener('pointermove', event => {
+    if (activePointer === null || (event.pointerId !== undefined && event.pointerId !== activePointer)) return;
+    const dx = event.clientX - startX, dy = event.clientY - startY;
+    if (event.pointerType === 'mouse' && Math.abs(dx) > Math.abs(dy) && event.cancelable) event.preventDefault();
+  });
+  function finishPointer(event, cancelled = false) {
+    if (activePointer === null || (event.pointerId !== undefined && event.pointerId !== activePointer)) return;
+    const dx = event.clientX === undefined ? 0 : event.clientX - startX;
+    const dy = event.clientY === undefined ? 0 : event.clientY - startY;
+    if (!cancelled && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { swiped = true; show(index + (dx < 0 ? 1 : -1)); }
+    if (stage.releasePointerCapture && event.pointerId !== undefined && stage.hasPointerCapture?.(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+    startX = startY = null; activePointer = null; stage.classList.remove('is-dragging'); resumeAutomatic();
+  }
+  stage.addEventListener('pointerup', event => finishPointer(event));
+  stage.addEventListener('pointercancel', event => finishPointer(event, true));
   stage.addEventListener('click', event => { if (swiped) { event.preventDefault(); swiped = false; } }, true);
   document.addEventListener('visibilitychange', schedule);
   reduced.addEventListener('change', schedule);
