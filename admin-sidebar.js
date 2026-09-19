@@ -84,7 +84,7 @@
     document.body.classList.toggle('admin-sidebar-ready',active);
     aside.querySelectorAll('[data-side-tab]').forEach(button=>{
       const source=sourceButton(button.dataset.sideTab);
-      const available=!!source && getComputedStyle(source).display !== 'none';
+      const available=!!source && (button.dataset.sideTab === 'manual' || (getComputedStyle(source).display !== 'none' && !source.hidden));
       button.hidden=!available;
       button.classList.toggle('active',!!source?.classList.contains('active'));
       if(source?.classList.contains('active')) button.setAttribute('aria-current','page'); else button.removeAttribute('aria-current');
