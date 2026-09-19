@@ -152,7 +152,7 @@ test('título e CTA compactos ficam restritos à vitrine integrada e preservam t
   assert.match(css,/\.home-selection \.home-selection-head :is\(h1,h2\)\{[^}]*font:700 clamp\(/);
   assert.match(css,/\.home-selection \.home-selection-head>\.btn\{[^}]*min-height:40px;[^}]*padding:8px 14px;[^}]*font-size:\.75rem/);
   assert.match(css,/@media\(max-width:760px\)[\s\S]*\.home-selection--opening \.home-selection-head>\.btn\{[\s\S]*min-height:40px/);
-  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-home-review-2/);
+  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-home-review-3/);
   assert.match(read('index.html'),/class="btn btn-outline" href="produtos.html">Ver produtos/);
   assert.match(read('index.html'),/id="analog-clock-brasilia"/);
   assert.match(read('style.css'),/\.btn\{[^}]*padding:14px 26px/);
