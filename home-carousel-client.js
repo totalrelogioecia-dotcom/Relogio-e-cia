@@ -72,13 +72,8 @@
   }
   function button(label, action) { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.addEventListener('click', action); return b; }
   function renderControls() {
-    controls.replaceChildren(); controls.hidden = slides.length < 2;
-    if (slides.length < 2) return;
-    const previous = button('←', () => { show(index - 1); schedule(); }); previous.setAttribute('aria-label', 'Slide anterior');
-    const next = button('→', () => { show(index + 1); schedule(); }); next.setAttribute('aria-label', 'Próximo slide');
-    const dots = document.createElement('div'); dots.className = 'home-carousel-dots';
-    slides.forEach((slide, n) => { const b = button('', () => { show(n); schedule(); }); b.dataset.slide = n; b.setAttribute('aria-label', `Mostrar slide ${n + 1}`); dots.append(b); });
-    controls.append(previous, dots, next);
+    controls.replaceChildren();
+    controls.hidden = true;
   }
   root.addEventListener('pointerenter', pauseTemporarily);
   root.addEventListener('pointerleave', () => { if (activePointer === null) resumeAutomatic(); });
