@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ---------- Relógio analógico com horário de Brasília (elemento-assinatura) ---------- */
 function iniciarCronometro() {
-  const svg = document.getElementById('analog-clock-brasilia') || document.getElementById('analog-clock');
+  const svg = document.getElementById('analog-clock');
   if (!svg) return;
 
   const ticksGroup = document.getElementById('clock-ticks');
