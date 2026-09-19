@@ -231,18 +231,14 @@ function registerCouponCheckout(app) {
         subtotal
       });
       couponReserved = true;
-      const freeShipping = shipping
-        ? {
-            ...shipping,
-            original_price: originalShipping,
-            price: 0,
-            coupon_code: validation.coupon.code
-          }
-        : null;
+      const productDiscount = money(validation.product_discount || 0);
+      const discountedSubtotal = money(Math.max(0, subtotal - productDiscount));
+      const couponShipping = shipping ? { ...shipping, original_price: originalShipping, price: validation.free_shipping ? 0 : originalShipping, coupon_code: validation.coupon.code } : null;
+      const chargedShipping = validation.free_shipping ? 0 : originalShipping;
       const base = publicBaseUrl();
       const method = body.metodo === 'pix' ? 'pix' : 'cartao';
-      const pixDiscount = method === 'pix' ? money(subtotal * 0.05) : 0;
-      const total = money(subtotal - pixDiscount);
+      const pixDiscount = method === 'pix' ? money(discountedSubtotal * 0.05) : 0;
+      const total = money(discountedSubtotal - pixDiscount + chargedShipping);
 
       const localOrder = {
         id: orderId,
@@ -258,12 +254,13 @@ function registerCouponCheckout(app) {
         items,
         subtotal,
         desconto_pix: pixDiscount,
-        shipping: freeShipping,
+        shipping: couponShipping,
         coupon: {
           id: validation.coupon.id,
           code: validation.coupon.code,
-          type: 'free_shipping',
-          discount: originalShipping
+          type: validation.coupon.coupon_type,
+          discount_type: validation.coupon.discount_type,
+          discount: validation.free_shipping ? originalShipping : productDiscount
         },
         metodo: method,
         total,
@@ -333,7 +330,14 @@ function registerCouponCheckout(app) {
       }
 
       const preferenceBody = {
-        items: preferenceItems(items),
+        items: productDiscount > 0 ? [{
+          id: `CUPOM-${validation.coupon.code}`,
+          title: `Produtos do pedido - cupom ${validation.coupon.code}`.slice(0,256),
+          description: `Valor dos produtos após desconto do cupom ${validation.coupon.code}`.slice(0,256),
+          quantity: 1,
+          currency_id: 'BRL',
+          unit_price: discountedSubtotal
+        }] : preferenceItems(items),
         payer: preferencePayer(payer),
         payment_methods: {
           excluded_payment_types: [
@@ -355,7 +359,7 @@ function registerCouponCheckout(app) {
 
       if (shipping) {
         preferenceBody.shipments = {
-          cost: 0,
+          cost: chargedShipping,
           mode: 'not_specified'
         };
         const address = receiverAddress(payer);
@@ -398,7 +402,7 @@ function registerCouponCheckout(app) {
       });
     } catch (error) {
       if (couponReserved && !externalPaymentCreated && orderId) await releaseCoupon(orderId).catch(() => {});
-      console.error('Checkout com cupom de frete grátis falhou:', {
+      console.error('Checkout com cupom falhou:', {
         orderId,
         message: error?.message || null,
         status: errorStatus(error),
