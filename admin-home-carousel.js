@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  let identity = null, state = null, session = 0, dirty = false, busy = false, processing = 0;
+  let identity = null, state = null, session = 0, dirty = false, busy = false, processing = 0, openSlideId = null;
   const esc = v => String(v || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const panel = () => document.getElementById('tab-home-carousel');
   const status = message => { const box = document.getElementById('carousel-editor-status'); if (box) box.textContent = message; };
@@ -31,7 +31,7 @@
         <div class="carousel-editor-actions"><button type="button" class="btn btn-outline" id="carousel-add">+ Adicionar slide</button><div><button type="button" class="btn btn-outline" id="carousel-reload">Recarregar</button> <button type="button" class="btn btn-primary" id="carousel-save">Salvar carrossel</button></div></div>
         <p id="carousel-editor-status" class="carousel-editor-status" role="status" aria-live="polite"></p>`;
       dashboard.append(p);
-      document.getElementById('carousel-add').onclick = () => { if (state.slides.length >= 5) return; state.slides.push({ id: 'slide-' + crypto.randomUUID(), enabled: true, image: '', mobile_image: '', dark_image: '', dark_mobile_image: '', alt: '', href: '' }); dirty = true; render(); };
+      document.getElementById('carousel-add').onclick = () => { if (state.slides.length >= 5) return; const slide = { id: 'slide-' + crypto.randomUUID(), admin_name: '', enabled: true, image: '', mobile_image: '', dark_image: '', dark_mobile_image: '', alt: '', href: '' }; state.slides.push(slide); openSlideId = slide.id; dirty = true; render(); window.requestAnimationFrame(() => document.getElementById(`${slide.id}-admin-name`)?.focus()); };
       document.getElementById('carousel-save').onclick = save;
       document.getElementById('carousel-reload').onclick = async () => { if (dirty && !(await window.RelogioUI.confirm('Descartar as alterações ainda não salvas e recarregar o carrossel?'))) return; load(); };
       document.getElementById('carousel-autoplay').onchange = event => { state.autoplay = event.target.checked; dirty = true; };
@@ -58,23 +58,45 @@
     document.getElementById('carousel-autoplay').checked = state.autoplay;
     document.getElementById('carousel-interval').value = String(state.interval);
     const list = document.getElementById('carousel-editor-list');
-    list.innerHTML = state.slides.map((s,n) => `<article class="carousel-editor-card" data-id="${esc(s.id)}"><div class="carousel-editor-head"><h3>Slide ${n+1}</h3><div><button type="button" class="btn btn-outline" data-move="-1" aria-label="Mover slide ${n+1} para cima" ${n === 0 ? 'hidden' : ''}>↑</button> <button type="button" class="btn btn-outline" data-move="1" aria-label="Mover slide ${n+1} para baixo" ${n === state.slides.length-1 ? 'hidden' : ''}>↓</button> <button type="button" class="btn btn-outline" data-remove aria-label="Remover slide ${n+1}">Remover</button></div></div>
-      <div class="carousel-editor-grid">${[
-        ['image','Computador · modo claro','1920 × 600 px',false],
-        ['mobile_image','Celular · modo claro (opcional)','1000 × 1000 px',false],
-        ['dark_image','Computador · modo escuro (opcional)','1920 × 600 px',true],
-        ['dark_mobile_image','Celular · modo escuro (opcional)','1000 × 1000 px',true]
-      ].map(([key,label,size,dark]) => `<div class="carousel-editor-photo"><label for="${s.id}-${key}">${label}<small>${size}</small></label><input id="${s.id}-${key}" type="file" accept="image/jpeg,image/png,image/webp" data-photo="${key}" ${key!=='image' && !s.image ? 'disabled' : ''}><div class="carousel-editor-preview${dark ? ' is-dark' : ''}">${s[key] ? `<img src="${esc(s[key])}" alt="Prévia: ${label.toLowerCase()}">` : 'Sem foto'}</div>${s[key] ? `<button type="button" class="btn btn-outline" data-clear="${key}">Retirar foto</button>` : ''}</div>`).join('')}</div>
-      <div class="carousel-editor-grid"><div><label for="${s.id}-alt">Descrição da foto (acessibilidade)</label><input id="${s.id}-alt" maxlength="180" value="${esc(s.alt)}" data-field="alt" placeholder="Ex.: três relógios G-Shock sobre fundo claro"></div><div><label for="${s.id}-href">Destino ao clicar (opcional)</label><input id="${s.id}-href" maxlength="300" value="${esc(s.href)}" data-field="href" placeholder="produtos.html?marca=G-Shock"></div></div>
-      <label><input type="checkbox" data-enabled ${s.enabled ? 'checked' : ''}> Ativar este slide quando houver foto principal</label></article>`).join('');
+    list.innerHTML = state.slides.map((s,n) => {
+      const title = String(s.admin_name || '').trim() || `Post ${n+1}`;
+      const open = s.id === openSlideId;
+      const statusLabel = s.enabled && s.image ? 'Ativo' : (s.image ? 'Inativo' : 'Sem foto');
+      return `<article class="carousel-editor-card${open ? ' is-open' : ''}" data-id="${esc(s.id)}">
+        <div class="carousel-editor-summary">
+          <button type="button" class="carousel-editor-toggle" data-toggle aria-expanded="${open}" aria-controls="${esc(s.id)}-body">
+            <span class="carousel-editor-thumb">${s.image ? `<img src="${esc(s.image)}" alt="">` : '<span aria-hidden="true">＋</span>'}</span>
+            <span class="carousel-editor-summary-copy"><small>Post ${n+1}</small><strong>${esc(title)}</strong></span>
+            <span class="carousel-editor-state${s.enabled && s.image ? ' is-active' : ''}">${statusLabel}</span>
+            <span class="carousel-editor-chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div class="carousel-editor-order">
+            <button type="button" class="btn btn-outline" data-move="-1" aria-label="Mover post ${n+1} para cima" ${n === 0 ? 'hidden' : ''}>↑</button>
+            <button type="button" class="btn btn-outline" data-move="1" aria-label="Mover post ${n+1} para baixo" ${n === state.slides.length-1 ? 'hidden' : ''}>↓</button>
+          </div>
+        </div>
+        <div class="carousel-editor-body" id="${esc(s.id)}-body" ${open ? '' : 'hidden'}>
+          <div class="carousel-editor-name-row"><label for="${s.id}-admin-name">Nome do post <small>Somente para organização no painel</small></label><input id="${s.id}-admin-name" maxlength="80" value="${esc(s.admin_name || '')}" data-field="admin_name" placeholder="Ex.: G-Shock — Built to Resist"></div>
+          <div class="carousel-editor-grid">${[
+            ['image','Computador · modo claro','1920 × 600 px',false],
+            ['mobile_image','Celular · modo claro (opcional)','1000 × 1000 px',false],
+            ['dark_image','Computador · modo escuro (opcional)','1920 × 600 px',true],
+            ['dark_mobile_image','Celular · modo escuro (opcional)','1000 × 1000 px',true]
+          ].map(([key,label,size,dark]) => `<div class="carousel-editor-photo"><label for="${s.id}-${key}">${label}<small>${size}</small></label><input id="${s.id}-${key}" type="file" accept="image/jpeg,image/png,image/webp" data-photo="${key}" ${key!=='image' && !s.image ? 'disabled' : ''}><div class="carousel-editor-preview${dark ? ' is-dark' : ''}">${s[key] ? `<img src="${esc(s[key])}" alt="Prévia: ${label.toLowerCase()}">` : 'Sem foto'}</div>${s[key] ? `<button type="button" class="btn btn-outline" data-clear="${key}">Retirar foto</button>` : ''}</div>`).join('')}</div>
+          <div class="carousel-editor-grid"><div><label for="${s.id}-alt">Descrição da foto (acessibilidade)</label><input id="${s.id}-alt" maxlength="180" value="${esc(s.alt)}" data-field="alt" placeholder="Ex.: três relógios G-Shock sobre fundo claro"></div><div><label for="${s.id}-href">Destino ao clicar (opcional)</label><input id="${s.id}-href" maxlength="300" value="${esc(s.href)}" data-field="href" placeholder="produtos.html?marca=G-Shock"></div></div>
+          <div class="carousel-editor-footer"><label><input type="checkbox" data-enabled ${s.enabled ? 'checked' : ''}> Ativar este post quando houver foto principal</label><button type="button" class="btn btn-outline carousel-editor-remove" data-remove>Remover post</button></div>
+        </div>
+      </article>`;
+    }).join('');
     list.querySelectorAll('.carousel-editor-card').forEach(card => {
       const slide = state.slides.find(s => s.id === card.dataset.id);
-      card.querySelectorAll('[data-field]').forEach(input => input.oninput = () => { slide[input.dataset.field] = input.value; dirty = true; });
+      card.querySelector('[data-toggle]').onclick = () => { openSlideId = openSlideId === slide.id ? null : slide.id; render(); };
+      card.querySelectorAll('[data-field]').forEach(input => input.oninput = () => { slide[input.dataset.field] = input.value; dirty = true; if (input.dataset.field === 'admin_name') { const strong = card.querySelector('.carousel-editor-summary-copy strong'); if (strong) strong.textContent = input.value.trim() || `Post ${state.slides.indexOf(slide)+1}`; } });
       card.querySelector('[data-enabled]').onchange = event => { slide.enabled = event.target.checked; dirty = true; };
       card.querySelectorAll('[data-photo]').forEach(input => input.onchange = () => upload(input.files[0], slide, input.dataset.photo));
-      card.querySelectorAll('[data-clear]').forEach(button => button.onclick = () => { slide[button.dataset.clear] = ''; if (button.dataset.clear === 'image') { slide.mobile_image = ''; slide.dark_image = ''; slide.dark_mobile_image = ''; } dirty = true; render(); });
-      card.querySelectorAll('[data-move]').forEach(button => button.onclick = () => { const from = state.slides.indexOf(slide), to = from + Number(button.dataset.move); if (to < 0 || to >= state.slides.length) return; [state.slides[from],state.slides[to]] = [state.slides[to],state.slides[from]]; dirty = true; render(); panel().querySelector(`[data-id="${slide.id}"] h3`).setAttribute('tabindex','-1'); panel().querySelector(`[data-id="${slide.id}"] h3`).focus(); });
-      card.querySelector('[data-remove]').onclick = async () => { const generation = session; if (!(await window.RelogioUI.confirm('Remover este slide? A mudança só será publicada ao salvar.')) || session !== generation || !state || busy || processing) return; state.slides = state.slides.filter(s => s !== slide); dirty = true; render(); };
+      card.querySelectorAll('[data-clear]').forEach(button => button.onclick = () => { slide[button.dataset.clear] = ''; if (button.dataset.clear === 'image') { slide.mobile_image = ''; slide.dark_image = ''; slide.dark_mobile_image = ''; } dirty = true; openSlideId = slide.id; render(); });
+      card.querySelectorAll('[data-move]').forEach(button => button.onclick = event => { event.stopPropagation(); const from = state.slides.indexOf(slide), to = from + Number(button.dataset.move); if (to < 0 || to >= state.slides.length) return; [state.slides[from],state.slides[to]] = [state.slides[to],state.slides[from]]; openSlideId = slide.id; dirty = true; render(); panel().querySelector(`[data-id="${slide.id}"] [data-toggle]`)?.focus(); });
+      card.querySelector('[data-remove]').onclick = async () => { const generation = session; const name = String(slide.admin_name || '').trim() || `Post ${state.slides.indexOf(slide)+1}`; if (!(await window.RelogioUI.confirm(`Remover “${name}”? A mudança só será publicada ao salvar.`)) || session !== generation || !state || busy || processing) return; state.slides = state.slides.filter(s => s !== slide); if (openSlideId === slide.id) openSlideId = null; dirty = true; render(); };
     });
     updateButtons();
   }
