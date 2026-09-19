@@ -39,10 +39,8 @@ async function ensureSchema() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
-    await client.query("ALTER TABLE relogio_coupons ADD COLUMN IF NOT EXISTS coupon_type TEXT NOT NULL DEFAULT 'free_shipping'");
-    await client.query('ALTER TABLE relogio_coupons ADD COLUMN IF NOT EXISTS discount_type TEXT');
-    await client.query('ALTER TABLE relogio_coupons ADD COLUMN IF NOT EXISTS discount_value NUMERIC(12,2)');
-    await client.query('ALTER TABLE relogio_coupons ADD COLUMN IF NOT EXISTS max_discount NUMERIC(12,2)');
+    // Alterações de estrutura de relogio_coupons são aplicadas por migração do banco.
+    // O usuário de runtime do site não precisa (nem deve precisar) ser proprietário da tabela.
     await client.query(`
       CREATE TABLE IF NOT EXISTS relogio_coupon_uses (
         id BIGSERIAL PRIMARY KEY,
