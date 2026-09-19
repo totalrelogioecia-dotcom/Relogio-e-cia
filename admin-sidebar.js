@@ -75,7 +75,10 @@
 
   function sync() {
     const aside=document.getElementById('admin-side-nav'); if(!aside) return;
-    aside.hidden = getComputedStyle(document.getElementById('dashboard') || document.body).display === 'none';
+    const dashboard=document.getElementById('dashboard');
+    const active=!!dashboard && getComputedStyle(dashboard).display !== 'none';
+    aside.hidden=!active;
+    document.body.classList.toggle('admin-sidebar-ready',active);
     aside.querySelectorAll('[data-side-tab]').forEach(button=>{
       const source=sourceButton(button.dataset.sideTab);
       const available=!!source && getComputedStyle(source).display !== 'none';
