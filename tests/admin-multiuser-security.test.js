@@ -18,10 +18,14 @@ function signedLegacyToken(secret, email) {
   return `${body}.${signature}`;
 }
 
-test('central administrativa exibe somente módulos cujas abas estão disponíveis', () => {
-  const hub = read('admin-favorites.js');
-  assert.match(hub, /getComputedStyle\(button\)\.display!==['"]none['"]/);
-  assert.match(hub, /attributeFilter:\[['"]style['"],['"]hidden['"]\]/);
+test('menu lateral exibe somente módulos cujas abas estão disponíveis e substitui o hub de cards', () => {
+  const sidebar = read('admin-sidebar.js');
+  const favorites = read('admin-favorites.js');
+  assert.match(sidebar, /getComputedStyle\(source\)\.display !== ['"]none['"]/);
+  assert.match(sidebar, /button\.hidden=!available/);
+  assert.match(sidebar, /attributeFilter:\[['"]class['"],['"]style['"],['"]hidden['"]\]/);
+  assert.doesNotMatch(favorites, /installHub\(\)/);
+  assert.doesNotMatch(favorites, /renderHubCards\(hub\)/);
 });
 
 test('painel aguarda a identidade antes de carregar produtos restritos', () => {
