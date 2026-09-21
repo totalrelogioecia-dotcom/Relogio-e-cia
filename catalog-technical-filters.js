@@ -6,9 +6,6 @@
 (function () {
   const DETAILS_URL = '/api/product-details';
   let detailsMap = {};
-  let observer = null;
-  let appliedTechnicalFilters = { movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: [] };
-  let appliedCoreFilters = null;
 
   function plain(value) {
     return String(value || '').trim();
@@ -140,7 +137,7 @@
     return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(input => input.value);
   }
 
-  function activeTechnicalFilters() {
+  function readFilters() {
     return {
       movimentos: checkedValues('movimento'),
       exibicoes: checkedValues('tipo-exibicao'),
@@ -150,30 +147,11 @@
     };
   }
 
-  function readCoreFilters() {
-    return {
-      marcas: checkedValues('marca'),
-      categorias: checkedValues('categoria'),
-      min: document.getElementById('preco-min')?.value || '',
-      max: document.getElementById('preco-max')?.value || ''
-    };
+  function emptyFilters() {
+    return { movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: [] };
   }
 
-  function writeCoreFilters(filters) {
-    if (!filters) return;
-    document.querySelectorAll('input[name="marca"]').forEach(input => {
-      input.checked = filters.marcas.includes(input.value);
-    });
-    document.querySelectorAll('input[name="categoria"]').forEach(input => {
-      input.checked = filters.categorias.includes(input.value);
-    });
-    const min = document.getElementById('preco-min');
-    const max = document.getElementById('preco-max');
-    if (min) min.value = filters.min;
-    if (max) max.value = filters.max;
-  }
-
-  function matchesTechnical(product, filters) {
+  function matchesTechnical(product, filters = emptyFilters()) {
     const info = productTechnical(product);
     const okMovement = !filters.movimentos.length || filters.movimentos.includes(info.movimento);
     const okDisplay = !filters.exibicoes.length || filters.exibicoes.includes(info.exibicao);
@@ -183,56 +161,18 @@
     return okMovement && okDisplay && okColor && okCase && okStrap;
   }
 
-  window.RelogioCatalogTechnical = { matches: product => matchesTechnical(product, appliedTechnicalFilters) };
-
-  function cardProductId(card) {
-    const detailLink = card.querySelector('[data-produto]');
-    const addButton = card.querySelector('[data-add-carrinho]');
-    return Number(card.dataset.productId || detailLink?.dataset.produto || addButton?.dataset.addCarrinho || 0);
+  function resetInputs() {
+    document.querySelectorAll(
+      'input[name="movimento"], input[name="tipo-exibicao"], input[name="cor"], input[name="caixa-material"], input[name="pulseira-material"]'
+    ).forEach(input => { input.checked = false; });
   }
 
-  function ensureEmptyMessage(grid) {
-    let empty = document.getElementById('catalog-technical-empty');
-    if (empty) return empty;
-
-    empty = document.createElement('div');
-    empty.id = 'catalog-technical-empty';
-    empty.className = 'catalog-technical-empty';
-    empty.hidden = true;
-    empty.innerHTML = '<strong>Nenhum produto combina com estes filtros</strong><span>Remova algum filtro ou limpe a seleção para voltar ao catálogo completo.</span><button class="btn btn-outline catalog-empty-reset" type="button" data-reset-catalog-filters>Limpar filtros</button>';
-    empty.querySelector('[data-reset-catalog-filters]')?.addEventListener('click', () => {
-      document.getElementById('reset-filtros')?.click();
-    });
-    grid.insertAdjacentElement('afterend', empty);
-    return empty;
-  }
-
-  function applyTechnicalFilters() {
-    const grid = document.getElementById('product-grid');
-    if (!grid || typeof PRODUTOS === 'undefined') return;
-
-    const cards = Array.from(grid.querySelectorAll('.product-card'));
-    const filters = appliedTechnicalFilters;
-    const hasTechnicalFilter = filters.movimentos.length || filters.exibicoes.length || filters.cores.length || filters.caixas.length || filters.pulseiras.length;
-    let visible = 0;
-
-    cards.forEach(card => {
-      const id = cardProductId(card);
-      const product = PRODUTOS.find(item => Number(item.id) === id);
-      const show = !product || matchesTechnical(product, filters);
-      card.hidden = !show;
-      if (show) visible += 1;
-    });
-
-    const count = document.getElementById('result-count');
-    const total = Number(grid.dataset.catalogTotal ?? visible);
-    if (count && cards.length) {
-      count.innerHTML = `<strong>${total}</strong> produto${total === 1 ? '' : 's'} encontrado${total === 1 ? '' : 's'}`;
-    }
-
-    const empty = ensureEmptyMessage(grid);
-    empty.hidden = !hasTechnicalFilter || total > 0 || cards.length === 0;
-  }
+  window.RelogioCatalogTechnical = {
+    readFilters,
+    matches: matchesTechnical,
+    resetInputs,
+    emptyFilters
+  };
 
   function optionMarkup(name, value, count) {
     const safe = String(value)
@@ -316,88 +256,6 @@
     host.innerHTML = values.map(value => optionMarkup(inputName, value, counts.get(value))).join('');
   }
 
-  function bindManualMode() {
-    const panel = document.querySelector('.filters');
-    if (!panel || panel.dataset.manualFiltersBound) return;
-    panel.dataset.manualFiltersBound = '1';
-
-    /* Impede os listeners antigos de aplicar os filtros enquanto o usuário
-       apenas marca as opções. Eventos sintéticos continuam liberados para
-       links como produtos.html?marca=Casio e para o botão Aplicar. */
-    panel.addEventListener('change', event => {
-      if (!event.isTrusted) return;
-      if (event.target.matches('input[name="marca"], input[name="categoria"], input[name="movimento"], input[name="tipo-exibicao"], input[name="cor"], input[name="caixa-material"], input[name="pulseira-material"]')) {
-        event.stopPropagation();
-      }
-    }, true);
-
-    panel.addEventListener('input', event => {
-      if (!event.isTrusted) return;
-      if (event.target.matches('#preco-min, #preco-max')) event.stopPropagation();
-    }, true);
-  }
-
-  function triggerCoreFilterRender() {
-    const trigger = document.querySelector('input[name="marca"], input[name="categoria"]');
-    if (trigger) {
-      trigger.dispatchEvent(new Event('change', { bubbles: true }));
-      return true;
-    }
-    return false;
-  }
-
-  function bindApplyButton() {
-    const button = document.getElementById('apply-filters');
-    if (!button || button.dataset.applyBound) return;
-    button.dataset.applyBound = '1';
-
-    button.addEventListener('click', () => {
-      appliedCoreFilters = readCoreFilters();
-      appliedTechnicalFilters = activeTechnicalFilters();
-      triggerCoreFilterRender();
-      window.setTimeout(applyTechnicalFilters, 0);
-
-      const original = 'Aplicar filtros';
-      button.textContent = 'Filtros aplicados ✓';
-      window.setTimeout(() => { button.textContent = original; }, 1200);
-    });
-  }
-
-  function bindSortProtection() {
-    const sort = document.getElementById('ordenar');
-    if (!sort || sort.dataset.manualProtectionBound) return;
-    sort.dataset.manualProtectionBound = '1';
-
-    /* Ordenar continua imediato, mas não deve aplicar marca/preço que ainda
-       estão apenas marcados e aguardando o botão Aplicar. */
-    sort.addEventListener('change', event => {
-      if (!event.isTrusted || !appliedCoreFilters) return;
-      const pending = readCoreFilters();
-      writeCoreFilters(appliedCoreFilters);
-      queueMicrotask(() => writeCoreFilters(pending));
-    }, true);
-  }
-
-  function patchResetButton() {
-    const reset = document.getElementById('reset-filtros');
-    if (!reset || reset.dataset.technicalResetBound) return;
-    reset.dataset.technicalResetBound = '1';
-    reset.addEventListener('click', () => {
-      document.querySelectorAll('input[name="movimento"], input[name="tipo-exibicao"], input[name="cor"], input[name="caixa-material"], input[name="pulseira-material"]')
-        .forEach(input => { input.checked = false; });
-      appliedTechnicalFilters = { movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: [] };
-      appliedCoreFilters = readCoreFilters();
-      window.setTimeout(applyTechnicalFilters, 0);
-    });
-  }
-
-  function watchGrid() {
-    const grid = document.getElementById('product-grid');
-    if (!grid || observer) return;
-    observer = new MutationObserver(() => window.setTimeout(applyTechnicalFilters, 0));
-    observer.observe(grid, { childList: true });
-  }
-
   async function loadDetails() {
     try {
       const response = await fetch(DETAILS_URL, { cache: 'no-store' });
@@ -412,19 +270,11 @@
   async function init() {
     if (!document.getElementById('product-grid')) return;
 
-    bindManualMode();
-    bindApplyButton();
-    bindSortProtection();
-    watchGrid();
-    patchResetButton();
     detailsMap = await loadDetails();
 
-    const waitForProducts = async () => {
-      if (typeof quandoCatalogoPronto === 'function') {
-        await quandoCatalogoPronto(() => {});
-      }
-    };
-    await waitForProducts();
+    if (typeof quandoCatalogoPronto === 'function') {
+      await quandoCatalogoPronto(() => {});
+    }
 
     renderMovementOptions();
     renderDisplayOptions();
@@ -432,11 +282,7 @@
     renderMaterialOptions('filter-case-options', 'caixa-material', 'caixa');
     renderMaterialOptions('filter-strap-options', 'pulseira-material', 'pulseira');
 
-    /* Neste ponto o parâmetro ?marca=, se existir, já foi processado pelo
-       script da página. Ele passa a ser o estado oficialmente aplicado. */
-    appliedCoreFilters = readCoreFilters();
-    triggerCoreFilterRender();
-    applyTechnicalFilters();
+    document.dispatchEvent(new CustomEvent('relogio:catalog-technical-ready'));
   }
 
   document.addEventListener('DOMContentLoaded', init);
