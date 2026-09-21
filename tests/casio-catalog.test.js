@@ -59,7 +59,8 @@ test('filtro público separa tipo de mostrador do movimento e mantém aplicaçã
   assert.match(source, /optionMarkup\('tipo-exibicao', 'Analógico'/);
   assert.match(source, /exibicoes: checkedValues\('tipo-exibicao'\)/);
   assert.match(source, /filters\.exibicoes\.includes\(info\.exibicao\)/);
-  assert.match(source, /id="apply-filters"|getElementById\('apply-filters'\)/);
+  assert.match(page, /id="apply-filters"/);
+  assert.match(readText('script.js'), /getElementById\('apply-filters'\)/);
 });
 
 test('filtro público usa cor da ficha técnica e aceita relógios bicolores', () => {
