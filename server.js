@@ -27,8 +27,6 @@ const read = (file, fallback) => { try { return JSON.parse(fs.readFileSync(file,
 const write = (file, value) => fs.writeFileSync(file, JSON.stringify(value, null, 2), 'utf8');
 const getProducts = () => read(PRODUCTS, []);
 const getOrders = () => read(ORDERS, []);
-const publicCatalogEnabled = () => String(process.env.PUBLIC_CATALOG_ENABLED ?? 'true').trim().toLowerCase() !== 'false';
-
 app.use(express.json({ limit: '10mb' }));
 registerHomeCarouselRoutes(app);
 app.use('/data/stock-alerts.json', (req, res) => res.status(404).end());
@@ -128,7 +126,6 @@ app.get('/healthz', (req, res) => res.json({ ok: true }));
 
 app.get('/api/products/home', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  if (!publicCatalogEnabled()) return res.json([]);
   res.json(buildHomeCatalog(withPublicProductList(getProducts())));
 });
 
