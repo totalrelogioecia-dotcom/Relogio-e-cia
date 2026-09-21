@@ -352,14 +352,47 @@ function iniciarPaginaProdutos() {
   const filtersPanel = document.querySelector('.products-layout .filters');
   const activeFiltersEl = document.getElementById('catalog-active-filters');
   let activeFilterTargets = new Map();
+  let appliedFilters = null;
   let appliedFilterSnapshot = [];
 
-  function getFiltros() {
-    const marcas = brandInputs.filter(i => i.checked).map(i => i.value);
-    const categorias = catInputs.filter(i => i.checked).map(i => i.value);
-    const min = parseFloat(minPriceInput.value) || 0;
-    const max = parseFloat(maxPriceInput.value) || Infinity;
-    return { marcas, categorias, min, max, ordenar: sortSelect.value };
+  function emptyTechnicalFilters() {
+    return window.RelogioCatalogTechnical?.emptyFilters?.() || {
+      movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: []
+    };
+  }
+
+  function cloneTechnicalFilters(filters = emptyTechnicalFilters()) {
+    return {
+      movimentos: [...(filters.movimentos || [])],
+      exibicoes: [...(filters.exibicoes || [])],
+      cores: [...(filters.cores || [])],
+      caixas: [...(filters.caixas || [])],
+      pulseiras: [...(filters.pulseiras || [])]
+    };
+  }
+
+  function readPendingFilters() {
+    const minValue = Number.parseFloat(minPriceInput.value);
+    const maxValue = Number.parseFloat(maxPriceInput.value);
+    return {
+      marcas: brandInputs.filter(input => input.checked).map(input => input.value),
+      categorias: catInputs.filter(input => input.checked).map(input => input.value),
+      min: Number.isFinite(minValue) ? minValue : 0,
+      max: Number.isFinite(maxValue) ? maxValue : Infinity,
+      technical: cloneTechnicalFilters(window.RelogioCatalogTechnical?.readFilters?.())
+    };
+  }
+
+  function commitPendingFilters() {
+    const pending = readPendingFilters();
+    appliedFilters = {
+      marcas: [...pending.marcas],
+      categorias: [...pending.categorias],
+      min: pending.min,
+      max: pending.max,
+      technical: cloneTechnicalFilters(pending.technical)
+    };
+    appliedFilterSnapshot = captureAppliedFilterChips();
   }
 
   function filterGroupLabel(input) {
@@ -367,7 +400,7 @@ function iniciarPaginaProdutos() {
     return legend?.textContent.trim() || 'Filtro';
   }
 
-  function captureAppliedFilters() {
+  function captureAppliedFilterChips() {
     if (!filtersPanel) return [];
 
     const selected = Array.from(filtersPanel.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked'))
@@ -415,13 +448,17 @@ function iniciarPaginaProdutos() {
   }
 
   function aplicarFiltros() {
-    const { marcas, categorias, min, max, ordenar } = getFiltros();
+    const state = appliedFilters || {
+      marcas: [], categorias: [], min: 0, max: Infinity, technical: emptyTechnicalFilters()
+    };
+    const { marcas, categorias, min, max, technical } = state;
+    const ordenar = sortSelect.value;
 
     let resultado = PRODUTOS.filter(p => {
       const okMarca = marcas.length === 0 || marcas.includes(p.marca);
       const okCategoria = categorias.length === 0 || categorias.includes(p.categoria);
       const okPreco = p.preco >= min && p.preco <= max;
-      const okTecnico = !window.RelogioCatalogTechnical || window.RelogioCatalogTechnical.matches(p);
+      const okTecnico = !window.RelogioCatalogTechnical || window.RelogioCatalogTechnical.matches(p, technical);
       return okMarca && okCategoria && okPreco && okTecnico;
     });
 
@@ -519,28 +556,24 @@ function iniciarPaginaProdutos() {
   }
 
   /* ---------- Eventos ---------- */
-  [...brandInputs, ...catInputs].forEach(i => i.addEventListener('change', aplicarFiltros));
-  minPriceInput.addEventListener('input', aplicarFiltros);
-  maxPriceInput.addEventListener('input', aplicarFiltros);
   sortSelect.addEventListener('change', aplicarFiltros);
+
   resetBtn.addEventListener('click', () => {
-    [...brandInputs, ...catInputs].forEach(i => i.checked = false);
+    [...brandInputs, ...catInputs].forEach(input => { input.checked = false; });
+    window.RelogioCatalogTechnical?.resetInputs?.();
     minPriceInput.value = '';
     maxPriceInput.value = '';
     sortSelect.value = 'pronta-entrega';
-    aplicarFiltros();
+    appliedFilters = {
+      marcas: [], categorias: [], min: 0, max: Infinity, technical: emptyTechnicalFilters()
+    };
     appliedFilterSnapshot = [];
-    window.setTimeout(renderActiveFilters, 0);
+    aplicarFiltros();
+    renderActiveFilters();
   });
 
   if (activeFiltersEl) {
     activeFiltersEl.addEventListener('click', event => {
-      const clear = event.target.closest('[data-clear-catalog-filters]');
-      if (clear) {
-        resetBtn.click();
-        return;
-      }
-
       const chip = event.target.closest('[data-filter-target]');
       if (!chip) return;
       const input = activeFilterTargets.get(chip.dataset.filterTarget);
@@ -549,9 +582,9 @@ function iniciarPaginaProdutos() {
       if (input.matches('input[type="checkbox"], input[type="radio"]')) input.checked = false;
       else input.value = '';
 
-      input.dispatchEvent(new Event(input.type === 'number' ? 'input' : 'change', { bubbles: true }));
-      document.getElementById('apply-filters')?.click();
-      window.setTimeout(renderActiveFilters, 0);
+      commitPendingFilters();
+      aplicarFiltros();
+      renderActiveFilters();
     });
   }
 
@@ -562,14 +595,19 @@ function iniciarPaginaProdutos() {
   const applyFiltersBtn = document.getElementById('apply-filters');
   if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener('click', () => {
-      appliedFilterSnapshot = captureAppliedFilters();
-      window.setTimeout(renderActiveFilters, 0);
+      commitPendingFilters();
+      aplicarFiltros();
+      renderActiveFilters();
+
+      const original = 'Aplicar filtros';
+      applyFiltersBtn.textContent = 'Filtros aplicados ✓';
+      window.setTimeout(() => { applyFiltersBtn.textContent = original; }, 1200);
     });
   }
 
   preencherContagens();
+  commitPendingFilters();
   aplicarFiltros();
-  appliedFilterSnapshot = captureAppliedFilters();
   renderActiveFilters();
 }
 document.addEventListener('DOMContentLoaded', () => quandoCatalogoPronto(iniciarPaginaProdutos));
