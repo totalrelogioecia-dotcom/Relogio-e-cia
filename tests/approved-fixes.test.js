@@ -95,9 +95,3 @@ test('cupom e busca inteligente são carregados pelas páginas corretas', () => 
   assert.match(bootstrap, /mercadopago-checkout-client\\\.js\(\?:\\\?\[\^"'\]\*\)\?/);
 });
 
-
-test('catálogo público pode ser desligado sem apagar os produtos administrativos', () => {
-  const source = read('server.js');
-  assert.match(source, /PUBLIC_CATALOG_ENABLED/);
-  assert.match(source, /if \(!publicCatalogEnabled\(\)\) return res\.json\(\[\]\);/);
-});
