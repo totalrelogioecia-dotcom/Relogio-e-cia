@@ -415,6 +415,40 @@ function iniciarPaginaProdutos() {
     return selected;
   }
 
+  function removeAppliedFilter(input) {
+    if (!appliedFilters || !input) return;
+
+    const remove = (values, value) => values.filter(item => item !== value);
+    switch (input.name) {
+      case 'marca':
+        appliedFilters.marcas = remove(appliedFilters.marcas, input.value);
+        break;
+      case 'categoria':
+        appliedFilters.categorias = remove(appliedFilters.categorias, input.value);
+        break;
+      case 'movimento':
+        appliedFilters.technical.movimentos = remove(appliedFilters.technical.movimentos, input.value);
+        break;
+      case 'tipo-exibicao':
+        appliedFilters.technical.exibicoes = remove(appliedFilters.technical.exibicoes, input.value);
+        break;
+      case 'cor':
+        appliedFilters.technical.cores = remove(appliedFilters.technical.cores, input.value);
+        break;
+      case 'caixa-material':
+        appliedFilters.technical.caixas = remove(appliedFilters.technical.caixas, input.value);
+        break;
+      case 'pulseira-material':
+        appliedFilters.technical.pulseiras = remove(appliedFilters.technical.pulseiras, input.value);
+        break;
+      default:
+        if (input === minPriceInput) appliedFilters.min = 0;
+        if (input === maxPriceInput) appliedFilters.max = Infinity;
+    }
+
+    appliedFilterSnapshot = appliedFilterSnapshot.filter(item => item.input !== input);
+  }
+
   function renderActiveFilters() {
     if (!activeFiltersEl) return;
 
@@ -582,7 +616,7 @@ function iniciarPaginaProdutos() {
       if (input.matches('input[type="checkbox"], input[type="radio"]')) input.checked = false;
       else input.value = '';
 
-      commitPendingFilters();
+      removeAppliedFilter(input);
       aplicarFiltros();
       renderActiveFilters();
     });
