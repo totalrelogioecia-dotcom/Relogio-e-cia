@@ -80,7 +80,7 @@ test('acessibilidade usa símbolo visual, nome acessível e fica agrupada ao cat
   assert.match(enhancement, /aria-label','Abrir painel de acessibilidade/);
   assert.match(enhancement, /nav-actions-cluster/);
   assert.match(enhancement, /cluster\.appendChild\(catalog\)/);
-  assert.match(enhancement, /cluster\.appendChild\(trigger\)/);
+  assert.match(enhancement, /cluster\.appendChild\(b\)/);
 });
 
 test('Melhor Envio fica recolhido em integrações quando conectado', () => {
