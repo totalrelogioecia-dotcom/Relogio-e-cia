@@ -198,3 +198,32 @@ test('catálogo mostra filtros ativos, prioriza pronta-entrega e usa links reais
   assert.match(availability, /Consultar disponibilidade/);
   assert.match(technical, /data-reset-catalog-filters/);
 });
+
+
+test('catálogo separa filtros pendentes dos filtros aplicados em um único fluxo', () => {
+  const source = read('script.js');
+  const technical = read('catalog-technical-filters.js');
+
+  assert.match(source, /let appliedFilters = null;/);
+  assert.match(source, /function readPendingFilters\(\)/);
+  assert.match(source, /function commitPendingFilters\(\)/);
+  assert.match(source, /RelogioCatalogTechnical\?\.readFilters\?\.\(\)/);
+  assert.match(source, /RelogioCatalogTechnical\.matches\(p, technical\)/);
+
+  assert.doesNotMatch(source, /brandInputs, \.\.\.catInputs\][^\n]*addEventListener\('change', aplicarFiltros\)/);
+  assert.doesNotMatch(source, /minPriceInput\.addEventListener\('input', aplicarFiltros\)/);
+  assert.doesNotMatch(source, /maxPriceInput\.addEventListener\('input', aplicarFiltros\)/);
+
+  const applyStart = source.indexOf("applyFiltersBtn.addEventListener('click'");
+  const commit = source.indexOf('commitPendingFilters();', applyStart);
+  const apply = source.indexOf('aplicarFiltros();', commit);
+  assert.ok(applyStart >= 0 && commit > applyStart && apply > commit, 'Aplicar filtros deve confirmar o estado antes de renderizar');
+
+  assert.match(source, /function removeAppliedFilter\(input\)/);
+  assert.match(source, /RelogioCatalogTechnical\?\.resetInputs\?\.\(\)/);
+
+  assert.match(technical, /function readFilters\(\)/);
+  assert.match(technical, /matches:\s*matchesTechnical/);
+  assert.match(technical, /resetInputs/);
+  assert.doesNotMatch(technical, /bindManualMode|bindApplyButton|bindSortProtection|applyTechnicalFilters|MutationObserver/);
+});
