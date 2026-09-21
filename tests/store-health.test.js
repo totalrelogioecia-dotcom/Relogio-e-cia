@@ -65,8 +65,8 @@ test('painel carrega diagnóstico protegido e mostra frete incompleto', () => {
   assert.match(pkg.scripts.start, /store-health-bootstrap\.js/);
 });
 
-test('startup zera todo o estoque uma única vez e preserva alterações futuras', () => {
-  const source = readText('startup.js');
+test('migração de inicialização zera todo o estoque uma única vez e preserva alterações futuras', () => {
+  const source = readText('startup-migrations.js');
   assert.match(source, /async function zeroAllProductStockOnce\(\)/);
   assert.match(source, /zero_all_product_stock_2026_08_26/);
   assert.match(source, /return \{ \.\.\.product, estoque: 0 \}/);
