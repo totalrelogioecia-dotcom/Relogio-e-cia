@@ -412,12 +412,6 @@ function iniciarPaginaProdutos() {
       activeFiltersEl.appendChild(chip);
     });
 
-    const clear = document.createElement('button');
-    clear.type = 'button';
-    clear.className = 'catalog-filter-clear';
-    clear.dataset.clearCatalogFilters = '1';
-    clear.textContent = 'Limpar todos';
-    activeFiltersEl.appendChild(clear);
   }
 
   function aplicarFiltros() {
