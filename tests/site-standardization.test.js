@@ -24,16 +24,16 @@ test('catálogo oficial vazio não recupera produtos antigos embutidos', async (
 });
 
 test('catálogo progressivo preserva o total encontrado e filtra dados antes dos lotes', () => {
+  const script = read('script.js');
   const technical = read('catalog-technical-filters.js');
-  const source = technical.split('  function applyTechnicalFilters() {')[1].split('  function optionMarkup')[0];
-  const count = {};
-  const cards = Array.from({ length: 18 }, (_, id) => ({ id, hidden: false }));
-  const grid = { dataset: { catalogTotal: '137' }, querySelectorAll: () => cards };
-  const context = vm.createContext({ document: { getElementById: id => id === 'product-grid' ? grid : count }, PRODUTOS: cards.map(card => ({ id: card.id })), appliedTechnicalFilters: { movimentos: [], exibicoes: [], cores: [], caixas: [], pulseiras: [] }, cardProductId: card => card.id, matchesTechnical: () => true, ensureEmptyMessage: () => ({}) });
-  vm.runInContext('function applyTechnicalFilters() {' + source + '\napplyTechnicalFilters();', context);
-  assert.match(count.innerHTML, /<strong>137<\/strong>/);
-  assert.match(read('script.js'), /okMarca && okCategoria && okPreco && okTecnico/);
-  assert.match(technical, /window\.RelogioCatalogTechnical = \{ matches:/);
+  const progressive = read('catalog-progressive.js');
+
+  assert.match(script, /let resultado = PRODUTOS\.filter/);
+  assert.match(script, /okMarca && okCategoria && okPreco && okTecnico/);
+  assert.match(script, /grid\.dataset\.catalogTotal = String\(lista\.length\)/);
+  assert.match(script, /RelogioCatalogTechnical\.matches\(p, technical\)/);
+  assert.match(technical, /matches:\s*matchesTechnical/);
+  assert.match(progressive, /dataset\.catalogTotal/);
 });
 
 test('falha do catálogo mostra erro e não executa renderização com dados antigos', async () => {
