@@ -100,7 +100,6 @@ if (!originalExpress.__relogioAuthPatched) {
     function injectExperienceScripts(html, page) {
       html = injectScript(html, 'analytics-client.js?v=2');
       html = injectScript(html, 'accessibility-panel.js?v=1');
-      html = injectScript(html, 'accessibility-trigger-enhancement.js?v=1');
       if (page === 'index.html' || page === 'produtos.html' || page === 'produto.html' || page === 'conta.html') {
         html = injectScript(html, 'favorites-client.js?v=3');
       }
