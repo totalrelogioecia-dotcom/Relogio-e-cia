@@ -33,7 +33,8 @@ test('catálogo progressivo preserva o total encontrado e filtra dados antes dos
   assert.match(script, /grid\.dataset\.catalogTotal = String\(lista\.length\)/);
   assert.match(script, /RelogioCatalogTechnical\.matches\(p, technical\)/);
   assert.match(technical, /matches:\s*matchesTechnical/);
-  assert.match(progressive, /dataset\.catalogTotal/);
+  assert.match(progressive, /totalProducts = cards\.length/);
+  assert.match(progressive, /pendingCards = cards\.slice\(BATCH_SIZE\)/);
 });
 
 test('falha do catálogo mostra erro e não executa renderização com dados antigos', async () => {
