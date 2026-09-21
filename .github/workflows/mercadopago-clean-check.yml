@@ -92,7 +92,6 @@ jobs:
           node --check account-orders.js
           node --check availability-requests.js
           node --check admin-extra-tabs.js
-          node --check admin-extra-tabs-navigation-fix.js
           node --check catalog-availability.js
           node --check cart-availability.js
           node --check catalog-mobile-filters.js
