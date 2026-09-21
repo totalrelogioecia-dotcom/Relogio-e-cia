@@ -131,7 +131,6 @@ app.get('/api/products/home', (req, res) => {
 
 app.get('/api/products', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  if (!publicCatalogEnabled()) return res.json([]);
   res.json(withPublicProductList(getProducts().filter(p => p.ativo !== false)));
 });
 
