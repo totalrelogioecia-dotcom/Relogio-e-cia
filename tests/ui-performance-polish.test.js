@@ -11,7 +11,7 @@ test('novos módulos de performance e interface têm sintaxe válida', () => {
   [
     'product-page-route.js',
     'product-page-core.js',
-    'accessibility-trigger-enhancement.js',
+    'accessibility-panel.js',
     'produto.js',
     'favorites-client.js',
     'product-compare.js',
@@ -75,7 +75,7 @@ test('recomendações técnicas são adiadas até perto da seção', () => {
 });
 
 test('acessibilidade usa símbolo visual, nome acessível e fica agrupada ao catálogo', () => {
-  const enhancement = read('accessibility-trigger-enhancement.js');
+  const enhancement = read('accessibility-panel.js');
   assert.match(enhancement, /<svg class="reloja-a11y-symbol"/);
   assert.match(enhancement, /aria-label','Abrir painel de acessibilidade/);
   assert.match(enhancement, /nav-actions-cluster/);
@@ -95,7 +95,8 @@ test('Melhor Envio fica recolhido em integrações quando conectado', () => {
 test('política pública libera apenas scripts de navegador novos', () => {
   const policy = require('../public-static-policy');
   assert.equal(policy.isPublicStaticPath('/product-page-core.js'), true);
-  assert.equal(policy.isPublicStaticPath('/accessibility-trigger-enhancement.js'), true);
+  assert.equal(policy.isPublicStaticPath('/accessibility-panel.js'), true);
+  assert.equal(policy.isPublicStaticPath('/accessibility-trigger-enhancement.js'), false);
   assert.equal(policy.isPublicStaticPath('/product-page-route.js'), false);
   assert.equal(policy.isPublicStaticPath('/data/products.json'), false);
 });
