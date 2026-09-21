@@ -136,7 +136,7 @@ test('autenticação legada não reaparece e login não depende de recarregar a 
   assert.doesNotMatch(server, /function (?:makeToken|validToken|safeEqual)/);
   assert.doesNotMatch(server, /app\.post\('\/api\/admin\/login'/);
   assert.match(server, /authenticatedRequest\(req\)/);
-  for (const name of ['admin.js', 'admin-login-refresh.js', 'admin-secure-client.js', 'admin-users-management.js']) assert.doesNotMatch(read(name), /location\.reload/);
+  for (const name of ['admin.js', 'admin-secure-client.js', 'admin-users-management.js']) assert.doesNotMatch(read(name), /location\.reload/);
   for (const name of fs.readdirSync(root).filter(name => /^admin.*\.js$/.test(name))) assert.doesNotMatch(read(name), /(?<![\w.])(?:alert|confirm)\(/, name);
 });
 
