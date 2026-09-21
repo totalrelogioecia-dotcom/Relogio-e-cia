@@ -196,7 +196,7 @@ test('catálogo mostra filtros ativos, prioriza pronta-entrega e usa links reais
   assert.match(availability, /product-card--unavailable \.card-actions \[data-add-carrinho\]\{display:none\}/);
   assert.match(availability, /product-card--confirmation \.card-actions \.btn-outline\{display:none\}/);
   assert.match(availability, /Consultar disponibilidade/);
-  assert.match(technical, /data-reset-catalog-filters/);
+  assert.match(script, /data-reset-catalog-filters/);
 });
 
 
