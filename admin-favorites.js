@@ -157,8 +157,7 @@
     {tab:'cupons',icon:'%',title:'Cupons',text:'Crie e acompanhe cupons promocionais e de frete.'},
     {tab:'confirmacoes',icon:'✓',title:'Confirmações',text:'Pedidos e solicitações que precisam de confirmação.'},
     {tab:'cancelamentos-loja',icon:'×',title:'Cancelamentos',text:'Cancelamentos feitos pela loja e seus registros.'},
-    {tab:'audit',icon:'≡',title:'Auditoria',text:'Histórico das principais ações administrativas.'},
-    {tab:'usuarios-admin',icon:'👥',title:'Usuários do Admin',text:'Crie logins, defina permissões e bloqueie ou reative acessos.',requiresTab:true}
+    {tab:'audit',icon:'≡',title:'Auditoria',text:'Histórico das principais ações administrativas.'}
   ];
 
   function loadAccessibilityEnhancement(){
