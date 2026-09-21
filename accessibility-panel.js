@@ -95,7 +95,7 @@
     migrate();styles();removeLegacy();
     const main=ensureMainLandmark();
     normalizeHeadingOrder();
-    let skip=document.querySelector('.reloja-skip-link');
+    let skip=document.querySelector('.reloja-skip-link, a[href="#conteudo-principal"]');
     if(!skip){skip=document.createElement('a');skip.className='reloja-skip-link';skip.textContent='Ir para o conteúdo principal';document.body.prepend(skip)}
     skip.href=main?`#${main.id}`:'#main-content';
     let guide=document.querySelector('.reloja-reading-guide');if(!guide){guide=document.createElement('div');guide.className='reloja-reading-guide';guide.setAttribute('aria-hidden','true');document.body.appendChild(guide)}const moveGuide=y=>{if(bool(KEYS.guide))guide.style.top=`${Math.max(0,y-17)}px`};document.addEventListener('pointermove',e=>moveGuide(e.clientY),{passive:true});document.addEventListener('focusin',e=>{if(!bool(KEYS.guide))return;const r=e.target?.getBoundingClientRect?.();if(r)moveGuide(r.top+Math.min(r.height/2,24))});

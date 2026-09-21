@@ -77,7 +77,11 @@ function registerHomeCarouselRoutes(app) {
     try {
       imageData(data);
       const [type, encoded] = data.slice(5).split(';base64,');
-      res.set({ 'Content-Type': type, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache' });
+      res.set({
+        'Content-Type': type,
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'public, max-age=2592000, immutable'
+      });
       res.send(Buffer.from(encoded, 'base64'));
     } catch { res.status(404).end(); }
   });

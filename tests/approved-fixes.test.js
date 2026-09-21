@@ -51,6 +51,20 @@ test('servidor aplica a proteção antes do express.static', () => {
   assert.ok(guard >= 0 && staticRoot > guard);
 });
 
+test('arquivos estáticos reutilizáveis recebem cache curto com revalidação', () => {
+  const source = read('server.js');
+  assert.match(source, /stale-while-revalidate=86400/);
+  assert.match(source, /css\|js\|svg/);
+});
+
+test('cabeçalhos bloqueiam incorporação, objetos e alteração da base', () => {
+  const source = read('auth-bootstrap.js');
+  assert.match(source, /Content-Security-Policy/);
+  assert.match(source, /base-uri 'self'/);
+  assert.match(source, /frame-ancestors 'self'/);
+  assert.match(source, /object-src 'none'/);
+});
+
 test('checkout com cupom usa as mesmas regras de disponibilidade e retirada', () => {
   const source = read('coupon-checkout.js');
   assert.match(source, /validateCheckoutAvailability\(product, quantidade, detailsMap\)/);

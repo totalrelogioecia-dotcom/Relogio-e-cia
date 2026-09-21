@@ -172,13 +172,11 @@ async function initPersistentStore() {
 
   if (!pool) throw lastError || new Error('Nenhuma conexão PostgreSQL disponível.');
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS relogio_state (
-      key TEXT PRIMARY KEY,
-      value JSONB NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
+  try {
+    await pool.query('SELECT 1 FROM relogio_state LIMIT 1');
+  } catch (error) {
+    throw new Error(`Estrutura persistente ausente ou inacessível. Aplique as migrações do banco antes de iniciar o serviço: ${error.message}`);
+  }
 
   const restoreMarker = await pool.query(
     'SELECT value FROM relogio_state WHERE key = $1',
@@ -285,5 +283,6 @@ module.exports = {
   flushPersistentStore,
   closePersistentStore,
   storageStatus,
-  assertPersistentWrites
+  assertPersistentWrites,
+  databaseSsl
 };

@@ -70,7 +70,6 @@
     replaceSlide(createFrame(slides[index], index));
     updateCurrentControl();
   }
-  function button(label, action) { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.addEventListener('click', action); return b; }
   function renderControls() {
     controls.replaceChildren();
     controls.hidden = true;

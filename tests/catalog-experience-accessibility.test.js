@@ -46,6 +46,7 @@ test('comparador limita a 3 relógios e mostra miniaturas na seleção e busca',
   assert.match(compare, /Movimento/);
   assert.match(compare, /Resistência à água/);
   assert.match(compare, /Garantia/);
+  assert.match(compare, /id="compare-search"[^>]*aria-label="Buscar produto para comparar"/);
 });
 
 test('favoritos exigem conta e são persistidos no registro do usuário', () => {
@@ -121,6 +122,14 @@ test('painel avançado oferece múltiplos recursos de acessibilidade', () => {
   assert.match(panel, /Alt\+A/);
   assert.match(panel, /Ir para o conteúdo principal/);
   assert.match(panel, /aria-live/);
+  assert.match(panel, /\.reloja-skip-link, a\[href="\#conteudo-principal"\]/);
+});
+
+test('campos de preço e consulta de protocolo possuem nomes acessíveis', () => {
+  assert.match(read('produtos.html'), /id="preco-min"[^>]*aria-label="Preço mínimo"/);
+  assert.match(read('produtos.html'), /id="preco-max"[^>]*aria-label="Preço máximo"/);
+  assert.match(read('trocas-estornos.html'), /id="return-protocol"[^>]*aria-label="Protocolo da solicitação"/);
+  assert.match(read('trocas-estornos.html'), /id="return-status-email"[^>]*aria-label="E-mail usado na solicitação"/);
 });
 
 test('acessibilidade usa um único A quadrado à direita do botão catálogo', () => {

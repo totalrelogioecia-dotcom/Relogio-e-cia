@@ -33,7 +33,14 @@ registerHomeCarouselRoutes(app);
 app.use('/data/stock-alerts.json', (req, res) => res.status(404).end());
 registerStockAlertRoutes(app);
 app.use(createPublicStaticGuard());
-app.use(express.static(ROOT, { index: 'index.html' }));
+app.use(express.static(ROOT, {
+  index: 'index.html',
+  setHeaders(res, filePath) {
+    if (/\.(?:css|js|svg|png|jpe?g|webp|gif|avif|ico|woff2?)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+    }
+  }
+}));
 
 function admin(req, res, next) {
   const session = authenticatedRequest(req);

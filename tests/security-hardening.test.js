@@ -31,7 +31,10 @@ test('cupom reserva limite no checkout e só vira uso aprovado após pagamento',
   const checkout = read('coupon-checkout.js');
   const payment = read('mercadopago-clean.js');
 
-  assert.match(service, /status IN \('reserved','approved'\)/);
+  assert.match(service, /status='reserved'/);
+  assert.match(service, /status='approved'/);
+  assert.doesNotMatch(service, /CREATE TABLE|ALTER TABLE|CREATE INDEX/i);
+  assert.doesNotMatch(read('persistent-store.js'), /CREATE TABLE|ALTER TABLE|CREATE INDEX/i);
   assert.match(service, /SELECT \* FROM relogio_coupons WHERE id=\$1 FOR UPDATE/);
   assert.match(checkout, /await reserveCoupon\(\{/);
   assert.doesNotMatch(checkout, /await consumeCoupon\([^)]+\);\s*\n\s*\n\s*console\.log\('Checkout Pro/);
@@ -128,4 +131,11 @@ test('Supabase é preferido sem remover o fallback e aparece no diagnóstico', (
   assert.match(persistence, /provider: 'supabase'/);
   assert.match(persistence, /provider: 'render-postgresql'/);
   assert.match(persistence, /provider: pool && ready \? activeProvider : 'local-files'/);
+});
+
+test('diagnóstico público não expõe provedor nem fila interna', () => {
+  const bootstrap = read('auth-bootstrap.js');
+  const route = bootstrap.split("app.get('/api/storage-status'")[1].split('});')[0];
+  assert.match(route, /persistent/);
+  assert.doesNotMatch(route, /provider|pendingWrites/);
 });

@@ -62,6 +62,7 @@ if (!originalExpress.__relogioAuthPatched) {
       res.set('X-Frame-Options', 'SAMEORIGIN');
       res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
       res.set('Origin-Agent-Cluster', '?1');
+      res.set('Content-Security-Policy', "base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'");
       if (req.secure || process.env.NODE_ENV === 'production') {
         res.set('Strict-Transport-Security', 'max-age=31536000');
       }
@@ -200,7 +201,7 @@ if (!originalExpress.__relogioAuthPatched) {
 
     app.get('/api/storage-status', (req, res) => {
       res.set('Cache-Control', 'no-store');
-      res.json(storageStatus());
+      res.json({ persistent: storageStatus().persistent });
     });
 
     app.use('/api/checkout', createCheckoutRateLimit(userFromRequest));

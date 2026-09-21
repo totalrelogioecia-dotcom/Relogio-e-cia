@@ -80,6 +80,8 @@ test('API exige proprietário, persiste mudanças, protege concorrência e respe
     assert.equal((await request('/api/admin/home-carousel','owner','PUT',input())).status,409);
     const publicData = await (await request('/api/home-carousel')).json(); assert.equal(publicData.slides.length,1);
     const photo = await request(publicData.slides[0].image); assert.equal(photo.status,200); assert.equal(photo.headers.get('content-type'),'image/png'); assert.equal(photo.headers.get('x-content-type-options'),'nosniff');
+    assert.match(photo.headers.get('cache-control'), /max-age=2592000/);
+    assert.match(photo.headers.get('cache-control'), /immutable/);
     assert.equal((await request(publicData.slides[0].dark_image)).status,200);
     assert.equal((await request(publicData.slides[0].dark_mobile_image)).status,200);
     assert.equal((await request('/api/home-carousel/images/disabled/desktop')).status,404);
