@@ -136,7 +136,7 @@ test('acessibilidade usa um único A quadrado à direita do botão catálogo', (
   const panel = read('accessibility-panel.js');
   assert.match(panel, /position:static!important/);
   assert.match(panel, /border-radius:0/);
-  assert.match(panel, /insertAdjacentElement\('afterend',b\)/);
+  assert.match(panel, /cluster\.appendChild\(b\)/);
   assert.match(panel, /\.nav-cta\{order:97\}/);
   assert.match(panel, /reloja-accessibility-global-rail/);
   assert.doesNotMatch(panel, /\.reloja-a11y-trigger\{position:fixed/);
