@@ -319,24 +319,41 @@
     }
   }
 
+  function activateExtraTab(tab) {
+    document.querySelectorAll('#dashboard > [id^="tab-"]').forEach(panel => {
+      panel.style.display = panel.id === `tab-${tab}` ? 'block' : 'none';
+    });
+    document.querySelectorAll('.admin-tabs button').forEach(button => {
+      button.classList.toggle('active', button.dataset.tab === tab);
+    });
+  }
+
   function setupTabs() {
     if (!ensurePanels()) return;
     const confirmationsButton = document.querySelector('.admin-tabs [data-tab="confirmacoes"]');
     const cancellationsButton = document.querySelector('.admin-tabs [data-tab="cancelamentos-loja"]');
 
     document.querySelectorAll('.admin-tabs button').forEach(button => {
-      if (button === confirmationsButton || button === cancellationsButton) return;
+      if (button === confirmationsButton || button === cancellationsButton || button.dataset.extraTabsBound === '1') return;
+      button.dataset.extraTabsBound = '1';
       button.addEventListener('click', () => hideExtraPanels());
     });
 
-    confirmationsButton?.addEventListener('click', () => {
-      hideExtraPanels('confirmacoes');
-      loadConfirmations();
-    });
-    cancellationsButton?.addEventListener('click', () => {
-      hideExtraPanels('cancelamentos-loja');
-      loadCancellations();
-    });
+    if (confirmationsButton && confirmationsButton.dataset.extraTabsBound !== '1') {
+      confirmationsButton.dataset.extraTabsBound = '1';
+      confirmationsButton.addEventListener('click', () => {
+        activateExtraTab('confirmacoes');
+        loadConfirmations();
+      });
+    }
+
+    if (cancellationsButton && cancellationsButton.dataset.extraTabsBound !== '1') {
+      cancellationsButton.dataset.extraTabsBound = '1';
+      cancellationsButton.addEventListener('click', () => {
+        activateExtraTab('cancelamentos-loja');
+        loadCancellations();
+      });
+    }
 
     $('#refresh-confirmations')?.addEventListener('click', loadConfirmations);
     $('#refresh-store-cancellations')?.addEventListener('click', loadCancellations);
