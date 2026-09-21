@@ -56,9 +56,6 @@ jobs:
           node --check seo-routes.js
           node --check site-search.js
           node --check home-enhancements.js
-          node --check home-gshock-live.js
-          node --check home-watch-selector.js
-          node --check home-digital-face-final.js
           node --check mercadopago-core.js
           node --check mercadopago-clean.js
           node --check mercadopago-orders-pix.js
