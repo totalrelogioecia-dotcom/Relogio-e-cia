@@ -352,6 +352,7 @@ function iniciarPaginaProdutos() {
   const filtersPanel = document.querySelector('.products-layout .filters');
   const activeFiltersEl = document.getElementById('catalog-active-filters');
   let activeFilterTargets = new Map();
+  let appliedFilterSnapshot = [];
 
   function getFiltros() {
     const marcas = brandInputs.filter(i => i.checked).map(i => i.value);
@@ -366,8 +367,8 @@ function iniciarPaginaProdutos() {
     return legend?.textContent.trim() || 'Filtro';
   }
 
-  function renderActiveFilters() {
-    if (!filtersPanel || !activeFiltersEl) return;
+  function captureAppliedFilters() {
+    if (!filtersPanel) return [];
 
     const selected = Array.from(filtersPanel.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked'))
       .map(input => ({ input, label: `${filterGroupLabel(input)}: ${input.value}` }));
@@ -378,7 +379,13 @@ function iniciarPaginaProdutos() {
     if (maxPriceInput.value) {
       selected.push({ input: maxPriceInput, label: `Até ${formatarPreco(Number(maxPriceInput.value))}` });
     }
+    return selected;
+  }
 
+  function renderActiveFilters() {
+    if (!activeFiltersEl) return;
+
+    const selected = appliedFilterSnapshot;
     activeFiltersEl.replaceChildren();
     activeFilterTargets = new Map();
     activeFiltersEl.hidden = selected.length === 0;
@@ -528,6 +535,7 @@ function iniciarPaginaProdutos() {
     maxPriceInput.value = '';
     sortSelect.value = 'pronta-entrega';
     aplicarFiltros();
+    appliedFilterSnapshot = [];
     window.setTimeout(renderActiveFilters, 0);
   });
 
@@ -559,11 +567,15 @@ function iniciarPaginaProdutos() {
 
   const applyFiltersBtn = document.getElementById('apply-filters');
   if (applyFiltersBtn) {
-    applyFiltersBtn.addEventListener('click', () => window.setTimeout(renderActiveFilters, 0));
+    applyFiltersBtn.addEventListener('click', () => {
+      appliedFilterSnapshot = captureAppliedFilters();
+      window.setTimeout(renderActiveFilters, 0);
+    });
   }
 
   preencherContagens();
   aplicarFiltros();
+  appliedFilterSnapshot = captureAppliedFilters();
   renderActiveFilters();
 }
 document.addEventListener('DOMContentLoaded', () => quandoCatalogoPronto(iniciarPaginaProdutos));
