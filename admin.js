@@ -268,7 +268,7 @@ async function restoreDash(){
     if(!r.ok)throw Error('Não foi possível verificar sua sessão.');
     if(revision!==sessionRevision)return;
     const admin=d.authenticated?d.admin:null;
-    applyAdminSession(admin);
+    if(JSON.stringify(admin)!==JSON.stringify(sessionIdentity)||$('#dashboard').style.display==='none'&&admin||!admin&&localStorage.getItem(tokenKey))applyAdminSession(admin);
   }catch{document.documentElement?.classList.remove('admin-ui-booting');const m=$('#login-msg');m.textContent='Não foi possível verificar sua sessão. Tente entrar novamente.';m.style.display='block';}
 }
 window.RelogioAdminClient.syncSession=restoreDash;
