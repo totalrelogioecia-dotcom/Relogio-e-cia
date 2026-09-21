@@ -262,9 +262,6 @@ if (!originalExpress.__relogioAdminSecurityPatched) {
         if (!html.includes('admin-extra-tabs.js')) {
           html = html.replace('</body>', '<script src="admin-extra-tabs.js?v=1"></script></body>');
         }
-        if (!html.includes('admin-extra-tabs-navigation-fix.js')) {
-          html = html.replace('</body>', '<script src="admin-extra-tabs-navigation-fix.js?v=1"></script></body>');
-        }
         if (!html.includes('admin-favorites.js')) {
           html = html.replace('</body>', '<script src="admin-favorites.js?v=1"></script></body>');
         }
