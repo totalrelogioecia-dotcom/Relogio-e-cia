@@ -557,10 +557,9 @@ function iniciarPaginaProdutos() {
     if (event.target.closest('[data-reset-catalog-filters]')) resetBtn.click();
   });
 
-  if (filtersPanel) {
-    filtersPanel.addEventListener('change', renderActiveFilters, true);
-    filtersPanel.addEventListener('input', renderActiveFilters, true);
-    new MutationObserver(renderActiveFilters).observe(filtersPanel, { childList: true, subtree: true });
+  const applyFiltersBtn = document.getElementById('apply-filters');
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', () => window.setTimeout(renderActiveFilters, 0));
   }
 
   preencherContagens();
