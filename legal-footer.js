@@ -19,12 +19,12 @@
     document.head.appendChild(link);
   }
 
-  function ensureAccessibilityControlsScript() {
-    if (document.querySelector('script[src*="accessibility-controls.js"]')) return;
+  function ensureAccessibilityPanelScript() {
+    if (document.querySelector('script[src*="accessibility-panel.js"]')) return;
     const script = document.createElement('script');
-    script.src = 'accessibility-controls.js?v=9';
+    script.src = 'accessibility-panel.js?v=1';
     script.async = false;
-    script.setAttribute('data-reloja-accessibility-controls', '1');
+    script.setAttribute('data-reloja-accessibility-panel', '1');
     document.head.appendChild(script);
   }
 
@@ -346,7 +346,7 @@
   function enhanceFooter() {
     ensureMobileStyles();
     ensureAccessibilityStyles();
-    ensureAccessibilityControlsScript();
+    ensureAccessibilityPanelScript();
     normalizeTelephoneLinks();
     clarifyLegalPageIdentity();
     enhanceHomepageContact();
