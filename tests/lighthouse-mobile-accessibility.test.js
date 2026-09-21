@@ -28,8 +28,8 @@ test('hierarquia de títulos é normalizada sem mudar o desenho visual', () => {
 
 test('contatos, rodapé e acesso de acessibilidade têm alvos de 44px no celular', () => {
   const css = read('mobile-complete-review.css');
-  const trigger = read('accessibility-trigger-enhancement.js');
-  execFileSync(process.execPath, ['--check', path.join(root, 'accessibility-trigger-enhancement.js')], { stdio: 'pipe' });
+  const panel = read('accessibility-panel.js');
+  execFileSync(process.execPath, ['--check', path.join(root, 'accessibility-panel.js')], { stdio: 'pipe' });
   assert.match(css, /\.store-cell p a,[\s\S]*\.footer-grid li a,[\s\S]*min-height:44px/);
-  assert.match(trigger, /@media\(max-width:640px\)[\s\S]*width:44px!important;[\s\S]*height:44px!important/);
+  assert.match(panel, /nav-actions-cluster[\s\S]*min-height:44px!important/);
 });
