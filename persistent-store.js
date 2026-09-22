@@ -272,6 +272,15 @@ async function closePersistentStore() {
   activeProvider = 'local-files';
 }
 
+function getDatabasePool() {
+  if (!pool || !ready) {
+    const error = new Error('Banco de dados persistente não está inicializado.');
+    error.status = 503;
+    throw error;
+  }
+  return pool;
+}
+
 function storageStatus() {
   return {
     persistent: Boolean(pool && ready),
@@ -284,6 +293,7 @@ module.exports = {
   initPersistentStore,
   flushPersistentStore,
   closePersistentStore,
+  getDatabasePool,
   storageStatus,
   assertPersistentWrites
 };
