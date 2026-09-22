@@ -3,6 +3,7 @@ name: Mercado Pago clean check
 on:
   push:
     branches:
+      - main
       - mercadopago-clean-rebuild
       - mp-official-audit-2026-08-28
       - 'fix/**'
@@ -11,6 +12,10 @@ on:
       - main
       - mercadopago-clean-rebuild
   workflow_dispatch:
+
+concurrency:
+  group: relogio-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
