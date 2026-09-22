@@ -20,66 +20,57 @@ function db() {
 async function ensureSchema() {
   if (schemaReady) return schemaReady;
   schemaReady = (async () => {
-    const client = db();
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS relogio_coupons (
-        id BIGSERIAL PRIMARY KEY,
-        code TEXT NOT NULL UNIQUE,
-        active BOOLEAN NOT NULL DEFAULT TRUE,
-        min_order_value NUMERIC(12,2) NOT NULL DEFAULT 0,
-        coupon_type TEXT NOT NULL DEFAULT 'free_shipping',
-        discount_type TEXT,
-        discount_value NUMERIC(12,2),
-        max_discount NUMERIC(12,2),
-        max_uses INTEGER,
-        per_customer_limit INTEGER,
-        starts_at TIMESTAMPTZ,
-        expires_at TIMESTAMPTZ,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      )
-    `);
-    // Alterações de estrutura de relogio_coupons são aplicadas por migração do banco.
-    // O usuário de runtime do site não precisa (nem deve precisar) ser proprietário da tabela.
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS relogio_coupon_uses (
-        id BIGSERIAL PRIMARY KEY,
-        coupon_id BIGINT NOT NULL REFERENCES relogio_coupons(id) ON DELETE CASCADE,
-        customer_email TEXT,
-        order_id TEXT NOT NULL UNIQUE,
-        status TEXT NOT NULL DEFAULT 'approved',
-        expires_at TIMESTAMPTZ,
-        approved_at TIMESTAMPTZ,
-        used_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      )
-    `);
-    await client.query("ALTER TABLE relogio_coupon_uses ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'approved'");
-    await client.query('ALTER TABLE relogio_coupon_uses ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ');
-    await client.query('ALTER TABLE relogio_coupon_uses ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ');
-    await client.query("UPDATE relogio_coupon_uses SET status='approved' WHERE status IS NULL");
-    await client.query("UPDATE relogio_coupon_uses SET approved_at=COALESCE(approved_at, used_at) WHERE status='approved' AND approved_at IS NULL");
-    await client.query("ALTER TABLE relogio_coupon_uses ALTER COLUMN status SET DEFAULT 'approved'");
-    await client.query('ALTER TABLE relogio_coupon_uses ALTER COLUMN status SET NOT NULL');
-    await client.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1
-          FROM pg_constraint
-          WHERE conname = 'relogio_coupon_uses_status_check'
-            AND conrelid = 'relogio_coupon_uses'::regclass
-        ) THEN
-          ALTER TABLE relogio_coupon_uses
-            ADD CONSTRAINT relogio_coupon_uses_status_check
-            CHECK (status IN ('reserved','approved'));
-        END IF;
-      END
-      $$
-    `);
-    await client.query('CREATE INDEX IF NOT EXISTS relogio_coupon_uses_coupon_idx ON relogio_coupon_uses(coupon_id)');
-    await client.query('CREATE INDEX IF NOT EXISTS relogio_coupon_uses_email_idx ON relogio_coupon_uses(coupon_id, customer_email)');
-    await client.query('CREATE INDEX IF NOT EXISTS relogio_coupon_uses_reservation_idx ON relogio_coupon_uses(status, expires_at)');
-  })().catch(error => { schemaReady = null; throw error; });
+    // O processo web usa somente DML. Criação/alteração de tabelas pertence às
+    // migrações administrativas do banco e nunca deve rodar durante uma requisição.
+    const required = {
+      relogio_coupons: [
+        'id', 'code', 'active', 'min_order_value', 'coupon_type', 'discount_type',
+        'discount_value', 'max_discount', 'max_uses', 'per_customer_limit',
+        'starts_at', 'expires_at', 'created_at', 'updated_at'
+      ],
+      relogio_coupon_uses: [
+        'id', 'coupon_id', 'customer_email', 'order_id', 'status',
+        'expires_at', 'approved_at', 'used_at'
+      ]
+    };
+
+    const result = await db().query(`
+      SELECT table_name, column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_name = ANY($1::text[])
+    `, [Object.keys(required)]);
+
+    const available = new Map();
+    for (const row of result.rows) {
+      if (!available.has(row.table_name)) available.set(row.table_name, new Set());
+      available.get(row.table_name).add(row.column_name);
+    }
+
+    const missing = [];
+    for (const [table, columns] of Object.entries(required)) {
+      const present = available.get(table);
+      if (!present) {
+        missing.push(table);
+        continue;
+      }
+      for (const column of columns) {
+        if (!present.has(column)) missing.push(`${table}.${column}`);
+      }
+    }
+
+    if (missing.length) {
+      const error = new Error(
+        'Estrutura de cupons do banco está desatualizada. Execute a migração administrativa antes de usar cupons.'
+      );
+      error.status = 503;
+      error.missingSchema = missing;
+      throw error;
+    }
+  })().catch(error => {
+    schemaReady = null;
+    throw error;
+  });
   return schemaReady;
 }
 
