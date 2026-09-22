@@ -1,20 +1,9 @@
-const { Pool } = require('pg');
+const { getDatabasePool } = require('./persistent-store');
 
-let pool;
 let schemaReady;
 
 function db() {
-  if (pool) return pool;
-  const connectionString = String(process.env.DATABASE_URL || '').trim();
-  if (!connectionString) throw Object.assign(new Error('Banco de dados não configurado.'), { status: 503 });
-  pool = new Pool({
-    connectionString,
-    ssl: /sslmode=(require|verify-ca|verify-full)/i.test(connectionString) ? { rejectUnauthorized: false } : false,
-    max: 3,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000
-  });
-  return pool;
+  return getDatabasePool();
 }
 
 async function ensureSchema() {
