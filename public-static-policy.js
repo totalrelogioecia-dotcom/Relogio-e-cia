@@ -93,6 +93,12 @@ function isApplicationRoute(requestPath) {
     || normalized === '/healthz';
 }
 
+function isAdminStaticFile(filePath) {
+  const filename = path.basename(String(filePath || '')).toLowerCase();
+  if (filename === 'admin.html' || filename === 'admin.js' || filename === 'admin.css') return true;
+  return filename.startsWith('admin-') && ['.css', '.js'].includes(path.extname(filename));
+}
+
 function isPublicStaticPath(requestPath) {
   const normalized = normalizedRequestPath(requestPath);
   if (!normalized) return false;
@@ -123,6 +129,7 @@ module.exports = {
   PUBLIC_BROWSER_SCRIPTS,
   normalizedRequestPath,
   isApplicationRoute,
+  isAdminStaticFile,
   isPublicStaticPath,
   createPublicStaticGuard
 };

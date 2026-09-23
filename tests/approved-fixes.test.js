@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const {
   isApplicationRoute,
+  isAdminStaticFile,
   isPublicStaticPath
 } = require('../public-static-policy');
 
@@ -49,6 +50,22 @@ test('servidor aplica a proteção antes do express.static', () => {
   const guard = source.indexOf('app.use(createPublicStaticGuard());');
   const staticRoot = source.indexOf('app.use(express.static(ROOT');
   assert.ok(guard >= 0 && staticRoot > guard);
+});
+
+test('arquivos administrativos nunca usam cache persistente entre deploys', () => {
+  for (const file of ['admin.html', 'admin.js', 'admin.css', 'admin-sidebar.js', 'admin-design-system.css']) {
+    assert.equal(isAdminStaticFile(`/app/${file}`), true, file);
+  }
+  assert.equal(isAdminStaticFile('/app/script.js'), false);
+  assert.equal(isAdminStaticFile('/app/style.css'), false);
+
+  const source = read('server.js');
+  assert.match(source, /if \(isAdminStaticFile\(filePath\)\)/);
+  assert.match(source, /private, no-store, max-age=0/);
+
+  const html = read('admin.html');
+  assert.match(html, /admin\.js\?v=20260923-cache-1/);
+  assert.match(html, /admin-design-system\.css\?v=20260923-cache-1/);
 });
 
 test('arquivos estáticos reutilizáveis recebem cache curto com revalidação', () => {
@@ -94,4 +111,3 @@ test('cupom e busca inteligente são carregados pelas páginas corretas', () => 
   const bootstrap = read('auth-bootstrap.js');
   assert.match(bootstrap, /mercadopago-checkout-client\\\.js\(\?:\\\?\[\^"'\]\*\)\?/);
 });
-
