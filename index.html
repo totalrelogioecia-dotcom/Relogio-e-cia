@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="home-enhancements.css">
 <link rel="stylesheet" href="home-showcase-v2.css">
-<link rel="stylesheet" href="home-redesign.css?v=20260921-preview-2">
+<link rel="stylesheet" href="home-redesign.css?v=20260922-v3">
 <link rel="stylesheet" href="site-search.css">
 <link rel="stylesheet" href="site-experience.css?v=20260918">
 <link rel="stylesheet" href="home-carousel.css?v=20260919-drag-6">
@@ -49,38 +49,40 @@
     </div>
     <div>
       <div class="hero-inner">
-        <div>
-          <p class="eyebrow">Desde 2003 · Loja física e online</p>
-          <h1>Precisão que se mede em <mark>décadas</mark>, não em segundos.</h1>
-          <p class="lede">Somos uma relojoaria com mais de 20 anos de estrada, especializada em relógios e acessórios das marcas mais confiáveis do mercado — com atendimento em loja física e entrega para todo o Brasil.</p>
-          <div class="hero-actions">
-            <a href="produtos.html" class="btn btn-primary">Explorar produtos</a>
-            <a href="sobre.html" class="btn btn-outline">Conhecer a história</a>
+        <p class="eyebrow">Desde 2003 · Loja física e online</p>
+        <h1>Precisão que se mede em <mark>décadas</mark>, não em segundos.</h1>
+        <p class="lede">Somos uma relojoaria com mais de 20 anos de estrada, especializada em relógios e acessórios das marcas mais confiáveis do mercado — com atendimento em loja física e entrega para todo o Brasil.</p>
+        <div class="hero-actions">
+          <a href="produtos.html" class="btn btn-primary">Explorar produtos</a>
+          <a href="sobre.html" class="btn btn-outline">Conhecer a história</a>
+        </div>
+
+        <div class="hero-signature">
+          <div class="clock-panel">
+            <div class="clock-face-wrap">
+              <svg class="clock-svg" id="analog-clock-brasilia" viewBox="0 0 200 200" role="img" aria-label="Relógio analógico com o horário de Brasília">
+                <circle class="clock-ring" cx="100" cy="100" r="94"></circle>
+                <g id="clock-ticks"></g>
+                <line id="hand-hour" class="hand hand-hour" x1="100" y1="100" x2="100" y2="58"></line>
+                <line id="hand-minute" class="hand hand-minute" x1="100" y1="100" x2="100" y2="36"></line>
+                <g id="hand-second">
+                  <line class="hand hand-second" x1="100" y1="122" x2="100" y2="22"></line>
+                  <circle class="second-disc" cx="100" cy="78" r="6.5"></circle>
+                </g>
+                <circle class="clock-center-ring" cx="100" cy="100" r="7"></circle>
+                <circle class="clock-center" cx="100" cy="100" r="3.2"></circle>
+              </svg>
+            </div>
+            <div class="clock-copy">
+              <p class="stopwatch-label">Horário de Brasília</p>
+              <p class="stopwatch-caption" id="stopwatch-data">Carregando horário de Brasília...</p>
+            </div>
           </div>
           <div class="hero-stats">
             <div><strong>20+</strong><span>Anos de mercado</span></div>
             <div><strong>05</strong><span>Marcas oficiais</span></div>
             <div><strong>01</strong><span>Loja física própria</span></div>
           </div>
-        </div>
-
-        <div class="clock-panel">
-          <p class="stopwatch-label">Horário de Brasília</p>
-          <div class="clock-face-wrap">
-            <svg class="clock-svg" id="analog-clock-brasilia" viewBox="0 0 200 200" role="img" aria-label="Relógio analógico com o horário de Brasília">
-              <circle class="clock-ring" cx="100" cy="100" r="94"></circle>
-              <g id="clock-ticks"></g>
-              <line id="hand-hour" class="hand hand-hour" x1="100" y1="100" x2="100" y2="58"></line>
-              <line id="hand-minute" class="hand hand-minute" x1="100" y1="100" x2="100" y2="36"></line>
-              <g id="hand-second">
-                <line class="hand hand-second" x1="100" y1="122" x2="100" y2="22"></line>
-                <circle class="second-disc" cx="100" cy="78" r="6.5"></circle>
-              </g>
-              <circle class="clock-center-ring" cx="100" cy="100" r="7"></circle>
-              <circle class="clock-center" cx="100" cy="100" r="3.2"></circle>
-            </svg>
-          </div>
-          <p class="stopwatch-caption" id="stopwatch-data">Carregando horário de Brasília...</p>
         </div>
       </div>
     </div>
@@ -95,6 +97,13 @@
   <div id="home-carousel" class="home-carousel" role="region" aria-roledescription="carrossel" aria-label="Destaques da loja">
     <div class="home-carousel-stage" id="home-carousel-stage"><div class="home-carousel-placeholder"><span aria-hidden="true">01 / RELÓGIO E CIA</span><strong>Novos destaques em breve</strong><p>Conheça os relógios e acessórios no nosso catálogo.</p></div></div>
     <div class="home-carousel-controls" id="home-carousel-controls" hidden></div>
+  </div>
+  <p class="home-carousel-hint">Arraste ou use as setas do teclado para navegar entre os destaques.</p>
+  <div class="value-strip">
+    <span>Produtos originais com nota fiscal</span>
+    <span>Garantia de fábrica</span>
+    <span>Frete para todo o Brasil</span>
+    <span>Assistência técnica própria</span>
   </div>
 </section>
 
