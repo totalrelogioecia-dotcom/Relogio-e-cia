@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { authenticatedRequest } = require('./admin-session');
 const { registerStockAlertRoutes, queueStockAvailableEmails } = require('./stock-alerts');
-const { createPublicStaticGuard } = require('./public-static-policy');
+const { createPublicStaticGuard, isAdminStaticFile } = require('./public-static-policy');
 const { buildHomeCatalog } = require('./home-catalog');
 const { withPublicProductList } = require('./public-product-media');
 const { fetchAllowedImage } = require('./remote-image');
@@ -35,6 +35,12 @@ app.use(createPublicStaticGuard());
 app.use(express.static(ROOT, {
   index: 'index.html',
   setHeaders(res, filePath) {
+    // O painel e seus módulos precisam pertencer sempre ao mesmo deploy.
+    // Não permita que o navegador misture HTML novo com JS/CSS administrativos antigos.
+    if (isAdminStaticFile(filePath)) {
+      res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+      return;
+    }
     if (/\.(?:css|js|svg|png|jpe?g|webp|gif|avif|ico|woff2?)$/i.test(filePath)) {
       res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
     }
