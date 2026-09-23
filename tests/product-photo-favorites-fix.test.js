@@ -10,7 +10,7 @@ assert(css.includes('z-index:3!important'),'coração deve usar camada baixa den
 assert(css.includes('.site-header{'),'cabeçalho deve ficar acima dos cards');
 assert(css.includes('z-index:1200!important'),'cabeçalho deve superar a camada do favorito');
 assert(css.includes('html.reloja-dark .product-card .card-photo'),'modo escuro deve padronizar o fundo da foto');
-assert(css.includes('background:#fff!important'),'fundo da área da foto deve permanecer branco no modo escuro');
+assert(css.includes('background:var(--paper)!important'),'fundo da área da foto deve acompanhar o tema no modo escuro');
 assert(css.includes('filter:none!important'),'fotos não podem receber filtro visual');
 assert(css.includes('mix-blend-mode:normal!important'),'fotos devem manter composição original');
 console.log('product-photo-favorites-fix.test.js OK');
