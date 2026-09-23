@@ -36,6 +36,7 @@ test('cupom reserva limite no checkout e só vira uso aprovado após pagamento',
   assert.match(service, /getDatabasePool/);
   assert.doesNotMatch(service, /new Pool\(/);
   assert.doesNotMatch(service, /rejectUnauthorized:\s*false/);
+  assert.doesNotMatch(read('persistent-store.js'), /CREATE TABLE|ALTER TABLE|CREATE INDEX/i);
   assert.match(checkout, /await reserveCoupon\(\{/);
   assert.doesNotMatch(checkout, /await consumeCoupon\([^)]+\);\s*\n\s*\n\s*console\.log\('Checkout Pro/);
   assert.match(payment, /payment\?\.status === 'approved'[\s\S]+await consumeCoupon/);

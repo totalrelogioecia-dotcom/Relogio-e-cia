@@ -24,6 +24,23 @@ function eligibleShipping(order) {
   return ['shipped', 'ready_for_pickup'].includes(String(order?.fulfillment?.status || '').toLowerCase());
 }
 
+function historicalEmailCutoff() {
+  const raw = String(process.env.OPERATIONAL_EMAILS_SINCE || '').trim();
+  if (!raw) return null;
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
+}
+
+function eligibleHistoricalOrder(order) {
+  const cutoff = historicalEmailCutoff();
+  // Segurança por padrão: sem um marco explícito, a varredura de recuperação
+  // não processa pedidos antigos. Os fluxos normais continuam enfileirando os
+  // e-mails do pedido atual diretamente quando a operação acontece.
+  if (cutoff === null) return false;
+  const createdAt = new Date(order?.created_at || '').getTime();
+  return Number.isFinite(createdAt) && createdAt >= cutoff;
+}
+
 async function scanOperationalEmails() {
   if (scanning) {
     scanQueued = true;
@@ -34,7 +51,7 @@ async function scanOperationalEmails() {
     const orders = readOrders();
     for (const order of orders) {
       const orderId = String(order?.id || '');
-      if (!orderId || !order?.payer?.email) continue;
+      if (!orderId || !order?.payer?.email || !eligibleHistoricalOrder(order)) continue;
 
       if (isApproved(order) && !order?.notifications?.payment_approved_email_sent_at) {
         queuePaymentApprovedEmail(orderId);
@@ -76,4 +93,4 @@ function startOperationalEmailWatcher() {
   }, 1800).unref?.();
 }
 
-module.exports = { startOperationalEmailWatcher, scanOperationalEmails };
+module.exports = { startOperationalEmailWatcher, scanOperationalEmails, historicalEmailCutoff, eligibleHistoricalOrder };
