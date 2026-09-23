@@ -1,5 +1,5 @@
 /* RELÓGIO E CIA — correções complementares do modo escuro.
-   Mantém fotos de produtos em fundo claro para preservar a aparência original. */
+   Fotos transparentes acompanham a superfície escura sem alterar o produto. */
 
 /* Busca global */
 html.reloja-dark .site-search-panel{
@@ -17,7 +17,7 @@ html.reloja-dark .site-search-result:focus{
   background:var(--paper)!important;
 }
 html.reloja-dark .site-search-photo{
-  background:#fff!important;
+  background:var(--paper)!important;
   border:1px solid rgba(255,255,255,.18)!important;
 }
 html.reloja-dark .site-search-photo img{
@@ -61,14 +61,14 @@ html.reloja-dark .address-card-actions button:focus-visible{
 html.reloja-dark .addresses-status{color:#8fe0ae!important}
 html.reloja-dark .addresses-status.error{color:#ffb5b8!important}
 
-/* Favoritos na conta. A foto permanece branca intencionalmente. */
+/* Favoritos na conta. A foto acompanha a superfície do tema. */
 html.reloja-dark .account-favorites-section,
 html.reloja-dark .account-favorite-card{
   background:var(--bg-soft)!important;
   color:var(--ink)!important;
   border-color:var(--line-strong)!important;
 }
-html.reloja-dark .account-favorite-photo{background:#fff!important}
+html.reloja-dark .account-favorite-photo{background:var(--paper)!important}
 html.reloja-dark .account-favorite-photo img{
   background:transparent!important;
   filter:none!important;

@@ -26,7 +26,7 @@
   z-index:3!important;
 }
 
-/* Mantém a fotografia original em qualquer modo visual. */
+/* Mantém a fotografia original em qualquer modo visual e deixa o tema aparecer sob imagens transparentes. */
 .product-card .card-photo img,
 .product-main-photo img,
 .compare-photo img,
@@ -41,11 +41,7 @@
   object-fit:contain;
 }
 
-/*
-   Algumas fotos são PNG transparentes e outras já possuem fundo claro.
-   No modo escuro, usamos uma mesma tela branca atrás da FOTO sem alterar
-   pixels, brilho, contraste ou cor da imagem original.
-*/
+/* As novas fotos transparentes usam a superfície do próprio tema, sem alterar pixels, brilho, contraste ou cor do produto. */
 html.reloja-dark .product-card .card-photo,
 html.reloja-dark .product-main-photo,
 html.reloja-dark .compare-photo,
@@ -54,7 +50,7 @@ html.reloja-dark .product-thumb,
 html.reloja-dark .account-favorite-photo,
 html.reloja-dark .modal-photo,
 html.reloja-dark .modal-thumbs button{
-  background:#fff!important;
+  background:var(--paper)!important;
 }
 
 html.reloja-dark .product-card .card-photo img,

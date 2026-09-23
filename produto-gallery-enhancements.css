@@ -39,9 +39,7 @@
   pointer-events: none;
 }
 
-/* Nos modos de acessibilidade, algumas fotos transparentes herdavam o fundo
-   escuro enquanto arquivos com fundo próprio continuavam brancos. Uma única
-   superfície branca mantém todos os produtos legíveis e visualmente iguais. */
+/* Fotos transparentes acompanham a superfície do tema; no alto contraste, --paper continua branco. */
 html.reloja-dark .product-main-photo,
 html.reloja-dark .product-main-photo > img,
 html.reloja-dark .product-thumb,
@@ -54,7 +52,7 @@ html.reloja-high-contrast .product-thumb,
 html.reloja-high-contrast .product-thumb img,
 html.reloja-high-contrast .related-photo,
 html.reloja-high-contrast .related-photo img {
-  background: #fff !important;
+  background: var(--paper) !important;
 }
 
 html.reloja-dark .product-zoom-hint,
@@ -155,7 +153,7 @@ body.product-zoom-open {
 
 html.reloja-dark .product-zoom-stage img,
 html.reloja-high-contrast .product-zoom-stage img {
-  background: #fff !important;
+  background: var(--paper) !important;
 }
 
 .product-zoom-stage.is-zoomed img {
