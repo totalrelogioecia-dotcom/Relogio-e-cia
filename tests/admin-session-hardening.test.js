@@ -78,6 +78,23 @@ test('PostgreSQL valida certificado quando SSL está habilitado', () => {
   assert.doesNotMatch(source, /rejectUnauthorized:\s*false/);
 });
 
+test('PostgreSQL remoto usa TLS por padrão e não aceita desativação acidental', () => {
+  const previous = process.env.DATABASE_SSL;
+  delete process.env.DATABASE_SSL;
+  const { databaseSsl } = require('../persistent-store');
+  try {
+    assert.deepEqual(databaseSsl('postgresql://user:pass@db.example.com/store'), { rejectUnauthorized: true });
+    assert.equal(databaseSsl('postgresql://user:pass@localhost/store'), false);
+    assert.throws(
+      () => databaseSsl('postgresql://user:pass@db.example.com/store?sslmode=disable'),
+      /TLS não pode ser desabilitado/
+    );
+  } finally {
+    if (previous === undefined) delete process.env.DATABASE_SSL;
+    else process.env.DATABASE_SSL = previous;
+  }
+});
+
 test('Express confia somente no primeiro proxy da plataforma', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   assert.match(source, /app\.set\('trust proxy',\s*1\)/);

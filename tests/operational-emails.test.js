@@ -18,6 +18,33 @@ function fresh(modulePath) {
   return require(modulePath);
 }
 
+test('varredura histórica pode ignorar pedidos de teste anteriores ao corte', () => {
+  const previous = process.env.OPERATIONAL_EMAILS_SINCE;
+  process.env.OPERATIONAL_EMAILS_SINCE = '2026-09-23T20:00:00-03:00';
+  const { eligibleHistoricalOrder, historicalEmailCutoff } = fresh('../operational-email-watcher');
+  try {
+    assert.equal(Number.isFinite(historicalEmailCutoff()), true);
+    assert.equal(eligibleHistoricalOrder({ created_at: '2026-09-23T19:59:59-03:00' }), false);
+    assert.equal(eligibleHistoricalOrder({ created_at: '2026-09-23T20:00:00-03:00' }), true);
+    assert.equal(eligibleHistoricalOrder({}), false);
+  } finally {
+    restoreEnv('OPERATIONAL_EMAILS_SINCE', previous);
+    delete require.cache[require.resolve('../operational-email-watcher')];
+  }
+});
+
+test('varredura histórica fica bloqueada por padrão sem um corte válido', () => {
+  const previous = process.env.OPERATIONAL_EMAILS_SINCE;
+  delete process.env.OPERATIONAL_EMAILS_SINCE;
+  const { eligibleHistoricalOrder } = fresh('../operational-email-watcher');
+  try {
+    assert.equal(eligibleHistoricalOrder({ created_at: new Date().toISOString() }), false);
+  } finally {
+    restoreEnv('OPERATIONAL_EMAILS_SINCE', previous);
+    delete require.cache[require.resolve('../operational-email-watcher')];
+  }
+});
+
 test('NF-e, envio e pós-venda disparam Resend e gravam marcadores idempotentes', async t => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'relogio-operational-'));
   const ordersFile = path.join(tempDir, 'orders.json');

@@ -58,19 +58,22 @@ function writeLocalJson(file, value) {
 
 function databaseSsl(connectionString) {
   const configured = String(process.env.DATABASE_SSL || '').trim().toLowerCase();
-  if (['false', '0', 'off', 'disable'].includes(configured)) return false;
-
   let sslMode = '';
+  let host = '';
   try {
     const url = new URL(connectionString);
     sslMode = String(url.searchParams.get('sslmode') || '').toLowerCase();
+    host = String(url.hostname || '').toLowerCase();
   } catch {}
 
-  if (sslMode === 'disable') return false;
-  if (configured || ['require', 'verify-ca', 'verify-full'].includes(sslMode)) {
-    return { rejectUnauthorized: true };
+  const local = ['localhost', '127.0.0.1', '::1'].includes(host);
+  const disabled = ['false', '0', 'off', 'disable'].includes(configured) || sslMode === 'disable';
+  if (disabled) {
+    if (local) return false;
+    throw new Error('TLS não pode ser desabilitado para um PostgreSQL remoto.');
   }
-  return false;
+  if (local && !configured && !sslMode) return false;
+  return { rejectUnauthorized: true };
 }
 
 async function upsertState(key, value) {
@@ -172,13 +175,11 @@ async function initPersistentStore() {
 
   if (!pool) throw lastError || new Error('Nenhuma conexão PostgreSQL disponível.');
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS relogio_state (
-      key TEXT PRIMARY KEY,
-      value JSONB NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
+  try {
+    await pool.query('SELECT 1 FROM relogio_state LIMIT 1');
+  } catch (error) {
+    throw new Error(`Estrutura persistente ausente ou inacessível. Aplique as migrações do banco antes de iniciar o serviço: ${error.message}`);
+  }
 
   const restoreMarker = await pool.query(
     'SELECT value FROM relogio_state WHERE key = $1',
@@ -295,5 +296,6 @@ module.exports = {
   closePersistentStore,
   getDatabasePool,
   storageStatus,
-  assertPersistentWrites
+  assertPersistentWrites,
+  databaseSsl
 };

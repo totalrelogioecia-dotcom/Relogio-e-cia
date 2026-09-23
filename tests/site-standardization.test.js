@@ -118,6 +118,29 @@ test('sessão consultada antes do login não sobrescreve uma autenticação mais
   assert.equal(app.element('#dashboard').style.display, 'block');
 });
 
+test('consulta inicial sem sessão libera a tela de login do Admin', async () => {
+  const app = adminHarness(async () => ({ ok: true, json: async () => ({ authenticated: false }) }));
+  const source = read('admin.js').split('async function restoreDash(){')[1].split('window.RelogioAdminClient.syncSession')[0];
+  app.run('async function restoreDash(){' + source);
+  await app.run('restoreDash()');
+  assert.equal(app.element('#login-screen').style.display, 'block');
+  assert.equal(app.element('#dashboard').style.display, 'none');
+  assert.equal(app.storage.has('reloja_admin_token'), false);
+});
+
+test('política pública não mantém scripts removidos na lista de arquivos servidos', () => {
+  for (const name of [
+    'admin-login-refresh.js',
+    'admin-hide-duplicate-users.js',
+    'admin-extra-tabs-navigation-fix.js',
+    'home-digital-face-final.js',
+    'home-gshock-live.js',
+    'home-watch-selector.js'
+  ]) {
+    assert.equal(isPublicStaticPath('/' + name), false, name);
+  }
+});
+
 test('todas as páginas usam uma única base comum de estados e modais', () => {
   for (const name of fs.readdirSync(root).filter(name => name.endsWith('.html'))) {
     const html = read(name);
