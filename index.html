@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="site-search.css">
 <link rel="stylesheet" href="site-experience.css?v=20260918">
 <link rel="stylesheet" href="home-carousel.css?v=20260919-drag-6">
-<link rel="stylesheet" href="home-redesign.css?v=20260924-hero-reorg-1">
+<link rel="stylesheet" href="home-redesign.css?v=20260924-full-reorg-1">
 <script src="site-dialog.js?v=20260918"></script>
 <script src="site-ui.js?v=20260918"></script>
 <script src="modal-accessibility.js?v=20260918"></script>
@@ -44,12 +44,8 @@
   <div class="home-intro-grid">
     <div class="home-intro-copy">
       <p class="eyebrow">Desde 2003 · Loja física e online</p>
-      <h1 id="home-intro-title">Relógios de marcas <mark>confiáveis</mark>, prontos para entrega.</h1>
+      <h1 id="home-intro-title">Relógios de marcas <span class="accent-word">confiáveis</span>, prontos para entrega.</h1>
       <p class="lede">Technos, Casio, G-Shock, Citizen e Orient — com garantia de fábrica, nota fiscal e atendimento em loja física em Porto Alegre.</p>
-      <div class="hero-actions">
-        <a href="produtos.html" class="btn btn-primary">Explorar produtos</a>
-        <a href="sobre.html" class="btn btn-outline">Conhecer a história</a>
-      </div>
 
       <div class="home-intro-signature">
         <div class="clock-panel">
@@ -104,8 +100,11 @@
     <div>
       <div class="section-content">
         <div class="section-head">
-          <div><h2>Marcas que trabalhamos</h2></div>
-          <p>Todo produto vendido é original, com nota fiscal e garantia do fabricante. Clique em uma marca para abrir o mostruário de relógios.</p>
+          <div>
+            <p class="section-kicker">Seleção oficial</p>
+            <h2>Escolha pela marca que combina com você</h2>
+          </div>
+          <p>Cinco marcas reconhecidas, com modelos para diferentes estilos e rotinas. Abra uma marca para conferir os relógios disponíveis.</p>
         </div>
         <div class="brand-index">
           <a href="produtos.html?marca=Technos" class="brand-row"><span class="idx">01</span><span class="name">Technos</span><span class="desc">Marca brasileira, referência em custo-benefício.</span><span class="arrow">→</span></a>
@@ -123,32 +122,66 @@
   <div class="frame">
     <div class="rail"><div class="rail-ticks"></div><span class="rail-label">Nº 03 — Sobre</span></div>
     <div>
-      <div class="section-content about-grid">
-        <div class="stat-block">
-          <p class="big-num">20+</p><p class="big-num-label">Anos no ramo de relojoaria</p><hr>
-          <div class="badge-row"><span class="badge">Loja física</span><span class="badge">Assistência técnica</span><span class="badge">Produtos originais</span><span class="badge">Entrega para todo o Brasil</span></div>
+      <div class="section-content">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Experiência e cuidado</p>
+            <h2>Atendimento que continua depois da escolha</h2>
+          </div>
+          <p>Uma loja física em Porto Alegre, assistência especializada e suporte próximo para comprar com mais segurança.</p>
         </div>
-        <div class="about-copy">
-          <h3>Uma relojoaria de bairro que virou referência</h3>
-          <p>Começamos há mais de 20 anos como uma pequena loja de bairro e, com o tempo, nos tornamos uma referência em relógios e acessórios na região — sem nunca abrir mão do atendimento próximo que nos trouxe até aqui.</p>
-          <p>Hoje seguimos com loja física, onde você pode ver, experimentar e tirar dúvidas pessoalmente, além de contar com nosso catálogo online para comprar de onde estiver.</p>
-          <a href="sobre.html" class="btn btn-outline">Ler nossa história completa</a>
+        <div class="about-grid">
+          <div class="stat-block">
+            <p class="big-num">20+</p>
+            <p class="big-num-label">Anos no ramo de relojoaria</p>
+            <div class="service-list" aria-label="Diferenciais da loja">
+              <span>Produtos originais</span>
+              <span>Assistência técnica</span>
+              <span>Atendimento presencial e online</span>
+            </div>
+          </div>
+          <div class="about-copy">
+            <h3>Uma relojoaria de bairro que virou referência</h3>
+            <p>Começamos como uma pequena loja de bairro e crescemos mantendo o mesmo cuidado: orientar cada cliente com clareza e indicar o relógio certo para o uso real.</p>
+            <p>Na loja física, você pode ver e experimentar os modelos. Pelo site, encontra o catálogo, consulta a disponibilidade e conta com nosso atendimento antes e depois da compra.</p>
+            <a href="sobre.html" class="home-text-link">Conheça nossa história <span aria-hidden="true">→</span></a>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section-black">
+<section class="section-black" id="contato-home">
   <div class="frame">
     <div class="rail inverse"><div class="rail-ticks"></div><span class="rail-label">Nº 04 — Contato</span></div>
     <div>
       <div class="section-content">
-        <div class="section-head"><h2>Fale com quem entende do assunto</h2><p>Visite nossa loja física ou fale com a gente pelos canais abaixo.</p></div>
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Loja física e atendimento</p>
+            <h2>Fale com quem entende do assunto</h2>
+          </div>
+          <p>Visite nossa loja em Porto Alegre ou escolha o canal mais conveniente para falar com a equipe.</p>
+        </div>
         <div class="store-grid">
-          <div class="store-cell"><span class="idx">01</span><h4>Loja física</h4><p>Visite-nos para conhecer nossa vitrine completa e experimentar os modelos pessoalmente.</p></div>
-          <div class="store-cell"><span class="idx">02</span><h4>Horário</h4><p>Segunda a sábado, das 10h às 22h.<br>Domingos, das 14h às 20h.</p></div>
-          <div class="store-cell"><span class="idx">03</span><h4>Atendimento</h4><p>(51) 9631-1864<br>totalrelogioecia@gmail.com</p></div>
+          <div class="store-cell">
+            <span class="idx">01 / Visite</span>
+            <h4>Loja física</h4>
+            <p>Av. Cristóvão Colombo, 545<br>Independência, Porto Alegre - RS</p>
+            <a href="sobre.html#loja">Ver informações da loja <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="store-cell">
+            <span class="idx">02 / Horários</span>
+            <h4>Quando estamos abertos</h4>
+            <p>Segunda a sábado, das 10h às 22h.<br>Domingos, das 14h às 20h.</p>
+          </div>
+          <div class="store-cell">
+            <span class="idx">03 / Atendimento</span>
+            <h4>Fale com a equipe</h4>
+            <p>Receba ajuda para escolher modelos, confirmar disponibilidade ou acompanhar seu atendimento.</p>
+            <a href="https://wa.me/555196311864">Conversar pelo WhatsApp <span aria-hidden="true">→</span></a>
+          </div>
         </div>
       </div>
     </div>

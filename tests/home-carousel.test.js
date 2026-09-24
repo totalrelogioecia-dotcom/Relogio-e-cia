@@ -148,14 +148,15 @@ test('controles visuais ficam ocultos e navegação por teclado permanece dispon
   assert.match(read('home-carousel-client.js'),/controls\.hidden = true/);
   assert.match(read('home-carousel-client.js'),/ArrowLeft.*ArrowRight/s);
 });
-test('CTA do catálogo fica integrado à abertura e preserva área de toque no celular', () => {
-  const html=read('index.html'),css=read('home-redesign.css');
-  assert.match(html,/href="produtos.html" class="btn btn-primary">Explorar produtos/);
+test('abertura não repete os CTAs já disponíveis na navegação e no conteúdo', () => {
+  const html=read('index.html');
+  assert.doesNotMatch(html,/class="hero-actions"/);
+  assert.doesNotMatch(html,/Explorar produtos/);
+  assert.doesNotMatch(html,/Conhecer a história/);
   assert.doesNotMatch(html,/Ver todos os produtos/);
-  assert.match(css,/\.home-intro \.hero-actions \.btn\{\s*min-width:220px/);
-  assert.match(css,/@media \(max-width:620px\)[\s\S]*\.home-intro \.hero-actions \.btn\{ width:100%; \}/);
+  assert.match(html,/class="nav-cta">Produtos/);
+  assert.match(html,/class="home-text-link">Conheça nossa história/);
   assert.match(read('index.html'),/home-carousel\.css\?v=20260919-drag-6/);
-  assert.match(read('style.css'),/\.btn\{[^}]*padding:14px 26px/);
 });
 test('movimento reduzido impede avanço automático e ausência de fotos não mostra controles', async () => {
   const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]},true);
