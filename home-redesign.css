@@ -64,88 +64,120 @@ body.page-home .section-head{ margin-bottom:var(--home-space-md); }
 body.page-home .section-head p{ max-width:46ch; }
 
 /* =========================================================
-   HERO — enxuto: eyebrow, título, texto curto, ações e o
-   relógio como uma assinatura compacta (não mais uma coluna
-   inteira). O protagonismo comercial passa para o carrossel,
-   logo abaixo.
+   ABERTURA — composição comercial inspirada no rascunho:
+   carrossel amplo à esquerda; mensagem, ações, relógio e
+   números da loja à direita. O HTML mantém os IDs usados pelo
+   carrossel e pelo relógio, portanto a mecânica não muda.
    ========================================================= */
-body.page-home .hero .frame > div:last-child{
-  padding:clamp(32px, 5vw, 56px) 0 clamp(28px, 4vw, 44px);
+body.page-home #home-selection.home-intro{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:clamp(24px, 3vw, 38px) var(--home-gutter) 0;
+  border-bottom:1px solid var(--line);
 }
-body.page-home .hero-inner{
-  display:block;
-  grid-template-columns:none;
-  max-width:min(760px, 100%);
-  padding:0 var(--home-gutter);
+body.page-home .home-intro-grid{
+  display:grid;
+  grid-template-columns:minmax(0, 1.48fr) minmax(360px, .96fr);
+  grid-template-areas:"media copy";
+  align-items:stretch;
+  gap:clamp(34px, 4.5vw, 64px);
 }
-body.page-home .eyebrow{ margin-bottom:var(--home-space-sm); }
-body.page-home .hero h1{
-  font-size:clamp(1.85rem, 1.5rem + 1.9vw, 2.6rem);
-  line-height:1.14;
-  max-width:none;
-  margin-bottom:var(--home-space-sm);
+body.page-home .home-intro-copy{
+  grid-area:copy;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  padding:clamp(8px, 1.2vw, 18px) 0 0;
 }
-body.page-home .hero p.lede{
-  font-size:clamp(.95rem, .9rem + .25vw, 1.03rem);
-  line-height:1.6;
-  max-width:58ch;
-  margin-bottom:var(--home-space-md);
+body.page-home .home-intro-media{
+  grid-area:media;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
 }
-body.page-home .hero-actions{
-  gap:clamp(10px, 2vw, 14px);
-  margin-bottom:var(--home-space-md);
+body.page-home .home-intro .eyebrow{
+  margin:0 0 var(--home-space-sm);
+}
+body.page-home .home-intro h1{
+  max-width:15ch;
+  margin:0 0 var(--home-space-sm);
+  font-size:clamp(2rem, 1.55rem + 2vw, 2.85rem);
+  line-height:1.08;
+}
+body.page-home .home-intro .lede{
+  max-width:48ch;
+  margin:0 0 var(--home-space-md);
+  color:var(--ink-soft);
+  font-size:clamp(.96rem, .91rem + .22vw, 1.04rem);
+  line-height:1.65;
+}
+body.page-home .home-intro .hero-actions{
+  display:flex;
+  align-items:flex-start;
+  flex-direction:column;
+  gap:12px;
+  margin:0 0 var(--home-space-lg);
+}
+body.page-home .home-intro .hero-actions .btn{
+  min-width:220px;
+  justify-content:center;
 }
 
-/* ---------- Assinatura: relógio + números, lado a lado ----------
-   Os seletores repetem .clock-panel para prevalecer sobre as regras
-   do layout antigo sem depender da ordem dos arquivos CSS. */
-body.page-home .hero-signature{
-  display:flex;
+/* ---------- Relógio e números ---------- */
+body.page-home .home-intro-signature{
+  display:grid;
+  grid-template-columns:minmax(0, 1.25fr) minmax(190px, .85fr);
   align-items:center;
-  flex-wrap:wrap;
-  gap:clamp(18px, 4vw, 34px);
+  gap:clamp(20px, 3vw, 34px);
+  margin-top:auto;
   padding-top:var(--home-space-sm);
   border-top:1px solid var(--line);
 }
-body.page-home .clock-panel{
+body.page-home .home-intro .clock-panel{
   display:flex;
   flex-direction:row;
   justify-content:flex-start;
   align-items:center;
-  text-align:left;
-  gap:12px;
-  border-left:none;
+  min-width:0;
+  gap:14px;
   padding:0;
+  border:0;
+  text-align:left;
 }
-body.page-home .clock-panel .clock-face-wrap{
+body.page-home .home-intro .clock-panel .clock-face-wrap{
   position:relative;
-  width:clamp(50px, 5.6vw, 64px);
+  flex:0 0 auto;
+  width:clamp(76px, 7.5vw, 96px);
   height:auto;
   aspect-ratio:1;
-  flex:0 0 auto;
 }
-body.page-home .clock-panel .clock-face-wrap::before{
+body.page-home .home-intro .clock-panel .clock-face-wrap::before{
   content:"";
   position:absolute;
-  inset:-7px;
+  inset:-8px;
   border:1px dashed var(--line-strong);
   border-radius:50%;
   pointer-events:none;
 }
-body.page-home .clock-panel .clock-copy{ display:flex; flex-direction:column; gap:2px; }
-body.page-home .clock-panel .stopwatch-label{
+body.page-home .home-intro .clock-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+body.page-home .home-intro .stopwatch-label{
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  text-align:left;
   gap:7px;
   margin:0;
+  text-align:left;
   font-size:.64rem;
 }
-body.page-home .clock-panel .stopwatch-label::before{
+body.page-home .home-intro .stopwatch-label::before{
   content:"";
-  width:5px;
-  height:5px;
+  width:6px;
+  height:6px;
   flex:0 0 auto;
   border-radius:50%;
   background:var(--red);
@@ -157,79 +189,137 @@ body.page-home .clock-panel .stopwatch-label::before{
   50%{ transform:scale(1.5); opacity:.55; }
 }
 @media (prefers-reduced-motion:reduce){
-  body.page-home .clock-panel .stopwatch-label::before{ animation:none; }
+  body.page-home .home-intro .stopwatch-label::before{ animation:none; }
 }
-body.page-home .clock-panel .stopwatch-caption{
+body.page-home .home-intro .stopwatch-caption{
+  max-width:24ch;
   margin:0;
   text-align:left;
   font-family:var(--font-mono);
-  font-size:.84rem;
-  max-width:none;
+  font-size:.76rem;
+  line-height:1.45;
 }
-
-body.page-home .hero-stats{
-  display:flex;
-  gap:clamp(14px, 2.6vw, 26px);
-  padding-left:clamp(14px, 2.6vw, 26px);
+body.page-home .home-intro .hero-stats{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:clamp(12px, 2vw, 22px);
+  padding:0 0 0 clamp(18px, 2.6vw, 28px);
   border-left:1px solid var(--line);
 }
-body.page-home .hero-stats div{ padding:0; }
-body.page-home .hero-stats div strong{ font-size:clamp(1rem, .94rem + .3vw, 1.2rem); }
-body.page-home .hero-stats div span{ font-size:.58rem; }
-
-@media (max-width:640px){
-  body.page-home .hero-stats{
-    border-left:none;
-    padding-left:0;
-    padding-top:12px;
-    border-top:1px solid var(--line);
-    width:100%;
-  }
+body.page-home .home-intro .hero-stats div{ min-width:0; padding:0; }
+body.page-home .home-intro .hero-stats strong{
+  display:block;
+  font-size:clamp(1.18rem, 1rem + .65vw, 1.55rem);
+  line-height:1;
+}
+body.page-home .home-intro .hero-stats span{
+  display:block;
+  margin-top:8px;
+  font-family:var(--font-mono);
+  font-size:.58rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
 }
 
-/* =========================================================
-   CARROSSEL — passa a ser o elemento de maior peso visual da
-   primeira tela. Só ajusta tamanho/tipografia/composição; a
-   mecânica (home-carousel-client.js) continua intocada.
-   ========================================================= */
-body.page-home .home-selection-head h2{
-  font-size:clamp(1.3rem, 1.1rem + 1vw, 1.7rem);
+/* ---------- Carrossel em destaque ---------- */
+body.page-home .home-intro .home-carousel{ flex:1; }
+body.page-home .home-intro .home-carousel-stage{
+  height:clamp(480px, 43vw, 630px);
 }
-body.page-home .home-selection-head{ margin-bottom:var(--home-space-sm); }
-
-body.page-home .home-carousel-stage{
-  height:clamp(320px, 30vw, 460px);
-}
-@media (max-width:760px){
-  body.page-home .home-carousel-stage{ height:260px; }
-}
-
-body.page-home .home-carousel-hint{
+body.page-home .home-intro .home-carousel-hint{
   margin:10px 0 0;
   font-family:var(--font-mono);
-  font-size:.7rem;
+  font-size:.66rem;
   letter-spacing:.04em;
   color:var(--ink-soft);
 }
 
-body.page-home .value-strip{
-  display:flex;
-  flex-wrap:wrap;
-  gap:0;
+/* ---------- Faixa de benefícios ---------- */
+body.page-home .home-intro .value-strip{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:clamp(16px, 3vw, 34px);
   margin-top:var(--home-space-sm);
-  padding-top:var(--home-space-xs);
+  padding:var(--home-space-xs) 0;
   border-top:1px solid var(--line);
 }
-body.page-home .value-strip span{
+body.page-home .home-intro .value-strip span{
+  min-width:0;
+  padding:6px 0;
   font-family:var(--font-mono);
-  font-size:.74rem;
+  font-size:.72rem;
   color:var(--ink-soft);
-  padding:6px 22px 6px 0;
-  white-space:nowrap;
 }
-body.page-home .value-strip span::before{ content:"— "; color:var(--red); }
-@media (max-width:640px){
-  body.page-home .value-strip span{ white-space:normal; padding-right:14px; }
+body.page-home .home-intro .value-strip span::before{
+  content:"— ";
+  color:var(--red);
+}
+
+@media (max-width:1080px){
+  body.page-home .home-intro-grid{
+    grid-template-columns:minmax(0, 1.15fr) minmax(330px, .85fr);
+    gap:clamp(26px, 3.5vw, 42px);
+  }
+  body.page-home .home-intro-signature{ grid-template-columns:1fr; gap:18px; }
+  body.page-home .home-intro .hero-stats{
+    padding:16px 0 0;
+    border-left:0;
+    border-top:1px solid var(--line);
+  }
+}
+
+@media (max-width:820px){
+  body.page-home #home-selection.home-intro{
+    padding:clamp(22px, 6vw, 34px) var(--home-gutter) 0;
+  }
+  body.page-home .home-intro-grid{
+    grid-template-columns:1fr;
+    grid-template-areas:"copy" "media";
+    gap:var(--home-space-md);
+  }
+  body.page-home .home-intro-copy{ padding:0; }
+  body.page-home .home-intro h1{ max-width:18ch; }
+  body.page-home .home-intro .hero-actions{
+    flex-direction:row;
+    flex-wrap:wrap;
+    margin-bottom:var(--home-space-md);
+  }
+  body.page-home .home-intro .hero-actions .btn{ min-width:0; }
+  body.page-home .home-intro-signature{
+    grid-template-columns:minmax(0, 1.2fr) minmax(210px, .8fr);
+  }
+  body.page-home .home-intro .hero-stats{
+    padding:0 0 0 18px;
+    border-top:0;
+    border-left:1px solid var(--line);
+  }
+  body.page-home .home-intro .home-carousel-stage{
+    height:clamp(320px, 68vw, 500px);
+  }
+}
+
+@media (max-width:620px){
+  body.page-home .home-intro h1{
+    font-size:clamp(1.85rem, 8.2vw, 2.35rem);
+  }
+  body.page-home .home-intro .hero-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  body.page-home .home-intro .hero-actions .btn{ width:100%; }
+  body.page-home .home-intro-signature{ grid-template-columns:1fr; }
+  body.page-home .home-intro .hero-stats{
+    padding:16px 0 0;
+    border-left:0;
+    border-top:1px solid var(--line);
+  }
+  body.page-home .home-intro .clock-panel .clock-face-wrap{ width:76px; }
+  body.page-home .home-intro .home-carousel-stage{ height:min(82vw, 410px); }
+  body.page-home .home-intro .value-strip{
+    grid-template-columns:1fr;
+    gap:0;
+  }
 }
 
 /* =========================================================
