@@ -225,7 +225,7 @@ body{
   aspect-ratio:auto;
   padding:0;
   border-bottom:0;
-  background:#fff;
+  background:var(--paper);
   display:block;
   overflow:hidden;
 }
@@ -240,6 +240,8 @@ body{
   max-height:none;
   object-fit:contain;
   object-position:center;
+  background:transparent;
+  filter:none;
   transform:scale(var(--photo-normalize-scale, 1));
   transform-origin:center;
   transition:transform .24s ease, scale .24s ease;
