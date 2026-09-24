@@ -148,13 +148,13 @@ test('controles visuais ficam ocultos e navegação por teclado permanece dispon
   assert.match(read('home-carousel-client.js'),/controls\.hidden = true/);
   assert.match(read('home-carousel-client.js'),/ArrowLeft.*ArrowRight/s);
 });
-test('título e CTA compactos ficam restritos ao cabeçalho do carrossel e preservam toque no celular', () => {
-  const css=read('home-carousel.css');
-  assert.match(css,/\.home-selection \.home-selection-head h2\{[^}]*font:700 1\.5rem\/1\.25/);
-  assert.match(css,/\.home-selection \.home-selection-head>\.btn\{[^}]*min-height:40px;[^}]*padding:8px 14px;[^}]*font-size:\.75rem/);
-  assert.match(css,/@media\(max-width:760px\)\{\.home-selection \.home-selection-head h2\{font-size:1\.25rem\}\.home-selection \.home-selection-head>\.btn\{min-height:44px\}/);
+test('CTA do catálogo fica integrado à abertura e preserva área de toque no celular', () => {
+  const html=read('index.html'),css=read('home-redesign.css');
+  assert.match(html,/href="produtos.html" class="btn btn-primary">Explorar produtos/);
+  assert.doesNotMatch(html,/Ver todos os produtos/);
+  assert.match(css,/\.home-intro \.hero-actions \.btn\{\s*min-width:220px/);
+  assert.match(css,/@media \(max-width:620px\)[\s\S]*\.home-intro \.hero-actions \.btn\{ width:100%; \}/);
   assert.match(read('index.html'),/home-carousel\.css\?v=20260919-drag-6/);
-  assert.match(read('index.html'),/class="btn btn-outline" href="produtos.html">Ver todos os produtos/);
   assert.match(read('style.css'),/\.btn\{[^}]*padding:14px 26px/);
 });
 test('movimento reduzido impede avanço automático e ausência de fotos não mostra controles', async () => {
