@@ -19,7 +19,7 @@ test('reorganização preserva carrossel arrastável, destinos e relógio dinâm
   const html = read('index.html');
   assert.match(html, /id="home-carousel-stage"/);
   assert.match(html, /id="home-carousel-controls" hidden/);
-  assert.match(html, /home-carousel-client\.js\?v=20260919-drag-6/);
+  assert.match(html, /home-carousel-client\.js\?v=20260924-product-cta-1/);
   assert.match(html, /href="produtos\.html\?marca=Technos" class="brand-row"/);
   assert.match(html, /href="sobre\.html" class="home-text-link"/);
   assert.match(html, /id="stopwatch-data"/);

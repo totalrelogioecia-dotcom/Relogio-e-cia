@@ -148,6 +148,20 @@ test('controles visuais ficam ocultos e navegação por teclado permanece dispon
   assert.match(read('home-carousel-client.js'),/controls\.hidden = true/);
   assert.match(read('home-carousel-client.js'),/ArrowLeft.*ArrowRight/s);
 });
+test('slide com destino exibe Ver produto sem reintroduzir setas ou bolinhas', async () => {
+  const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Tradição mecânica, no seu pulso',href:'produtos.html?marca=Orient'}]});
+  await new Promise(resolve=>setImmediate(resolve));
+  const frame=app.stage.children[0],copy=frame.children[1];
+  assert.equal(frame.tagName,'a');
+  assert.equal(copy.className,'home-carousel-copy');
+  assert.equal(copy.children[0].textContent,'ORIENT · SELEÇÃO DA LOJA');
+  assert.equal(copy.children[1].textContent,'Tradição mecânica, no seu pulso.');
+  assert.equal(copy.children[2].textContent,'Ver produto');
+  assert.equal(app.controls.hidden,true); assert.equal(app.controls.children.length,0);
+  assert.match(read('home-carousel.css'),/\.home-carousel-frame::after[^{]*\{[^}]*linear-gradient/);
+  assert.match(read('home-carousel.css'),/\.home-carousel-cta\{[^}]*background:#fff;[^}]*color:#111/);
+  assert.match(read('index.html'),/home-carousel-client\.js\?v=20260924-product-cta-1/);
+});
 test('abertura não repete os CTAs já disponíveis na navegação e no conteúdo', () => {
   const html=read('index.html');
   assert.doesNotMatch(html,/class="hero-actions"/);
@@ -156,7 +170,7 @@ test('abertura não repete os CTAs já disponíveis na navegação e no conteúd
   assert.doesNotMatch(html,/Ver todos os produtos/);
   assert.match(html,/class="nav-cta">Produtos/);
   assert.match(html,/class="home-text-link">Conheça nossa história/);
-  assert.match(read('index.html'),/home-carousel\.css\?v=20260919-drag-6/);
+  assert.match(read('index.html'),/home-carousel\.css\?v=20260924-product-cta-1/);
 });
 test('movimento reduzido impede avanço automático e ausência de fotos não mostra controles', async () => {
   const app=clientHarness({autoplay:true,slides:[{image:'/one',alt:'Um'},{image:'/two',alt:'Dois'}]},true);

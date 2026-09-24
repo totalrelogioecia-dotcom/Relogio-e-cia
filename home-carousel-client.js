@@ -25,6 +25,23 @@
   function pauseTemporarily() { temporarilyPaused = true; schedule(); }
   function resumeAutomatic() { temporarilyPaused = false; schedule(); }
   function darkMode() { return document.documentElement.classList.contains('reloja-dark'); }
+  function slideBrand(slide) {
+    const match = String(slide.href || '').match(/[?&]marca=([^&#]+)/i);
+    if (!match) return '';
+    try { return decodeURIComponent(match[1].replace(/\+/g, ' ')).trim(); }
+    catch { return ''; }
+  }
+  function slideKicker(slide) { const brand = slideBrand(slide); return brand ? `${brand.toUpperCase()} · SELEÇÃO DA LOJA` : 'DESTAQUE · RELÓGIO E CIA'; }
+  function slideTitle(slide) {
+    const headlines = {
+      Technos:'Estilo brasileiro para todos os momentos.',
+      Casio:'Precisão e praticidade para o dia a dia.',
+      'G-Shock':'Resistência feita para acompanhar você.',
+      Citizen:'Tecnologia que transforma luz em movimento.',
+      Orient:'Tradição mecânica, no seu pulso.'
+    };
+    return headlines[slideBrand(slide)] || slide.alt;
+  }
   function replaceSlide(frame) {
     const previous = stage.children[stage.children.length - 1];
     if (!previous || reduced.matches || typeof frame.animate !== 'function' || typeof previous.animate !== 'function') {
@@ -59,6 +76,13 @@
     image.src = desktopImage; image.alt = slide.alt; image.width = 1920; image.height = 600; image.decoding = 'async'; image.draggable = false;
     image.addEventListener('error', () => { pauseTemporarily(); placeholder(); }, { once: true });
     picture.append(image); frame.append(picture);
+    if (slide.href) {
+      const copy = document.createElement('span'); copy.className = 'home-carousel-copy';
+      const kicker = document.createElement('span'); kicker.className = 'home-carousel-kicker'; kicker.textContent = slideKicker(slide);
+      const title = document.createElement('strong'); title.className = 'home-carousel-title'; title.textContent = slideTitle(slide);
+      const cta = document.createElement('span'); cta.className = 'home-carousel-cta'; cta.textContent = 'Ver produto';
+      copy.append(kicker, title, cta); frame.append(copy);
+    }
     return frame;
   }
   function updateCurrentControl() {
