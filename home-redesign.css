@@ -46,14 +46,17 @@ body.page-home #home-selection{
 }
 body.page-home #home-selection{ padding-left:var(--home-gutter); padding-right:var(--home-gutter); }
 
-/* ---------- Ritmo vertical das seções ---------- */
-body.page-home .section .frame > div:last-child,
+/* ---------- Ritmo vertical das seções ----------
+   #marcas e #sobre-teaser têm ID no HTML, e o site-experience.css
+   usa esses IDs em regras sem media query. Repetir os IDs aqui evita
+   que estilos antigos alterem o ritmo da Home nova. */
+body.page-home :is(.section, #marcas, #sobre-teaser) .frame > div:last-child,
 body.page-home .section-black .frame > div:last-child{
   padding:clamp(40px, 6vw, 80px) 0 clamp(40px, 6vw, 80px) var(--home-gutter);
 }
 body.page-home .section-content{ padding-right:clamp(20px, 4vw, 40px); }
 @media (max-width:900px){
-  body.page-home .section .frame > div:last-child,
+  body.page-home :is(.section, #marcas, #sobre-teaser) .frame > div:last-child,
   body.page-home .section-black .frame > div:last-child{ padding:clamp(36px, 7vw, 56px) var(--home-gutter); }
   body.page-home .section-content{ padding-right:0; }
 }
@@ -71,6 +74,7 @@ body.page-home .hero .frame > div:last-child{
 }
 body.page-home .hero-inner{
   display:block;
+  grid-template-columns:none;
   max-width:min(760px, 100%);
   padding:0 var(--home-gutter);
 }
@@ -78,6 +82,7 @@ body.page-home .eyebrow{ margin-bottom:var(--home-space-sm); }
 body.page-home .hero h1{
   font-size:clamp(1.85rem, 1.5rem + 1.9vw, 2.6rem);
   line-height:1.14;
+  max-width:none;
   margin-bottom:var(--home-space-sm);
 }
 body.page-home .hero p.lede{
@@ -91,7 +96,9 @@ body.page-home .hero-actions{
   margin-bottom:var(--home-space-md);
 }
 
-/* ---------- Assinatura: relógio + números, lado a lado ---------- */
+/* ---------- Assinatura: relógio + números, lado a lado ----------
+   Os seletores repetem .clock-panel para prevalecer sobre as regras
+   do layout antigo sem depender da ordem dos arquivos CSS. */
 body.page-home .hero-signature{
   display:flex;
   align-items:center;
@@ -102,17 +109,22 @@ body.page-home .hero-signature{
 }
 body.page-home .clock-panel{
   display:flex;
+  flex-direction:row;
+  justify-content:flex-start;
   align-items:center;
+  text-align:left;
   gap:12px;
   border-left:none;
   padding:0;
 }
-body.page-home .clock-face-wrap{
+body.page-home .clock-panel .clock-face-wrap{
   position:relative;
   width:clamp(50px, 5.6vw, 64px);
+  height:auto;
+  aspect-ratio:1;
   flex:0 0 auto;
 }
-body.page-home .clock-face-wrap::before{
+body.page-home .clock-panel .clock-face-wrap::before{
   content:"";
   position:absolute;
   inset:-7px;
@@ -120,15 +132,17 @@ body.page-home .clock-face-wrap::before{
   border-radius:50%;
   pointer-events:none;
 }
-body.page-home .clock-copy{ display:flex; flex-direction:column; gap:2px; }
-body.page-home .stopwatch-label{
+body.page-home .clock-panel .clock-copy{ display:flex; flex-direction:column; gap:2px; }
+body.page-home .clock-panel .stopwatch-label{
   display:flex;
   align-items:center;
+  justify-content:flex-start;
+  text-align:left;
   gap:7px;
   margin:0;
   font-size:.64rem;
 }
-body.page-home .stopwatch-label::before{
+body.page-home .clock-panel .stopwatch-label::before{
   content:"";
   width:5px;
   height:5px;
@@ -143,10 +157,11 @@ body.page-home .stopwatch-label::before{
   50%{ transform:scale(1.5); opacity:.55; }
 }
 @media (prefers-reduced-motion:reduce){
-  body.page-home .stopwatch-label::before{ animation:none; }
+  body.page-home .clock-panel .stopwatch-label::before{ animation:none; }
 }
-body.page-home .stopwatch-caption{
+body.page-home .clock-panel .stopwatch-caption{
   margin:0;
+  text-align:left;
   font-family:var(--font-mono);
   font-size:.84rem;
   max-width:none;
