@@ -9,7 +9,7 @@ const footer = fs.readFileSync(path.join(root, 'legal-footer.js'), 'utf8');
 const mobileFixes = fs.readFileSync(path.join(root, 'mobile-fixes.css'), 'utf8');
 
 test('legal-footer carrega somente o painel consolidado de acessibilidade', () => {
-  assert.match(footer, /accessibility-panel\.js\?v=3/);
+  assert.match(footer, /accessibility-panel\.js\?v=4/);
   assert.match(footer, /ensureAccessibilityPanelScript/);
   assert.doesNotMatch(footer, /accessibility-controls\.js/);
 });
@@ -37,6 +37,7 @@ test('gatilho consolidado permanece acessível no cabeçalho e no mobile', () =>
   assert.match(panel, /aria-label','Abrir painel de acessibilidade/);
   assert.match(panel, /viewBox="0 0 48 48"/);
   assert.match(panel, /reloja-a11y-node/);
+  assert.match(panel, /fill:#4cc9f0/);
   assert.match(panel, /reloja-floating-utilities/);
   assert.match(panel, /COOKIE_FLOATING_SELECTORS/);
   assert.match(panel, /syncFloatingOffset/);
