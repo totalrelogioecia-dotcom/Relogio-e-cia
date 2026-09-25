@@ -132,14 +132,14 @@ test('campos de preço e consulta de protocolo possuem nomes acessíveis', () =>
   assert.match(read('trocas-estornos.html'), /id="return-status-email"[^>]*aria-label="E-mail usado na solicitação"/);
 });
 
-test('acessibilidade usa um único A quadrado à direita do botão catálogo', () => {
+test('acessibilidade usa atalho flutuante no canto inferior direito sem sobrepor cookies', () => {
   const panel = read('accessibility-panel.js');
-  assert.match(panel, /position:static!important/);
-  assert.match(panel, /border-radius:0/);
-  assert.match(panel, /cluster\.appendChild\(b\)/);
-  assert.match(panel, /\.nav-cta\{order:97\}/);
+  assert.match(panel, /reloja-floating-utilities\{position:fixed/);
+  assert.match(panel, /right:max\(18px,env\(safe-area-inset-right\)\)/);
+  assert.match(panel, /dock\.appendChild\(b\)/);
+  assert.match(panel, /COOKIE_FLOATING_SELECTORS/);
+  assert.match(panel, /syncFloatingOffset/);
   assert.match(panel, /reloja-accessibility-global-rail/);
-  assert.doesNotMatch(panel, /\.reloja-a11y-trigger\{position:fixed/);
 });
 
 test('somente scripts de navegador novos são públicos; backend de favoritos continua privado', () => {

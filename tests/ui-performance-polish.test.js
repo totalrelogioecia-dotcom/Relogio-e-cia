@@ -74,13 +74,14 @@ test('recomendações técnicas são adiadas até perto da seção', () => {
   assert.match(recommendations, /rootMargin:'700px 0px'/);
 });
 
-test('acessibilidade usa símbolo visual, nome acessível e fica agrupada ao catálogo', () => {
+test('acessibilidade usa símbolo visual, nome acessível e atalho flutuante compatível com cookies', () => {
   const enhancement = read('accessibility-panel.js');
   assert.match(enhancement, /<svg class="reloja-a11y-symbol"/);
   assert.match(enhancement, /aria-label','Abrir painel de acessibilidade/);
-  assert.match(enhancement, /nav-actions-cluster/);
-  assert.match(enhancement, /cluster\.appendChild\(catalog\)/);
-  assert.match(enhancement, /cluster\.appendChild\(b\)/);
+  assert.match(enhancement, /reloja-floating-utilities/);
+  assert.match(enhancement, /dock\.appendChild\(b\)/);
+  assert.match(enhancement, /COOKIE_FLOATING_SELECTORS/);
+  assert.match(enhancement, /syncFloatingOffset/);
 });
 
 test('Melhor Envio fica recolhido em integrações quando conectado', () => {
