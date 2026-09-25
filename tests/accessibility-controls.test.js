@@ -9,7 +9,7 @@ const footer = fs.readFileSync(path.join(root, 'legal-footer.js'), 'utf8');
 const mobileFixes = fs.readFileSync(path.join(root, 'mobile-fixes.css'), 'utf8');
 
 test('legal-footer carrega somente o painel consolidado de acessibilidade', () => {
-  assert.match(footer, /accessibility-panel\.js\?v=1/);
+  assert.match(footer, /accessibility-panel\.js\?v=2/);
   assert.match(footer, /ensureAccessibilityPanelScript/);
   assert.doesNotMatch(footer, /accessibility-controls\.js/);
 });
@@ -35,6 +35,8 @@ test('painel remove controles legados sem remover links da loja', () => {
 test('gatilho consolidado permanece acessível no cabeçalho e no mobile', () => {
   assert.match(panel, /className='reloja-a11y-trigger'/);
   assert.match(panel, /aria-label','Abrir painel de acessibilidade/);
+  assert.match(panel, /viewBox="0 0 32 32"/);
+  assert.match(panel, /circle cx="16" cy="7\.1"/);
   assert.match(panel, /nav-actions-cluster/);
   assert.match(panel, /@media\(max-width:640px\)/);
   assert.match(panel, /min-width:44px!important/);
