@@ -37,9 +37,8 @@
     });
     const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
       timeZone: TIME_ZONE,
-      weekday: 'long',
       day: '2-digit',
-      month: 'long',
+      month: '2-digit',
       year: 'numeric'
     });
 
@@ -92,10 +91,8 @@
 
       if (dataEl && segundo !== ultimoSegundoTexto) {
         ultimoSegundoTexto = segundo;
-        let dataTexto = dateFormatter.format(agora);
-        dataTexto = dataTexto.charAt(0).toUpperCase() + dataTexto.slice(1);
         const horaTexto = timeFormatter.format(agora);
-        dataEl.textContent = `${horaTexto} · ${dataTexto} · Brasília`;
+        dataEl.textContent = `${horaTexto} · ${dateFormatter.format(agora)}`;
         svg.setAttribute('aria-label', `Relógio marcando ${horaTexto}, horário de Brasília`);
       }
     }

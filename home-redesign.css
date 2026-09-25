@@ -238,7 +238,7 @@ body.page-home .home-intro .hero-stats span{
 }
 
 /* ---------- Carrossel em destaque ---------- */
-body.page-home .home-intro .home-carousel{ flex:1; }
+body.page-home .home-intro .home-carousel{ flex:0 0 auto; }
 body.page-home .home-intro .home-carousel-stage{
   height:clamp(380px, 32vw, 480px);
 }
@@ -250,14 +250,6 @@ body.page-home .home-intro .home-carousel-stage{
     max-width:48%;
   }
 }
-body.page-home .home-intro .home-carousel-hint{
-  margin:10px 0 0;
-  font-family:var(--font-mono);
-  font-size:.66rem;
-  letter-spacing:.04em;
-  color:var(--ink-soft);
-}
-
 /* ---------- Faixa de benefícios ---------- */
 body.page-home .home-intro .value-strip{
   display:grid;
