@@ -32,5 +32,8 @@ test('relógio analógico usa horário real de Brasília e ponteiros dinâmicos'
   assert.match(script, /hand-second/);
   assert.match(script, /requestAnimationFrame/);
   assert.match(script, /rotate\(/);
+  assert.match(script, /month: '2-digit'/);
+  assert.match(script, /dataEl\.textContent = `\$\{horaTexto\} · \$\{dateFormatter\.format\(agora\)\}`/);
+  assert.match(read('index.html'), /home-enhancements\.js\?v=20260925-clock-compact-1/);
   assert.match(css, /#analog-clock-brasilia/);
 });
