@@ -3,6 +3,7 @@ const path = require('path');
 const { flushPersistentStore } = require('./persistent-store');
 const { runProductDataMigrations } = require('./product-data-migrations');
 const { completeLaunchCatalogMetadata } = require('./catalog-completion-migration');
+const { installBrandCarouselPresetOnce } = require('./home-carousel-brand-preset');
 
 const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const USERS = path.join(DATA, 'users.json');
@@ -158,6 +159,7 @@ async function runStartupMigrations() {
   completeLaunchCatalogMetadata();
   await zeroAllProductStockOnce();
   await clearTestAccountsOnce();
+  installBrandCarouselPresetOnce();
 }
 
 module.exports = {

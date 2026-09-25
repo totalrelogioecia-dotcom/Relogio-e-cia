@@ -19,6 +19,7 @@ test('startup fica focado em orquestração e delega migrações históricas', (
   assert.match(migrations, /completeLaunchCatalogMetadata\(\)/);
   assert.match(migrations, /await zeroAllProductStockOnce\(\)/);
   assert.match(migrations, /await clearTestAccountsOnce\(\)/);
+  assert.match(migrations, /installBrandCarouselPresetOnce\(\)/);
 });
 
 test('migração antiga de fotos não permanece como módulo órfão', () => {
