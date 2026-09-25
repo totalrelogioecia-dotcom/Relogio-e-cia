@@ -22,7 +22,7 @@
   function ensureAccessibilityPanelScript() {
     if (document.querySelector('script[src*="accessibility-panel.js"]')) return;
     const script = document.createElement('script');
-    script.src = 'accessibility-panel.js?v=4';
+    script.src = 'accessibility-panel.js?v=5';
     script.async = false;
     script.setAttribute('data-reloja-accessibility-panel', '1');
     document.head.appendChild(script);
