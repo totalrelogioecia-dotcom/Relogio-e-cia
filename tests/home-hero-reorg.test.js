@@ -19,6 +19,7 @@ test('reorganização preserva carrossel arrastável, destinos e relógio dinâm
   const html = read('index.html');
   assert.match(html, /id="home-carousel-stage"/);
   assert.match(html, /id="home-carousel-controls" hidden/);
+  assert.doesNotMatch(html, /home-carousel-hint|Arraste ou use as setas/);
   assert.match(html, /home-carousel-client\.js\?v=20260924-product-cta-1/);
   assert.match(html, /href="produtos\.html\?marca=Technos" class="brand-row"/);
   assert.match(html, /href="sobre\.html" class="home-text-link"/);
@@ -35,7 +36,8 @@ test('layout segue duas colunas no desktop e uma coluna no celular', () => {
   assert.match(css, /@media \(min-width:821px\)[\s\S]*\.home-carousel-copy\{\s*max-width:48%/);
   assert.match(css, /@media \(max-width:820px\)[\s\S]*grid-template-areas:"copy" "media"/);
   assert.match(css, /@media \(max-width:620px\)[\s\S]*\.home-carousel-stage\{ height:min\(82vw, 410px\); \}/);
-  assert.match(html, /home-redesign\.css\?v=20260925-carousel-framing-1/);
+  assert.match(css, /\.home-intro \.home-carousel\{ flex:0 0 auto; \}/);
+  assert.match(html, /home-redesign\.css\?v=20260925-carousel-cleanup-1/);
 });
 
 test('faixa inferior mantém somente os três benefícios do rascunho', () => {
