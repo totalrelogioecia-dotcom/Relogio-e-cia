@@ -30,9 +30,12 @@ test('layout segue duas colunas no desktop e uma coluna no celular', () => {
   const html = read('index.html');
   assert.match(css, /grid-template-areas:"media copy"/);
   assert.match(css, /grid-template-columns:minmax\(0, 1\.48fr\) minmax\(360px, \.96fr\)/);
+  assert.match(css, /\.home-carousel-stage\{\s*height:clamp\(380px, 32vw, 480px\);/);
+  assert.match(css, /@media \(min-width:821px\)[\s\S]*object-position:64% center/);
+  assert.match(css, /@media \(min-width:821px\)[\s\S]*\.home-carousel-copy\{\s*max-width:48%/);
   assert.match(css, /@media \(max-width:820px\)[\s\S]*grid-template-areas:"copy" "media"/);
   assert.match(css, /@media \(max-width:620px\)[\s\S]*\.home-carousel-stage\{ height:min\(82vw, 410px\); \}/);
-  assert.match(html, /home-redesign\.css\?v=20260924-full-reorg-1/);
+  assert.match(html, /home-redesign\.css\?v=20260925-carousel-framing-1/);
 });
 
 test('faixa inferior mantém somente os três benefícios do rascunho', () => {
