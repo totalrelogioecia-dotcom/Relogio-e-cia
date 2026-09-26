@@ -1,0 +1,305 @@
+/* =========================================================
+   RELÓGIO E CIA — refinamento visual da página Sobre
+   Escopo exclusivo: body.page-about
+   ========================================================= */
+
+body.page-about{
+  --about-gutter:clamp(20px,4.4vw,44px);
+}
+
+/* ---------- Abertura: texto + foto da loja ---------- */
+body.page-about .hero .frame > div:last-child{
+  padding:clamp(24px,3vw,38px) var(--about-gutter) clamp(34px,4vw,52px);
+}
+body.page-about .about-hero-layout{
+  position:relative;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(320px,.72fr);
+  align-items:center;
+  justify-content:stretch;
+  gap:clamp(32px,4vw,60px);
+  padding:clamp(24px,2.8vw,34px);
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--bg);
+  box-shadow:0 18px 48px rgba(17,17,17,.09),0 4px 14px rgba(17,17,17,.05);
+}
+body.page-about .about-hero-layout::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:clamp(24px,2.8vw,34px);
+  width:clamp(88px,8vw,124px);
+  height:3px;
+  border-radius:0 0 999px 999px;
+  background:var(--red);
+}
+html.reloja-dark body.page-about .about-hero-layout{
+  box-shadow:0 18px 48px rgba(0,0,0,.30),0 4px 14px rgba(0,0,0,.18);
+}
+body.page-about .about-hero-copy{
+  min-width:0;
+  padding:clamp(4px,1vw,12px) 0;
+}
+body.page-about .about-hero-copy h1{
+  max-width:18ch;
+  font-size:clamp(2rem,1.55rem + 2vw,2.85rem);
+  line-height:1.08;
+}
+body.page-about .about-hero-copy .lede{
+  max-width:56ch;
+  margin-bottom:0;
+  line-height:1.68;
+}
+body.page-about .about-hero-visual{
+  width:100%;
+  max-width:430px;
+  justify-self:end;
+}
+body.page-about .about-hero-card{
+  position:relative;
+  overflow:hidden;
+  margin:0;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--bg);
+  box-shadow:0 12px 30px rgba(17,17,17,.08),0 3px 9px rgba(17,17,17,.04);
+  transition:border-color .22s ease,box-shadow .22s ease,transform .22s ease;
+}
+body.page-about .about-hero-card::before{
+  left:clamp(18px,2vw,24px);
+  width:68px;
+  height:3px;
+  border-radius:0 0 999px 999px;
+}
+body.page-about .about-hero-card:hover,
+body.page-about .about-hero-card:focus-within{
+  transform:translateY(-2px);
+  border-color:rgba(227,30,36,.28);
+  box-shadow:0 16px 36px rgba(17,17,17,.11),0 4px 12px rgba(17,17,17,.05);
+}
+body.page-about .about-hero-card img{
+  width:100% !important;
+  height:clamp(340px,31vw,460px) !important;
+  max-height:none;
+  object-fit:cover;
+  object-position:center 20%;
+}
+body.page-about .about-hero-caption{
+  gap:16px;
+  padding:16px 18px 17px;
+  border-top:1px solid var(--line);
+}
+body.page-about .about-hero-map{
+  text-underline-offset:3px;
+  transition:color .2s ease;
+}
+
+/* ---------- História ---------- */
+body.page-about .section .frame > div:last-child{
+  padding:clamp(44px,6vw,78px) var(--about-gutter);
+}
+body.page-about .section .section-content{
+  padding-right:0;
+}
+body.page-about .about-grid{
+  grid-template-columns:minmax(360px,.9fr) minmax(0,1.1fr);
+  gap:clamp(28px,4vw,54px);
+  align-items:stretch;
+}
+body.page-about .stat-block{
+  position:relative;
+  overflow:hidden;
+  padding:clamp(26px,3vw,36px);
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--bg);
+  box-shadow:0 14px 36px rgba(17,17,17,.075),0 3px 10px rgba(17,17,17,.04);
+}
+body.page-about .stat-block::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:clamp(26px,3vw,36px);
+  width:clamp(76px,7vw,108px);
+  height:3px;
+  border-radius:0 0 999px 999px;
+  background:var(--red);
+}
+html.reloja-dark body.page-about .stat-block{
+  box-shadow:0 14px 36px rgba(0,0,0,.25),0 3px 10px rgba(0,0,0,.14);
+}
+body.page-about .stat-block .big-num{
+  font-size:clamp(3.3rem,2.5rem + 2.8vw,4.5rem);
+}
+body.page-about .badge{
+  border-color:var(--line);
+  border-radius:7px;
+  background:var(--bg-soft);
+}
+body.page-about .timeline-scale{
+  border-top:1px solid var(--line-strong);
+}
+body.page-about .timeline-points li{
+  border-bottom:1px solid var(--line);
+}
+body.page-about .about-copy{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:clamp(6px,1.5vw,18px) 0;
+}
+body.page-about .about-copy h3{
+  font-size:clamp(1.05rem,.98rem + .35vw,1.22rem);
+}
+body.page-about .about-copy h3:not(:first-child){
+  margin-top:clamp(18px,2vw,24px);
+}
+body.page-about .about-copy p{
+  margin-top:0;
+  line-height:1.72;
+}
+
+/* ---------- Faixa preta: mesmo padrão visual dos cards da Home ---------- */
+body.page-about .section-black .frame > div:last-child{
+  padding:clamp(44px,6vw,76px) var(--about-gutter);
+}
+body.page-about .section-black .section-content{
+  padding-right:0;
+}
+body.page-about .section-black .section-head{
+  align-items:flex-start;
+  gap:clamp(22px,4vw,56px);
+}
+body.page-about .section-black .store-grid{
+  gap:clamp(10px,1.4vw,16px);
+  background:transparent;
+  border:0;
+}
+body.page-about .section-black .store-cell{
+  position:relative;
+  overflow:hidden;
+  min-height:260px;
+  padding:clamp(24px,2.6vw,32px);
+  align-items:flex-start;
+  justify-content:flex-start;
+  text-align:left;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:10px;
+  background:rgba(255,255,255,.025);
+  box-shadow:0 10px 26px rgba(0,0,0,.16);
+  transition:transform .22s ease,border-color .22s ease,background-color .22s ease,box-shadow .22s ease;
+}
+body.page-about .section-black .store-cell::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:clamp(24px,2.6vw,32px);
+  width:54px;
+  height:2px;
+  border-radius:0 0 999px 999px;
+  background:var(--red);
+  opacity:.72;
+  transition:width .22s ease,opacity .22s ease;
+}
+body.page-about .section-black .store-cell:hover,
+body.page-about .section-black .store-cell:focus-within{
+  transform:translateY(-2px);
+  border-color:rgba(227,30,36,.46);
+  background:rgba(255,255,255,.045);
+  box-shadow:0 14px 32px rgba(0,0,0,.22);
+}
+body.page-about .section-black .store-cell:hover::before,
+body.page-about .section-black .store-cell:focus-within::before{
+  width:78px;
+  opacity:1;
+}
+body.page-about .section-black .store-cell p{
+  width:100%;
+  line-height:1.65;
+}
+body.page-about .section-black .store-cell a:not(.btn){
+  color:#d8d8d8;
+  text-underline-offset:3px;
+}
+body.page-about .section-black .store-cell .store-action{
+  margin-top:auto;
+  align-self:flex-start;
+}
+
+/* ---------- Rodapé real: mesmo eixo e respiro da Home ---------- */
+body.page-about footer .frame > div:last-child{
+  padding:clamp(40px,5vw,56px) var(--about-gutter) clamp(28px,4vw,36px);
+}
+body.page-about footer .footer-grid,
+body.page-about footer .footer-bottom{
+  padding-right:0;
+}
+
+/* ---------- Responsivo ---------- */
+@media (prefers-reduced-motion:reduce){
+  body.page-about .about-hero-card,
+  body.page-about .section-black .store-cell,
+  body.page-about .section-black .store-cell::before{
+    transition:none;
+  }
+  body.page-about .about-hero-card:hover,
+  body.page-about .about-hero-card:focus-within,
+  body.page-about .section-black .store-cell:hover,
+  body.page-about .section-black .store-cell:focus-within{
+    transform:none;
+  }
+}
+@media (max-width:980px){
+  body.page-about .about-hero-layout{
+    grid-template-columns:1fr;
+  }
+  body.page-about .about-hero-visual{
+    max-width:480px;
+    justify-self:start;
+  }
+  body.page-about .about-grid{
+    grid-template-columns:1fr;
+  }
+  body.page-about .section-black .store-grid{
+    gap:12px;
+  }
+  body.page-about .section-black .store-cell{
+    min-height:0;
+  }
+}
+@media (max-width:640px){
+  body.page-about .hero .frame > div:last-child,
+  body.page-about .section .frame > div:last-child,
+  body.page-about .section-black .frame > div:last-child,
+  body.page-about footer .frame > div:last-child{
+    padding-left:var(--about-gutter);
+    padding-right:var(--about-gutter);
+  }
+  body.page-about .about-hero-layout{
+    gap:26px;
+    padding:20px;
+    border-radius:12px;
+  }
+  body.page-about .about-hero-layout::before{
+    left:20px;
+    width:84px;
+  }
+  body.page-about .about-hero-card{
+    border-radius:10px;
+  }
+  body.page-about .about-hero-card img{
+    height:360px !important;
+  }
+  body.page-about .stat-block{
+    border-radius:10px;
+  }
+  body.page-about .section-black .store-cell{
+    padding:clamp(20px,5vw,26px);
+    border-radius:9px;
+  }
+  body.page-about .section-black .store-cell::before{
+    left:clamp(20px,5vw,26px);
+  }
+}
