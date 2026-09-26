@@ -299,8 +299,8 @@ body.page-home .home-intro .hero-stats span{
 }
 
 /* ---------- Carrossel em destaque ---------- */
+body.page-home .home-intro .home-carousel{ flex:0 0 auto; }
 body.page-home .home-intro .home-carousel{
-  flex:0 0 auto;
   border-radius:10px;
 }
 body.page-home .home-intro .home-carousel-stage{
