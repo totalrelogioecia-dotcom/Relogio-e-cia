@@ -375,13 +375,42 @@ body.page-home .home-intro .value-strip span::before{
 }
 
 /* =========================================================
-   MARCAS — índice clicável (não mexe no mostruário/carrossel
-   de marcas em si, só na lista antes de abrir).
+   MARCAS — índice clicável com acabamento editorial.
+   Mantém a lista em largura total, sem preview lateral.
    ========================================================= */
+body.page-home #marcas .section-content{
+  position:relative;
+  padding:clamp(24px, 2.8vw, 34px);
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--bg);
+  box-shadow:0 14px 38px rgba(17,17,17,.075),0 3px 10px rgba(17,17,17,.045);
+  overflow:hidden;
+}
+body.page-home #marcas .section-content::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:clamp(24px, 2.8vw, 34px);
+  width:clamp(76px, 7vw, 110px);
+  height:3px;
+  border-radius:0 0 999px 999px;
+  background:var(--red);
+}
+html.reloja-dark body.page-home #marcas .section-content{
+  box-shadow:0 14px 38px rgba(0,0,0,.26),0 3px 10px rgba(0,0,0,.16);
+}
+body.page-home #marcas .brand-index{
+  overflow:hidden;
+  border-top:1px solid var(--line-strong);
+}
+
 body.page-home #marcas .brand-row{
+  position:relative;
   grid-template-columns:52px minmax(150px, .75fr) minmax(260px, 1.25fr) 28px;
-  padding:clamp(17px, 2vw, 21px) 4px;
+  padding:clamp(18px, 2vw, 22px) clamp(10px, 1vw, 14px);
   gap:clamp(14px, 2.4vw, 28px);
+  transition:background-color .22s ease, transform .22s ease, box-shadow .22s ease;
 }
 body.page-home #marcas .brand-row .name{
   font-size:clamp(1.15rem, 1rem + .72vw, 1.48rem);
@@ -391,15 +420,64 @@ body.page-home #marcas .brand-row .desc{
   text-align:left;
   justify-self:end;
 }
-body.page-home #marcas .brand-row .arrow{ opacity:1; }
+body.page-home #marcas .brand-row .name,
+body.page-home #marcas .brand-row .desc,
+body.page-home #marcas .brand-row .arrow{
+  transition:color .22s ease, transform .22s ease, opacity .22s ease;
+}
+body.page-home #marcas .brand-row .arrow{ opacity:1; color:var(--red); }
+body.page-home #marcas .brand-row::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:10px;
+  bottom:10px;
+  width:3px;
+  border-radius:999px;
+  background:var(--red);
+  transform:scaleY(0);
+  transform-origin:center;
+  transition:transform .22s ease;
+}
 body.page-home #marcas .brand-row:hover,
 body.page-home #marcas .brand-row:focus-visible{
-  background:linear-gradient(90deg, rgba(227,30,36,.06), transparent 60%);
+  background:linear-gradient(90deg, rgba(227,30,36,.085), rgba(227,30,36,.025) 55%, transparent 100%);
+  box-shadow:inset 0 0 0 1px rgba(227,30,36,.05);
+  outline:none;
+}
+body.page-home #marcas .brand-row:hover::before,
+body.page-home #marcas .brand-row:focus-visible::before{
+  transform:scaleY(1);
+}
+body.page-home #marcas .brand-row:hover .name,
+body.page-home #marcas .brand-row:focus-visible .name{
+  color:var(--ink);
+  transform:translateX(3px);
+}
+body.page-home #marcas .brand-row:hover .desc,
+body.page-home #marcas .brand-row:focus-visible .desc{
+  color:var(--ink);
+}
+body.page-home #marcas .brand-row:hover .arrow,
+body.page-home #marcas .brand-row:focus-visible .arrow{
+  transform:translateX(4px);
 }
 @media (max-width:760px){
+  body.page-home #marcas .section-content{
+    padding:clamp(18px, 5vw, 24px);
+    border-radius:12px;
+  }
+  body.page-home #marcas .section-content::before{
+    left:clamp(18px, 5vw, 24px);
+    width:78px;
+  }
   body.page-home #marcas .brand-row{
     grid-template-columns:38px minmax(0,1fr) 24px;
-    padding:17px 0;
+    padding:17px 8px;
+  }
+  body.page-home #marcas .brand-row::before{
+    top:8px;
+    bottom:8px;
   }
 }
 

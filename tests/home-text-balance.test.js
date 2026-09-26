@@ -26,5 +26,5 @@ test('três cartões de contato usam o mesmo recuo e a mesma linha de ação', (
 
 test('CSS equilibrado recebe uma versão nova contra cache antigo', () => {
   const html = read('index.html');
-  assert.match(html, /home-redesign\.css\?v=20260926-feature-card-1/);
+  assert.match(html, /home-redesign\.css\?v=20260926-brands-card-1/);
 });
