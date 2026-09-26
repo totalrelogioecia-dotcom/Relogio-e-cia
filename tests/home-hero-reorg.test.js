@@ -39,7 +39,14 @@ test('layout segue duas colunas no desktop e uma coluna no celular', () => {
   assert.match(css, /@media \(max-width:820px\)[\s\S]*grid-template-areas:"copy" "media"/);
   assert.match(css, /@media \(max-width:620px\)[\s\S]*\.home-carousel-stage\{ height:min\(82vw, 410px\); \}/);
   assert.match(css, /\.home-intro \.home-carousel\{ flex:0 0 auto; \}/);
-  assert.match(html, /home-redesign\.css\?v=20260926-text-balance-1/);
+  assert.match(html, /home-redesign\.css\?v=20260926-feature-card-1/);
+});
+
+test('destaque principal recebe moldura suave aprovada', () => {
+  const css = read('home-redesign.css');
+  assert.match(css, /\.home-intro-grid\{[\s\S]*border:1px solid var\(--line\);[\s\S]*border-radius:16px;[\s\S]*box-shadow:0 18px 48px rgba\(17,17,17,\.10\)/);
+  assert.match(css, /\.home-intro-grid::before\{[\s\S]*background:var\(--red\);/);
+  assert.match(css, /@media \(max-width:820px\)[\s\S]*border-radius:12px/);
 });
 
 test('faixa inferior mantém somente os três benefícios do rascunho', () => {
