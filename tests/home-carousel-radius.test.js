@@ -6,7 +6,7 @@ const path = require('node:path');
 const css = fs.readFileSync(path.resolve(__dirname, '..', 'home-redesign.css'), 'utf8');
 
 test('carrossel da Home usa cantos discretos', () => {
-  assert.match(css, /body\.page-home \.home-intro \.home-carousel\{[\s\S]*border-radius:10px;/);
+  assert.match(css, /body\.page-home \.home-intro \.home-carousel\{\s*border-radius:10px;\s*\}/);
   assert.match(css, /body\.page-home \.home-intro \.home-carousel-stage\{[\s\S]*border-radius:inherit;/);
   assert.match(css, /body\.page-home \.home-intro \.home-carousel-frame,[\s\S]*border-radius:inherit;/);
 });
