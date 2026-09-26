@@ -220,6 +220,51 @@ body.page-products .product-card .card-photo{
 body.page-products .product-card .brand-chip{
   border-radius:5px;
 }
+body.page-products .product-card .brand-chip-logo{
+  width:max-content;
+  max-width:min(116px,100%);
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 10px;
+  border:1px solid rgba(17,17,17,.12);
+  background:#fff;
+  color:#111;
+  overflow:hidden;
+}
+body.page-products .product-card .brand-chip-logo img{
+  display:block;
+  width:auto;
+  height:auto;
+  max-width:100%;
+  max-height:22px;
+  object-fit:contain;
+}
+body.page-products .product-card .brand-chip--technos img{
+  max-width:102px;
+  max-height:22px;
+}
+body.page-products .product-card .brand-chip--casio img{
+  max-width:82px;
+  max-height:18px;
+}
+body.page-products .product-card .brand-chip--g-shock img{
+  max-width:68px;
+  max-height:26px;
+}
+body.page-products .product-card .brand-chip--citizen img{
+  max-width:92px;
+  max-height:19px;
+}
+body.page-products .product-card .brand-chip--orient img{
+  max-width:96px;
+  max-height:24px;
+}
+html.reloja-dark body.page-products .product-card .brand-chip-logo{
+  border-color:rgba(255,255,255,.18);
+  background:#fff;
+}
 body.page-products .product-card .card-actions{
   gap:8px;
 }
