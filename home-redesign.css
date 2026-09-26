@@ -52,12 +52,12 @@ body.page-home #home-selection{ padding-left:var(--home-gutter); padding-right:v
    que estilos antigos alterem o ritmo da Home nova. */
 body.page-home :is(.section, #marcas, #sobre-teaser) .frame > div:last-child,
 body.page-home .section-black .frame > div:last-child{
-  padding:clamp(40px, 6vw, 80px) 0 clamp(40px, 6vw, 80px) var(--home-gutter);
+  padding:clamp(44px, 6.3vw, 86px) 0 clamp(44px, 6.3vw, 86px) var(--home-gutter);
 }
 body.page-home .section-content{ padding-right:clamp(20px, 4vw, 40px); }
 @media (max-width:900px){
   body.page-home :is(.section, #marcas, #sobre-teaser) .frame > div:last-child,
-  body.page-home .section-black .frame > div:last-child{ padding:clamp(36px, 7vw, 56px) var(--home-gutter); }
+  body.page-home .section-black .frame > div:last-child{ padding:clamp(40px, 7.2vw, 60px) var(--home-gutter); }
   body.page-home .section-content{ padding-right:0; }
 }
 body.page-home .section-head{ margin-bottom:var(--home-space-md); }
@@ -99,7 +99,7 @@ body.page-home .home-intro-grid{
   grid-template-columns:minmax(0, 1.48fr) minmax(360px, .96fr);
   grid-template-areas:"media copy";
   align-items:stretch;
-  gap:clamp(34px, 4.5vw, 64px);
+  gap:clamp(38px, 4.8vw, 70px);
 }
 body.page-home .home-intro-copy{
   grid-area:copy;
@@ -255,8 +255,8 @@ body.page-home .home-intro .value-strip{
   display:grid;
   grid-template-columns:repeat(3, minmax(0, 1fr));
   gap:clamp(16px, 3vw, 34px);
-  margin-top:var(--home-space-sm);
-  padding:var(--home-space-xs) 0;
+  margin-top:clamp(24px, 2.4vw, 32px);
+  padding:clamp(13px, 1.2vw, 18px) 0;
   border-top:1px solid var(--line);
 }
 body.page-home .home-intro .value-strip span{
@@ -274,7 +274,7 @@ body.page-home .home-intro .value-strip span::before{
 @media (max-width:1080px){
   body.page-home .home-intro-grid{
     grid-template-columns:minmax(0, 1.15fr) minmax(330px, .85fr);
-    gap:clamp(26px, 3.5vw, 42px);
+    gap:clamp(30px, 3.8vw, 46px);
   }
   body.page-home .home-intro-signature{ grid-template-columns:1fr; gap:18px; }
   body.page-home .home-intro .hero-stats{
@@ -291,7 +291,7 @@ body.page-home .home-intro .value-strip span::before{
   body.page-home .home-intro-grid{
     grid-template-columns:1fr;
     grid-template-areas:"copy" "media";
-    gap:var(--home-space-md);
+    gap:clamp(32px, 5vw, 44px);
   }
   body.page-home .home-intro-copy{ padding:0; }
   body.page-home .home-intro h1{ max-width:18ch; }
