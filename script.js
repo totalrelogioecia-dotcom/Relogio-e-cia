@@ -256,6 +256,45 @@ function urlImagemSegura(value) {
   }
 }
 
+
+const BRAND_WORDMARKS = Object.freeze({
+  'technos': {
+    slug: 'technos',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/9/97/Technos_logo.png'
+  },
+  'casio': {
+    slug: 'casio',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Casio_logo.svg'
+  },
+  'g-shock': {
+    slug: 'g-shock',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/8/81/GShock_logo.svg'
+  },
+  'gshock': {
+    slug: 'g-shock',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/8/81/GShock_logo.svg'
+  },
+  'citizen': {
+    slug: 'citizen',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Citizen_logo.svg'
+  },
+  'orient': {
+    slug: 'orient',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/5/54/Orient_Watch_logo.svg'
+  }
+});
+
+function renderBrandChip(marca) {
+  const label = escaparHtmlSeguro(marca);
+  const key = String(marca || '').trim().toLowerCase();
+  const wordmark = BRAND_WORDMARKS[key];
+  if (!wordmark) return `<span class="brand-chip">${label}</span>`;
+
+  return `<span class="brand-chip brand-chip-logo brand-chip--${wordmark.slug}" aria-label="${label}">
+    <img src="${wordmark.src}" alt="${label}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+  </span>`;
+}
+
 /* ---------- Utilitário: fallback quando uma foto não carrega ---------- */
 function tratarErroFoto(img) {
   const wrap = img.parentElement;
@@ -551,7 +590,7 @@ function iniciarPaginaProdutos() {
           </a>
         </div>
         <div class="card-top">
-          <span class="brand-chip">${marca}</span>
+          ${renderBrandChip(p.marca)}
         </div>
         <h4><a class="product-title-link" href="${productUrl}">${nome}</a></h4>
         <p class="price">${formatarPreco(p.preco)}</p>
