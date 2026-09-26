@@ -300,8 +300,19 @@ body.page-home .home-intro .hero-stats span{
 
 /* ---------- Carrossel em destaque ---------- */
 body.page-home .home-intro .home-carousel{ flex:0 0 auto; }
+body.page-home .home-intro .home-carousel{
+  border-radius:10px;
+}
 body.page-home .home-intro .home-carousel-stage{
   height:clamp(380px, 32vw, 480px);
+  border-radius:inherit;
+}
+body.page-home .home-intro .home-carousel-frame,
+body.page-home .home-intro .home-carousel-stage img{
+  border-radius:inherit;
+}
+body.page-home .home-intro .home-carousel-cta{
+  border-radius:var(--control-radius, 7px);
 }
 @media (min-width:821px){
   body.page-home .home-intro .home-carousel-stage img{
