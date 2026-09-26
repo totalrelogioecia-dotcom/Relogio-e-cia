@@ -26,6 +26,7 @@
   --font-mono:     'IBM Plex Mono', ui-monospace, monospace;
   --maxw:          1360px;
   --rail-w:        58px;
+  --control-radius: 7px;
 }
 
 *{ box-sizing:border-box; }
@@ -462,6 +463,7 @@ a{ color:inherit; }
   letter-spacing:.06em;
   text-transform:uppercase;
   border:1px solid var(--ink);
+  border-radius:var(--control-radius);
   cursor:pointer;
   transition:background .18s ease, color .18s ease, border-color .18s ease;
   background:transparent;
@@ -1207,6 +1209,7 @@ footer .frame > div:last-child{ padding:56px 0 30px 36px; }
   letter-spacing:.06em;
   line-height:1.2;
   text-transform:uppercase;
+  border-radius:var(--control-radius);
 }
 .site-header .nav-links a,
 .site-header .nav-icon-link,
