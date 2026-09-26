@@ -27,6 +27,6 @@ test('cabeçalho, busca, rodapé e catálogo usam acabamento coerente', () => {
   assert.match(css, /\.site-search-panel\{[\s\S]*border-radius:14px;/);
   assert.match(css, /footer \.footer-contact-buttons a\{[\s\S]*border-radius:7px!important;/);
   assert.match(css, /body\.page-products \.filters\{[\s\S]*border-radius:12px;/);
-  assert.match(css, /body\.page-products \.product-card\{[\s\S]*border-radius:12px;/);
+  assert.match(css, /body\.page-products \.product-card\{[\s\S]*border-radius:0;/);
   assert.match(css, /body\.page-products \.catalog-favorite-button\{[\s\S]*border-radius:7px!important;/);
 });
