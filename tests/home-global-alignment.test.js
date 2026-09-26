@@ -22,5 +22,5 @@ test('régua lateral permanece decorativa sem deslocar o conteúdo', () => {
 
 test('arquivo alinhado recebe versão nova para evitar cache antigo', () => {
   const html = read('index.html');
-  assert.match(html, /home-redesign\.css\?v=20260926-contact-cards-1/);
+  assert.match(html, /home-redesign\.css\?v=20260926-about-card-1/);
 });
