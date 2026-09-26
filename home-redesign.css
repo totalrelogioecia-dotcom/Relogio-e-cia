@@ -390,6 +390,7 @@ body.page-home .home-intro .value-strip span::before{
     border-left:0;
     border-top:1px solid var(--line);
   }
+  body.page-home .home-intro .hero-stats::before{ display:none; }
   body.page-home .home-intro .clock-panel .clock-face-wrap{ width:76px; }
   body.page-home .home-intro .home-carousel-stage{ height:min(82vw, 410px); }
   body.page-home .home-intro .value-strip{
