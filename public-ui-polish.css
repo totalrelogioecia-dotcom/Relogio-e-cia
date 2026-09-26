@@ -171,7 +171,6 @@ body.page-products .products-layout{
   gap:clamp(28px,3.5vw,46px);
 }
 body.page-products .filters{
-  overflow:hidden;
   border:1px solid var(--line);
   border-radius:12px;
   background:var(--bg);
