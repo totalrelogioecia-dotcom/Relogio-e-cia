@@ -1247,6 +1247,11 @@ footer .frame > div:last-child{ padding:56px 0 30px 36px; }
   background:var(--red-dark);
   border-color:var(--red-dark);
 }
+
+/* Respiro entre o carrinho e o CTA de Produtos no desktop */
+.site-header .nav-utility + .nav-cta{
+  margin-left:16px;
+}
 .site-header .nav-actions-cluster{
   margin-left:8px;
 }
