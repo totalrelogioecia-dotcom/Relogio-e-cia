@@ -39,7 +39,7 @@ test('layout segue duas colunas no desktop e uma coluna no celular', () => {
   assert.match(css, /@media \(max-width:820px\)[\s\S]*grid-template-areas:"copy" "media"/);
   assert.match(css, /@media \(max-width:620px\)[\s\S]*\.home-carousel-stage\{ height:min\(82vw, 410px\); \}/);
   assert.match(css, /\.home-intro \.home-carousel\{ flex:0 0 auto; \}/);
-  assert.match(html, /home-redesign\.css\?v=20260926-about-card-1/);
+  assert.match(html, /home-redesign\.css\?v=20260926-divider-lines-1/);
 });
 
 test('destaque principal recebe moldura suave aprovada', () => {
