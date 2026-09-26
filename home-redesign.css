@@ -392,23 +392,75 @@ body.page-home .home-intro .value-strip span::before{
 }
 
 @media (max-width:620px){
-  body.page-home .home-intro h1{
-    font-size:clamp(1.85rem, 8.2vw, 2.35rem);
+  body.page-home #home-selection.home-intro{
+    padding:18px 16px 0;
   }
-  body.page-home .home-intro-signature{ grid-template-columns:1fr; }
+  body.page-home .home-intro-grid{
+    gap:24px;
+    padding:16px;
+    border-radius:10px;
+  }
+  body.page-home .home-intro-grid::before{
+    left:16px;
+    width:76px;
+  }
+  body.page-home .home-intro .eyebrow{
+    margin-bottom:14px;
+    font-size:.66rem;
+    line-height:1.45;
+  }
+  body.page-home .home-intro h1{
+    max-width:none;
+    margin-bottom:16px;
+    font-size:clamp(1.78rem, 8vw, 2.12rem);
+    line-height:1.08;
+  }
+  body.page-home .home-intro .lede{
+    font-size:.94rem;
+    line-height:1.58;
+  }
+  body.page-home .home-intro-signature{
+    grid-template-columns:1fr;
+    gap:16px;
+    margin-top:20px;
+  }
+  body.page-home .home-intro .clock-panel{
+    display:grid;
+    grid-template-columns:68px minmax(0,1fr);
+    gap:12px;
+    align-items:center;
+  }
+  body.page-home .home-intro .clock-panel .clock-face-wrap{ width:68px; }
+  body.page-home .home-intro .stopwatch-label{ font-size:.58rem; }
+  body.page-home .home-intro .stopwatch-caption{
+    font-size:.68rem;
+    line-height:1.35;
+  }
   body.page-home .home-intro .hero-stats{
-    padding:16px 0 0;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px;
+    padding:14px 0 0;
     border-left:0;
     border-top:1px solid var(--line);
   }
   body.page-home .home-intro .hero-stats::before{ display:none; }
-  body.page-home .home-intro .clock-panel .clock-face-wrap{ width:76px; }
-  body.page-home .home-intro .home-carousel-stage{ height:min(82vw, 410px); }
-  body.page-home .home-intro .value-strip{
-    grid-template-columns:1fr;
-    gap:0;
+  body.page-home .home-intro .hero-stats strong{ font-size:1.2rem; }
+  body.page-home .home-intro .hero-stats span{
+    margin-top:6px;
+    font-size:.54rem;
   }
-  body.page-home .home-intro .value-strip span:nth-child(n){ text-align:left; }
+  body.page-home .home-intro .home-carousel-stage{ height:min(76vw, 360px); }
+  body.page-home .home-intro .value-strip{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px;
+    margin-top:18px;
+    padding:12px 0;
+  }
+  body.page-home .home-intro .value-strip span{
+    font-size:.62rem;
+    line-height:1.35;
+    text-align:left!important;
+  }
 }
 
 /* =========================================================
