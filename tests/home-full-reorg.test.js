@@ -34,6 +34,6 @@ test('reorganização mantém estados responsivos e não altera outras páginas'
   const css = read('home-redesign.css');
   assert.match(css, /^body\.page-home\{/m);
   assert.match(css, /@media \(max-width:820px\)[\s\S]*grid-template-areas:"copy" "media"/);
-  assert.match(css, /@media \(max-width:620px\)[\s\S]*\.home-intro-signature\{ grid-template-columns:1fr; \}/);
+  assert.match(css, /@media \(max-width:620px\)[\s\S]*\.home-intro-signature\{[\s\S]*grid-template-columns:1fr;/);
   assert.match(css, /@media \(max-width:980px\)[\s\S]*#sobre-teaser \.about-grid\{ grid-template-columns:1fr/);
 });

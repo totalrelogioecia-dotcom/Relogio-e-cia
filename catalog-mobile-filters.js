@@ -31,7 +31,9 @@
     trigger.setAttribute('aria-controls', 'catalog-filters-panel');
     trigger.setAttribute('aria-expanded', 'false');
     controls.appendChild(trigger);
-    layout.parentNode.insertBefore(controls, layout);
+    const toolbar = layout.querySelector('.products-toolbar');
+    if (toolbar) toolbar.prepend(controls);
+    else layout.parentNode.insertBefore(controls, layout);
 
     filters.id = filters.id || 'catalog-filters-panel';
     filters.setAttribute('aria-label', 'Filtros do catálogo');

@@ -11,7 +11,7 @@ test('catálogo carrega painel de filtros mobile acessível', () => {
   const css = read('catalog-filters.css');
   const js = read('catalog-mobile-filters.js');
 
-  assert.match(html, /catalog-mobile-filters\.js\?v=1/);
+  assert.match(html, /catalog-mobile-filters\.js\?v=20260926-mobile-toolbar-1/);
   assert.match(js, /aria-expanded/);
   assert.match(js, /catalog-filters-open/);
   assert.match(js, /Escape/);

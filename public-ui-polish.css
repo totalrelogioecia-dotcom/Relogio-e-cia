@@ -274,3 +274,114 @@ html.reloja-dark body.page-products .product-card{
     border-radius:0;
   }
 }
+
+
+/* ---------- Ajustes móveis finais ---------- */
+@media (max-width:860px){
+  body.page-products .products-toolbar{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:
+      "filter count"
+      "sort sort";
+    align-items:center;
+    gap:12px 10px;
+    margin-bottom:18px;
+    padding-bottom:18px;
+  }
+  body.page-products .catalog-mobile-controls{
+    grid-area:filter;
+    width:auto;
+    margin:0;
+  }
+  body.page-products .catalog-mobile-filter-trigger{
+    width:auto;
+    min-width:124px;
+    min-height:44px;
+    border-radius:7px;
+    padding:0 16px;
+  }
+  body.page-products .result-count{
+    grid-area:count;
+    justify-self:end;
+    margin:0;
+    text-align:right;
+    line-height:1.35;
+  }
+  body.page-products .sort-control{
+    grid-area:sort;
+    width:100%;
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:center;
+    gap:10px;
+  }
+  body.page-products .sort-control label{
+    white-space:nowrap;
+  }
+  body.page-products .sort-control select{
+    width:100%;
+    min-width:0;
+    max-width:none;
+  }
+}
+@media (max-width:640px){
+  footer .frame > div:last-child{
+    padding:32px 20px 24px!important;
+  }
+  footer .footer-grid{
+    padding-right:0!important;
+    margin-bottom:26px!important;
+  }
+  footer .footer-grid h5{
+    font-size:.62rem;
+    letter-spacing:.1em;
+  }
+  footer .footer-grid a,
+  footer .footer-grid p{
+    font-size:.8rem;
+  }
+  footer .footer-contact-buttons a{
+    width:100%!important;
+    min-height:42px!important;
+  }
+  footer .footer-bottom{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+    padding:18px 0 0!important;
+    font-size:.62rem;
+    line-height:1.5;
+  }
+
+  body.page-products .section .frame > div:last-child{
+    padding-left:16px;
+    padding-right:16px;
+  }
+  body.page-products .section-content > p:not(.eyebrow){
+    margin-bottom:26px!important;
+    line-height:1.55;
+  }
+  body.page-products .products-toolbar{
+    grid-template-columns:auto minmax(0,1fr);
+    gap:10px 8px;
+  }
+  body.page-products .catalog-mobile-filter-trigger{
+    min-width:112px;
+    padding:0 14px;
+  }
+  body.page-products .result-count{
+    font-size:.72rem;
+  }
+  body.page-products .sort-control{
+    grid-template-columns:1fr;
+    gap:7px;
+  }
+  body.page-products .sort-control label{
+    font-size:.64rem;
+  }
+  body.page-products .sort-control select{
+    min-height:46px;
+    font-size:.76rem;
+  }
+}
