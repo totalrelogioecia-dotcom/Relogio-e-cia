@@ -1197,7 +1197,14 @@ footer .frame > div:last-child{ padding:56px 0 30px 36px; }
 }
 
 
-/* ---------- Cabeçalho público: hierarquia, tipografia e reflow ---------- */
+/* ---------- Cabeçalho público: controles unificados ---------- */
+.site-header .nav-links{
+  gap:4px;
+}
+.site-header .nav-utility{
+  gap:4px;
+  margin-left:6px;
+}
 .site-header .nav-links a,
 .site-header .nav-icon-link,
 .site-header .site-search-button,
@@ -1214,22 +1221,41 @@ footer .frame > div:last-child{ padding:56px 0 30px 36px; }
 .site-header .nav-links a,
 .site-header .nav-icon-link,
 .site-header .site-search-button{
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 14px;
   color:var(--ink-soft);
+  background:transparent;
+  border:1px solid transparent;
+  text-decoration:none;
+  transition:color .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.site-header .site-search-button{
+  appearance:none;
 }
 .site-header .nav-links a:hover,
 .site-header .nav-icon-link:hover,
 .site-header .site-search-button:hover{
   color:var(--ink);
   background:var(--bg-soft);
+  border-color:var(--line);
 }
-.site-header .nav-links a[aria-current="page"]{
-  color:var(--bg);
-  background:var(--ink);
-}
+.site-header .nav-links a[aria-current="page"],
 .site-header .nav-icon-link[aria-current="page"]{
   color:var(--ink);
   background:var(--bg-soft);
   border-color:var(--line-strong);
+  box-shadow:inset 0 -2px 0 var(--red);
+}
+.site-header .nav-links a:focus-visible,
+.site-header .nav-icon-link:focus-visible,
+.site-header .site-search-button:focus-visible,
+.site-header .nav-cta:focus-visible,
+.site-header .nav-toggle:focus-visible{
+  outline:2px solid var(--red);
+  outline-offset:2px;
 }
 .site-header .nav-cta{
   min-height:44px;
@@ -1248,7 +1274,7 @@ footer .frame > div:last-child{ padding:56px 0 30px 36px; }
   border-color:var(--red-dark);
 }
 
-/* Respiro entre o carrinho e o CTA de Produtos no desktop */
+/* Produtos fica visualmente separado dos controles neutros */
 .site-header .nav-utility + .nav-cta{
   margin-left:16px;
 }
