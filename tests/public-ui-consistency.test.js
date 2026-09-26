@@ -8,13 +8,14 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 test('páginas públicas carregam a camada final de consistência visual', () => {
   const pages = [
-    'index.html','sobre.html','produtos.html','produto.html','conta.html','carrinho.html',
+    'index.html','sobre.html','produto.html','conta.html','carrinho.html',
     'enderecos.html','pagamento.html','pagamento-pix.html','politica-de-privacidade.html',
     'termos-de-uso.html','trocas-estornos.html'
   ];
   for (const page of pages) {
     assert.match(read(page), /public-ui-polish\.css\?v=20260926-mobile-polish-1/, page);
   }
+  assert.match(read('produtos.html'), /public-ui-polish\.css\?v=20260926-brand-wordmarks-1/, 'produtos.html');
 });
 
 test('catálogo usa escopo visual próprio', () => {
