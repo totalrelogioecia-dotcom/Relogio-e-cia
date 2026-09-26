@@ -42,8 +42,16 @@
       if (!produto || !Number.isFinite(Number(produto.preco))) return item;
       const precoAnterior = Number(item.preco);
       const precoAtual = Number(produto.preco);
-      if (Math.abs(precoAnterior - precoAtual) > 0.000001) { alteracoes.push({ nome: produto.nome || item.nome, anterior: precoAnterior, atual: precoAtual }); mudou = true; }
-      return { ...item, nome: produto.nome || item.nome, sku: produto.sku || item.sku, marca: produto.marca || item.marca, preco: precoAtual, foto: (produto.fotos && produto.fotos[0]) || produto.foto || item.foto || '' };
+      const nomeAtual = produto.nome || item.nome;
+      const skuAtual = produto.sku || item.sku;
+      const marcaAtual = produto.marca || item.marca;
+      const fotoAtual = (produto.fotos && produto.fotos[0]) || produto.foto || item.foto || '';
+      if (Math.abs(precoAnterior - precoAtual) > 0.000001) {
+        alteracoes.push({ nome: nomeAtual, anterior: precoAnterior, atual: precoAtual });
+        mudou = true;
+      }
+      if (nomeAtual !== item.nome || skuAtual !== item.sku || marcaAtual !== item.marca || fotoAtual !== (item.foto || '')) mudou = true;
+      return { ...item, nome: nomeAtual, sku: skuAtual, marca: marcaAtual, preco: precoAtual, foto: fotoAtual };
     });
     if (mudou) {
       localStorage.setItem('reloja_carrinho', JSON.stringify(atualizados));
