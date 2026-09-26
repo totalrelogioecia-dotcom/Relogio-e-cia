@@ -33,18 +33,37 @@ body.page-home{
   --home-space-lg:  clamp(2.5rem, 1.9rem + 2.8vw, 4rem);
 }
 
-/* ---------- Composição geral: teto de largura ----------
-   .frame não tinha limite próprio; em monitores muito largos o
-   conteúdo esticava até a borda da tela. O rodapé fica de fora
-   de propósito, pra não destoar do restante do site. */
+/* ---------- Composição geral: teto de largura e eixo único ----------
+   Cabeçalho, abertura, seções e rodapé usam a mesma largura e o
+   mesmo gutter. A régua lateral fica dentro desse gutter, como
+   detalhe visual, sem empurrar o conteúdo 58px para a direita. */
 body.page-home .hero .frame,
 body.page-home .section .frame,
 body.page-home .section-black .frame,
+body.page-home footer .frame,
 body.page-home #home-selection{
   max-width:var(--maxw);
   margin:0 auto;
 }
+body.page-home .nav{ padding-inline:var(--home-gutter); }
 body.page-home #home-selection{ padding-left:var(--home-gutter); padding-right:var(--home-gutter); }
+body.page-home .section .frame,
+body.page-home .section-black .frame,
+body.page-home footer .frame{
+  position:relative;
+  display:block;
+  padding-inline:var(--home-gutter);
+}
+body.page-home .section .rail,
+body.page-home .section-black .rail,
+body.page-home footer .rail{
+  position:absolute;
+  inset:0 auto 0 0;
+  width:calc(var(--home-gutter) - 14px);
+}
+@media (min-width:901px){
+  body.page-home #sobre-teaser .rail{ display:block; }
+}
 
 /* ---------- Ritmo vertical das seções ----------
    #marcas e #sobre-teaser têm ID no HTML, e o site-experience.css
@@ -52,12 +71,12 @@ body.page-home #home-selection{ padding-left:var(--home-gutter); padding-right:v
    que estilos antigos alterem o ritmo da Home nova. */
 body.page-home :is(.section, #marcas, #sobre-teaser) .frame > div:last-child,
 body.page-home .section-black .frame > div:last-child{
-  padding:clamp(44px, 6.3vw, 86px) 0 clamp(44px, 6.3vw, 86px) var(--home-gutter);
+  padding:clamp(44px, 6.3vw, 86px) 0;
 }
-body.page-home .section-content{ padding-right:clamp(20px, 4vw, 40px); }
+body.page-home .section-content{ padding-right:0; }
 @media (max-width:900px){
   body.page-home :is(.section, #marcas, #sobre-teaser) .frame > div:last-child,
-  body.page-home .section-black .frame > div:last-child{ padding:clamp(40px, 7.2vw, 60px) var(--home-gutter); }
+  body.page-home .section-black .frame > div:last-child{ padding:clamp(40px, 7.2vw, 60px) 0; }
   body.page-home .section-content{ padding-right:0; }
 }
 body.page-home .section-head{ margin-bottom:var(--home-space-md); }
@@ -453,4 +472,15 @@ body.page-home .section-black .store-cell a{
 }
 @media (max-width:900px){
   body.page-home .section-black .store-cell{ padding:clamp(20px, 5vw, 26px); }
+}
+
+/* =========================================================
+   RODAPÉ — segue o mesmo eixo horizontal do conteúdo da Home.
+   ========================================================= */
+body.page-home footer .frame > div:last-child{
+  padding:clamp(40px, 5vw, 56px) 0 clamp(28px, 4vw, 36px);
+}
+body.page-home .footer-grid,
+body.page-home .footer-bottom{
+  padding-right:0;
 }

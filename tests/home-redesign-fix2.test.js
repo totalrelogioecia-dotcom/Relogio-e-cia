@@ -18,9 +18,9 @@ test('abertura reorganizada protege o espaçamento das seções e força o CSS n
   const css = read('home-redesign.css');
   const html = read('index.html');
   assert.match(css, /:is\(\.section, #marcas, #sobre-teaser\)/);
-  assert.match(html, /home-redesign\.css\?v=20260925-light-spacing-1/);
+  assert.match(html, /home-redesign\.css\?v=20260926-global-alignment-1/);
   assert.ok(
-    html.indexOf('site-experience.css') < html.indexOf('home-redesign.css?v=20260925-light-spacing-1'),
+    html.indexOf('site-experience.css') < html.indexOf('home-redesign.css?v=20260926-global-alignment-1'),
     'o refinamento específico da Home deve continuar carregando por último'
   );
 });
