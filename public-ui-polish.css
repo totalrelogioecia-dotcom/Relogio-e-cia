@@ -202,7 +202,7 @@ body.page-products .product-grid{
 body.page-products .product-card{
   overflow:hidden;
   border:1px solid var(--line);
-  border-radius:12px;
+  border-radius:0;
   background:var(--bg);
   box-shadow:0 8px 24px rgba(17,17,17,.045);
   transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background-color .18s ease;
@@ -271,6 +271,6 @@ html.reloja-dark body.page-products .product-card{
     padding:22px 18px 14px;
   }
   body.page-products .product-card{
-    border-radius:10px;
+    border-radius:0;
   }
 }
