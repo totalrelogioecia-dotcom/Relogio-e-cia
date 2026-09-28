@@ -51,6 +51,7 @@
           <div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Produto indisponível no momento'}</div>
           <div class="product-actions-main">
             <button class="btn btn-primary" type="button" id="product-add" ${stock<=0?'disabled':''}>Adicionar ao carrinho</button>
+            <button class="btn btn-outline product-favorite-btn" type="button" id="product-favorite" data-favorito="${p.id}" aria-pressed="${typeof estaFavoritado==='function'&&estaFavoritado(p.id)?'true':'false'}">${typeof estaFavoritado==='function'&&estaFavoritado(p.id)?'♥ Favoritado':'♡ Favoritar'}</button>
             <a class="btn btn-outline" href="https://wa.me/555196311864?text=${encodeURIComponent('Olá! Tenho interesse no '+p.nome+' (Ref. '+p.sku+').')}" target="_blank" rel="noopener">Falar com a loja</a>
           </div>
           <div class="product-shipping">
@@ -76,6 +77,12 @@
     }));
     const add=document.getElementById('product-add');
     if(add)add.onclick=()=>{adicionarAoCarrinho(p.id);add.textContent='Adicionado ✓';setTimeout(()=>add.textContent='Adicionar ao carrinho',1300)};
+    const favorite=document.getElementById('product-favorite');
+    if(favorite&&typeof alternarFavorito==='function'){
+      const syncFavorite=()=>{const ativo=typeof estaFavoritado==='function'&&estaFavoritado(p.id);favorite.setAttribute('aria-pressed',ativo?'true':'false');favorite.textContent=ativo?'♥ Favoritado':'♡ Favoritar'};
+      favorite.onclick=()=>{alternarFavorito(p.id);syncFavorite()};
+      syncFavorite();
+    }
     const cep=document.getElementById('product-cep');
     if(cep)cep.addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,8);e.target.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v});
     const calc=document.getElementById('product-calc-shipping');
