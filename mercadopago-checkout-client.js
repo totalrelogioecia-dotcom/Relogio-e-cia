@@ -40,7 +40,6 @@
   }
 
   function redirectToAccountForCheckout() {
-    try { sessionStorage.setItem('reloja_checkout_return', 'carrinho.html?continuar=pagamento'); } catch (_) {}
     window.location.assign('conta.html?return=checkout');
   }
 
@@ -259,12 +258,16 @@
     message('Preparando seu pedido com segurança…');
 
     try {
+      const token = localStorage.getItem(TOKEN_KEY);
+      const headers = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
       const response = await fetch('/api/checkout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           items: items.map(item => ({ id: item.id, qtd: item.qtd })),
           payer: { nome: user.nome, email: user.email },
@@ -300,6 +303,10 @@
       await renderWallet(data.preference_id);
     } catch (error) {
       checkoutRunning = false;
+      if (error.code === 'auth_required') {
+        redirectToAccountForCheckout();
+        return;
+      }
       if (error.code === 'cpf_required') {
         message('Informe seu CPF para continuar com a compra.', 'error');
         showCpfPanel();
