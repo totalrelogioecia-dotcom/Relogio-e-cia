@@ -286,12 +286,15 @@ body.page-products .product-card .brand-chip--citizen .brand-chip-name{
   letter-spacing:.12em;
 }
 body.page-products .product-card .brand-chip--orient{
-  --brand-accent:transparent;
-  padding:7px 12px;
+  --brand-accent:#8d1328;
+  padding:7px 12px 7px 14px;
   border-color:rgba(88,44,36,.24);
   color:#2b1813;
 }
-body.page-products .product-card .brand-chip--orient::before,
+body.page-products .product-card .brand-chip--orient::before{
+  display:block;
+  background:#8d1328;
+}
 body.page-products .product-card .brand-chip--orient::after{
   display:none;
 }
