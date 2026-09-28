@@ -30,6 +30,10 @@ jobs:
           node --check mercadopago-orders-pix.js
           node --check mercadopago-checkout-client.js
           node --check auth-bootstrap.js
+          node --check script.js
+          node --check produto.js
+          node --check conta.js
+          node --check favoritos.js
           node --check customer-address-service.js
           node --check customer-address-routes.js
           node --check customer-addresses.js
