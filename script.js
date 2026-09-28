@@ -767,9 +767,8 @@ function iniciarPaginaCarrinho() {
     if (itens.length === 0) return;
     const sessao = sessaoAtual();
     if (!sessao) {
-      mensagem.className = 'form-error';
-      mensagem.textContent = 'Faça login ou crie uma conta para finalizar o pedido.';
-      mensagem.style.display = 'block';
+      const back = 'carrinho.html?continuar=pagamento';
+      window.location.assign(`conta.html?voltar=${encodeURIComponent(back)}`);
       return;
     }
     const forma = formasPagamento.querySelector('input[name="pagamento"]:checked').value;
