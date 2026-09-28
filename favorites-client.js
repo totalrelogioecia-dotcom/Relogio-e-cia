@@ -6,7 +6,8 @@
   const $=s=>document.querySelector(s);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-  let favoriteIds=new Set(),loggedIn=false,stateLoaded=false,statePromise=null;
+  const GUEST_FAVORITES_KEY='reloja_guest_favorites';
+  let favoriteIds=new Set(),loggedIn=false,stateLoaded=false,statePromise=null,mergePromise=null;
 
   function headers(body=false){
     const h={Accept:'application/json'};
@@ -32,15 +33,52 @@
     `;document.head.appendChild(s)
   }
 
+  function readGuestIds(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(GUEST_FAVORITES_KEY)||'[]');
+      return Array.isArray(raw)
+        ? [...new Set(raw.map(Number).filter(id=>Number.isFinite(id)&&id>0))].slice(0,200)
+        : [];
+    }catch{return []}
+  }
+
+  function saveGuestIds(ids){
+    const clean=[...new Set((Array.isArray(ids)?ids:[]).map(Number).filter(id=>Number.isFinite(id)&&id>0))].slice(0,200);
+    if(clean.length)localStorage.setItem(GUEST_FAVORITES_KEY,JSON.stringify(clean));
+    else localStorage.removeItem(GUEST_FAVORITES_KEY);
+    return clean;
+  }
+
+  async function mergeGuestFavorites(){
+    if(mergePromise)return mergePromise;
+    const guest=readGuestIds();
+    if(!guest.length)return null;
+    mergePromise=(async()=>{
+      try{
+        const data=await api('/api/favorites/import',{method:'POST',body:JSON.stringify({ids:guest})});
+        localStorage.removeItem(GUEST_FAVORITES_KEY);
+        return data;
+      }finally{
+        mergePromise=null;
+      }
+    })();
+    return mergePromise;
+  }
+
   async function loadFavoriteState(force=false){
     if(statePromise&&!force)return statePromise;
     statePromise=(async()=>{
       try{
-        const data=await api('/api/favorites');
-        favoriteIds=new Set((data.ids||[]).map(Number));
+        let data=await api('/api/favorites');
         loggedIn=true;
+        if(readGuestIds().length){
+          await mergeGuestFavorites();
+          data=await api('/api/favorites');
+        }
+        favoriteIds=new Set((data.ids||[]).map(Number));
       }catch(e){
         loggedIn=false;
+        favoriteIds=new Set(readGuestIds());
         if(e.status!==401)console.warn('Favoritos:',e.message);
       }finally{
         stateLoaded=true;
@@ -50,35 +88,31 @@
     return statePromise;
   }
 
-  async function loginRedirect(){
-    const back=location.pathname+location.search;
-    const accountUrl=`conta.html?voltar=${encodeURIComponent(back)}`;
-    if(!window.relojaDialog?.open){
-      location.href=accountUrl;
-      return;
-    }
-    const action=await window.relojaDialog.open({
-      kicker:'Favoritos',
-      title:'Entre para salvar este relógio',
-      message:'Entre na sua conta para guardar este relógio e acessar sua seleção novamente quando quiser.',
-      detail:'Depois do acesso, você volta para esta página.',
-      primaryLabel:'Entrar na conta',
-      secondaryLabel:'Continuar navegando'
-    });
-    if(action==='primary')location.href=accountUrl;
-  }
-
   async function toggle(id,button){
     if(!stateLoaded)await loadFavoriteState();
-    if(!loggedIn){await loginRedirect();return}
     button.disabled=true;
+    const numericId=Number(id);
     try{
-      if(favoriteIds.has(id)){await api(`/api/favorites/${id}`,{method:'DELETE'});favoriteIds.delete(id)}
-      else{await api(`/api/favorites/${id}`,{method:'POST',body:'{}'});favoriteIds.add(id)}
+      if(!loggedIn){
+        if(favoriteIds.has(numericId))favoriteIds.delete(numericId);
+        else favoriteIds.add(numericId);
+        saveGuestIds([...favoriteIds]);
+        renderAllHearts();
+        return;
+      }
+      if(favoriteIds.has(numericId)){await api(`/api/favorites/${numericId}`,{method:'DELETE'});favoriteIds.delete(numericId)}
+      else{await api(`/api/favorites/${numericId}`,{method:'POST',body:'{}'});favoriteIds.add(numericId)}
       renderAllHearts();
       if(location.pathname.split('/').pop()==='conta.html')renderAccountFavorites();
     }catch(e){
-      if(e.status===401){loggedIn=false;await loginRedirect()}else alert(e.message)
+      if(e.status===401){
+        loggedIn=false;
+        favoriteIds=new Set(readGuestIds());
+        if(favoriteIds.has(numericId))favoriteIds.delete(numericId);
+        else favoriteIds.add(numericId);
+        saveGuestIds([...favoriteIds]);
+        renderAllHearts();
+      }else alert(e.message)
     }finally{button.disabled=false}
   }
 
@@ -166,8 +200,17 @@
     loadFavoriteState();
     installProductButton();
     watchAccount();
+    window.addEventListener('reloja:auth-changed',()=>loadFavoriteState(true).then(()=>{
+      if(location.pathname.split('/').pop()==='conta.html')renderAccountFavorites();
+    }));
   }
 
-  window.RelogioFavorites={refresh:()=>{enhanceCards(document);return loadFavoriteState(true)}};
+  window.RelogioFavorites={
+    refresh:()=>{enhanceCards(document);return loadFavoriteState(true)},
+    mergeGuestFavorites,
+    toggle,
+    ids:()=>[...favoriteIds],
+    isLoggedIn:()=>loggedIn
+  };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

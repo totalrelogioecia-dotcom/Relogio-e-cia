@@ -241,6 +241,18 @@
     }
   }
 
+  function reconcileSelectedPostalCode() {
+    if (!selected || pickupSelected()) return true;
+    const accountZip = digits(session()?.endereco?.zip_code).slice(0, 8);
+    const selectedZip = digits(selected?.postal_code).slice(0, 8);
+    if (accountZip.length === 8 && selectedZip.length === 8 && accountZip !== selectedZip) {
+      lastCompletedQuoteKey = '';
+      clearSelection('O frete anterior usava outro CEP. As opções serão recalculadas para o endereço da sua conta.');
+      return false;
+    }
+    return true;
+  }
+
   function message(text, kind = 'info') {
     const el = document.getElementById('shipping-message');
     if (!el) return;
@@ -536,6 +548,7 @@
     ensureUi();
     loadSelected();
     prefillPostalCode();
+    reconcileSelectedPostalCode();
     refreshPickupAvailability();
     interceptCheckout();
     watchCartChanges();

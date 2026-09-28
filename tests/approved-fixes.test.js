@@ -100,7 +100,7 @@ test('cupom e busca inteligente são carregados pelas páginas corretas', () => 
   assert.match(cart, /href="cart-coupons\.css(?:\?[^\"]+)?"/);
   assert.match(cart, /src="cart-coupons\.js(?:\?[^\"]+)?"/);
   assert.ok(
-    cart.indexOf('cart-coupons.js') < cart.indexOf('mercadopago-checkout-client.js?v=pickup-5'),
+    cart.indexOf('cart-coupons.js') < cart.indexOf('mercadopago-checkout-client.js'),
     'cupom deve preparar o checkout antes do cliente Mercado Pago'
   );
 

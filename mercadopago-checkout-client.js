@@ -41,6 +41,11 @@
     catch { return null; }
   }
 
+  function redirectToAccountForCheckout() {
+    const back = 'carrinho.html?continuar=pagamento';
+    window.location.assign(`conta.html?voltar=${encodeURIComponent(back)}`);
+  }
+
   function paymentMethod() {
     return document.querySelector('input[name="pagamento"]:checked')?.value === 'pix' ? 'pix' : 'cartao';
   }
@@ -308,7 +313,7 @@
 
     if (!items.length) return;
     if (!user?.nome || !user?.email) {
-      message('Entre na sua conta antes de finalizar o pedido.', 'error');
+      redirectToAccountForCheckout();
       return;
     }
 
@@ -369,6 +374,10 @@
       await renderWallet(data.preference_id);
     } catch (error) {
       checkoutRunning = false;
+      if (error.code === 'authentication_required') {
+        redirectToAccountForCheckout();
+        return;
+      }
       if (error.code === 'cpf_required') {
         message('Informe seu CPF para continuar com a compra.', 'error');
         showCpfPanel();
@@ -389,6 +398,15 @@
 
     ensureWalletHost();
     loadSecurity().catch(() => null);
+
+    const params = new URLSearchParams(location.search);
+    if (params.get('continuar') === 'pagamento' && session()?.nome && session()?.email) {
+      message('Conta pronta. Seus produtos continuam no carrinho; revise a entrega e a forma de pagamento para continuar.');
+      document.getElementById('cart-summary-box')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      params.delete('continuar');
+      const query = params.toString();
+      history.replaceState({}, '', location.pathname + (query ? '?' + query : ''));
+    }
 
     finalizeButton.addEventListener('click', event => {
       event.preventDefault();

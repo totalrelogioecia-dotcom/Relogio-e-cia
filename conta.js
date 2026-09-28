@@ -5,6 +5,7 @@
 (function () {
   const SESSION_KEY = 'reloja_sessao';
   const LEGACY_USERS_KEY = 'reloja_usuarios';
+  const GUEST_FAVORITES_KEY = 'reloja_guest_favorites';
 
   const digits = v => String(v || '').replace(/\D/g, '');
   const escapeHtml = v => String(v ?? '')
@@ -58,6 +59,47 @@
   }
 
   function getBox() { return document.getElementById('account-box'); }
+
+  function safeReturnTarget() {
+    const raw = new URLSearchParams(location.search).get('voltar') || '';
+    if (!raw || raw.startsWith('//') || raw.includes('\\')) return '';
+    try {
+      const url = new URL(raw, location.origin);
+      if (url.origin !== location.origin) return '';
+      const page = url.pathname.replace(/^\/+/, '');
+      if (!/^(?:index|produtos|produto|carrinho|sobre|enderecos)\.html$/.test(page)) return '';
+      return page + url.search + url.hash;
+    } catch {
+      return '';
+    }
+  }
+
+  async function mergeGuestFavorites() {
+    let ids;
+    try {
+      ids = JSON.parse(localStorage.getItem(GUEST_FAVORITES_KEY) || '[]');
+    } catch {
+      ids = [];
+    }
+    const clean = Array.isArray(ids)
+      ? [...new Set(ids.map(Number).filter(id => Number.isFinite(id) && id > 0))].slice(0, 200)
+      : [];
+    if (!clean.length) return;
+    await api('/api/favorites/import', { method: 'POST', body: JSON.stringify({ ids: clean }) });
+    localStorage.removeItem(GUEST_FAVORITES_KEY);
+  }
+
+  async function finishAuthentication(user) {
+    try { await mergeGuestFavorites(); } catch (error) { console.warn('Não foi possível importar os favoritos deste aparelho:', error.message); }
+    saveSession(user);
+    const target = safeReturnTarget();
+    if (target) {
+      location.assign(target);
+      return true;
+    }
+    renderLogado(user);
+    return false;
+  }
 
   async function buscarCep() {
     const input = document.getElementById('cad-cep');
@@ -142,9 +184,8 @@
       }
       try {
         const data = await api('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, senha }) });
-        saveSession(data.user);
         history.replaceState({}, '', location.pathname);
-        renderLogado(data.user);
+        await finishAuthentication(data.user);
       } catch (e) {
         error.textContent = e.message;
         error.style.display = 'block';
@@ -154,7 +195,9 @@
 
   function renderDeslogado() {
     const box = getBox();
+    const checkoutReturn = safeReturnTarget().startsWith('carrinho.html');
     box.innerHTML = `
+      ${checkoutReturn ? '<div class="form-note" style="margin-bottom:18px;padding:12px 14px;border-left:3px solid var(--red);"><strong style="display:block;color:var(--ink);margin-bottom:4px;">Seu carrinho está salvo.</strong>Entre ou crie sua conta para continuar a compra sem perder os produtos escolhidos.</div>' : ''}
       <div class="account-tabs">
         <button type="button" class="active" data-tab="login">Entrar</button>
         <button type="button" data-tab="cadastro">Criar conta</button>
@@ -200,8 +243,7 @@
       const senha = document.getElementById('login-senha').value;
       try {
         const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, senha }) });
-        saveSession(data.user);
-        renderLogado(data.user);
+        await finishAuthentication(data.user);
       } catch (e) {
         error.textContent = e.message;
         error.style.display = 'block';
@@ -258,9 +300,8 @@
           endereco
         };
         const data = await api('/api/auth/register', { method: 'POST', body: JSON.stringify(body) });
-        saveSession(data.user);
         localStorage.removeItem(LEGACY_USERS_KEY);
-        renderLogado(data.user);
+        await finishAuthentication(data.user);
       } catch (e) {
         error.textContent = e.message;
         error.style.display = 'block';
@@ -319,9 +360,8 @@
     localStorage.removeItem('reloja_auth_token');
     try {
       const data = await api('/api/auth/me');
-      saveSession(data.user);
       window.RelogioUI.ready(box);
-      renderLogado(data.user);
+      await finishAuthentication(data.user);
       return;
     } catch (error) {
       if (error.status !== 401) { window.RelogioUI.error(box, error.message, iniciar); return; }
