@@ -176,7 +176,11 @@
               </div>
               <div class="site-search-copy">
                 <span>${escapeHtml(product.marca || '')}</span>
-                <strong>${escapeHtml(product.nome || 'Produto')}</strong>
+                <strong>${escapeHtml(
+                  typeof window.nomeProdutoSemMarca === 'function'
+                    ? window.nomeProdutoSemMarca(product.nome || 'Produto', product.marca || '')
+                    : (product.nome || 'Produto')
+                )}</strong>
                 <small>Ref. ${escapeHtml(product.sku || '—')}</small>
                 ${reasons?.length ? `<small>${reasons.map(escapeHtml).join(' · ')}</small>` : ''}
               </div>
