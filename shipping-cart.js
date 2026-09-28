@@ -113,6 +113,18 @@
     }
   }
 
+  function reconcileSelectedPostalCode() {
+    if (!selected) return true;
+    const accountZip = digits(session()?.endereco?.zip_code).slice(0, 8);
+    const selectedZip = digits(selected?.postal_code).slice(0, 8);
+    if (accountZip.length === 8 && selectedZip && accountZip !== selectedZip) {
+      document.getElementById('shipping-options').innerHTML = '';
+      clearSelection('O frete anterior usava outro CEP. Calcule novamente com o endereço de entrega da sua conta.');
+      return false;
+    }
+    return true;
+  }
+
   function message(text, kind = 'info') {
     const el = document.getElementById('shipping-message');
     if (!el) return;
@@ -284,7 +296,7 @@
     interceptCheckout();
     watchCartChanges();
     await loadConfig();
-    if (selected && selected.cart_signature === cartSignature()) {
+    if (reconcileSelectedPostalCode() && selected && selected.cart_signature === cartSignature()) {
       updateTotal();
     } else if (selected) {
       clearSelection();
