@@ -44,6 +44,41 @@ function registerFavoriteRoutes(app, { userFromRequest }) {
     return res.json({ ids, products: products.map(productSnapshot) });
   });
 
+  app.post('/api/favorites/import', async (req, res) => {
+    const user = userFromRequest(req);
+    if (!user) return res.status(401).json({ error: 'Entre na sua conta para importar favoritos.' });
+
+    const requested = [...new Set((Array.isArray(req.body?.ids) ? req.body.ids : [])
+      .map(Number)
+      .filter(id => Number.isFinite(id) && id > 0))]
+      .slice(0, 200);
+
+    const validIds = new Set(
+      read(PRODUCTS, [])
+        .filter(product => product.ativo !== false)
+        .map(product => Number(product.id))
+        .filter(Number.isFinite)
+    );
+
+    const users = read(USERS, []);
+    const index = users.findIndex(item => item.id === user.id);
+    if (index < 0) return res.status(404).json({ error: 'Conta não encontrada.' });
+
+    const current = Array.isArray(users[index].favorites) ? users[index].favorites : [];
+    const currentIds = new Set(favoriteIds(users[index]));
+    const additions = requested
+      .filter(id => validIds.has(id) && !currentIds.has(id))
+      .map(productId => ({ product_id: productId, created_at: new Date().toISOString() }));
+
+    if (additions.length) {
+      users[index].favorites = [...additions, ...current].slice(0, 200);
+      write(USERS, users);
+      await flushPersistentStore();
+    }
+
+    return res.json({ ok: true, ids: favoriteIds(users[index]) });
+  });
+
   app.post('/api/favorites/:productId', async (req, res) => {
     const user = userFromRequest(req);
     if (!user) return res.status(401).json({ error: 'Entre na sua conta para salvar favoritos.' });
