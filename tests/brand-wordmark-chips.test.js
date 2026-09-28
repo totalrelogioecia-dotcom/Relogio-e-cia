@@ -37,5 +37,5 @@ test('página de produtos carrega fontes e versões novas das etiquetas', () => 
   const html = read('produtos.html');
   assert.match(html, /family=Russo\+One/);
   assert.match(html, /public-ui-polish\.css\?v=20260928-orient-weight-1/);
-  assert.match(html, /script\.js\?v=20260928-brand-text-1/);
+  assert.match(html, /script\.js\?v=20260928-product-names-1/);
 });
