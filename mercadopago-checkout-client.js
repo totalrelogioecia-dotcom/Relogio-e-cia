@@ -39,6 +39,11 @@
     catch { return null; }
   }
 
+  function redirectToAccountForCheckout() {
+    try { sessionStorage.setItem('reloja_checkout_return', 'carrinho.html?continuar=pagamento'); } catch (_) {}
+    window.location.assign('conta.html?return=checkout');
+  }
+
   function paymentMethod() {
     return document.querySelector('input[name="pagamento"]:checked')?.value === 'pix' ? 'pix' : 'cartao';
   }
@@ -236,7 +241,7 @@
 
     if (!items.length) return;
     if (!user?.nome || !user?.email) {
-      message('Entre na sua conta antes de finalizar o pedido.', 'error');
+      redirectToAccountForCheckout();
       return;
     }
 
@@ -314,6 +319,15 @@
     if (!finalizeButton) return;
 
     ensureWalletHost();
+
+    const params = new URLSearchParams(location.search);
+    if (params.get('continuar') === 'pagamento' && session()?.nome && session()?.email) {
+      message('Conta pronta. Seus produtos continuam no carrinho; revise o frete e continue o pagamento.');
+      document.getElementById('cart-summary-box')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      params.delete('continuar');
+      const query = params.toString();
+      history.replaceState({}, '', location.pathname + (query ? '?' + query : ''));
+    }
 
     // Captura o clique antes do listener legado de script.js. Assim somente
     // esta implementação controla /api/checkout nesta versão da integração.
