@@ -6,7 +6,6 @@
   const TOKEN_KEY = 'reloja_auth_token';
   const SESSION_KEY = 'reloja_sessao';
   const LEGACY_USERS_KEY = 'reloja_usuarios';
-  const CHECKOUT_RETURN_KEY = 'reloja_checkout_return';
 
   const digits = v => String(v || '').replace(/\D/g, '');
   const escapeHtml = v => String(v ?? '')
@@ -62,19 +61,14 @@
   function getBox() { return document.getElementById('account-box'); }
 
   function checkoutReturnTarget() {
-    const requested = new URLSearchParams(location.search).get('return');
-    if (requested === 'checkout') return 'carrinho.html?continuar=pagamento';
-    try {
-      const stored = sessionStorage.getItem(CHECKOUT_RETURN_KEY) || '';
-      if (/^carrinho\.html(?:\?|$)/.test(stored)) return stored;
-    } catch (_) {}
-    return '';
+    return new URLSearchParams(location.search).get('return') === 'checkout'
+      ? 'carrinho.html?continuar=pagamento'
+      : '';
   }
 
   function continuarCheckoutSePendente() {
     const target = checkoutReturnTarget();
     if (!target) return false;
-    try { sessionStorage.removeItem(CHECKOUT_RETURN_KEY); } catch (_) {}
     location.assign(target);
     return true;
   }
