@@ -101,7 +101,7 @@ if (!originalExpress.__relogioAuthPatched) {
       html = injectScript(html, 'analytics-client.js?v=2');
       html = injectScript(html, 'accessibility-panel.js?v=1');
       if (page === 'index.html' || page === 'produtos.html' || page === 'produto.html' || page === 'conta.html') {
-        html = injectScript(html, 'favorites-client.js?v=3');
+        html = injectScript(html, 'favorites-client.js?v=4');
       }
       if (page === 'produto.html') {
         html = injectScript(html, 'product-compare.js?v=3');
