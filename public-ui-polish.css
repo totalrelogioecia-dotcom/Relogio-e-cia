@@ -317,6 +317,7 @@ body.page-products .product-card .brand-chip--orient .brand-chip-name{
   letter-spacing:.028em;
   transform:scaleX(1.035);
   transform-origin:left center;
+  -webkit-text-stroke:.18px currentColor;
 }
 html.reloja-dark body.page-products .product-card .brand-chip-text{
   background:rgba(255,255,255,.035);
