@@ -90,8 +90,8 @@
   }
 
   async function finishAuthentication(user) {
-    saveSession(user);
     try { await mergeGuestFavorites(); } catch (error) { console.warn('Não foi possível importar os favoritos deste aparelho:', error.message); }
+    saveSession(user);
     const target = safeReturnTarget();
     if (target) {
       location.assign(target);
