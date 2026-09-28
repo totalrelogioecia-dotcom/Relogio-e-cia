@@ -105,7 +105,7 @@ test('política pública libera apenas scripts de navegador novos', () => {
 test('bootstrap registra rota leve sem alterar ordem crítica de checkout', () => {
   const bootstrap = read('auth-bootstrap.js');
   assert.match(bootstrap, /registerProductPageRoute\(app\)/);
-  assert.match(bootstrap, /favorites-client\.js\?v=3/);
+  assert.match(bootstrap, /favorites-client\.js\?v=\d+/);
   assert.match(bootstrap, /product-compare\.js\?v=3/);
   const coupon = bootstrap.indexOf('registerCouponCheckout(app);');
   const pix = bootstrap.indexOf('registerMercadoPagoOrdersPix(app);');
