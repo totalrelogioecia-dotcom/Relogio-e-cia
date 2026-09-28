@@ -220,50 +220,101 @@ body.page-products .product-card .card-photo{
 body.page-products .product-card .brand-chip{
   border-radius:5px;
 }
-body.page-products .product-card .brand-chip-logo{
+body.page-products .product-card .brand-chip-text{
+  --brand-accent:var(--red);
+  position:relative;
   width:max-content;
-  max-width:min(116px,100%);
+  max-width:100%;
   min-height:34px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  padding:6px 10px;
-  border:1px solid rgba(17,17,17,.12);
-  background:#fff;
-  color:#111;
+  padding:7px 12px 7px 14px;
+  border:1px solid var(--line);
+  border-radius:5px;
+  background:var(--bg);
+  color:var(--ink);
   overflow:hidden;
 }
-body.page-products .product-card .brand-chip-logo img{
+body.page-products .product-card .brand-chip-text::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:var(--brand-accent);
+}
+body.page-products .product-card .brand-chip-name{
   display:block;
-  width:auto;
-  height:auto;
-  max-width:100%;
-  max-height:22px;
-  object-fit:contain;
+  line-height:1;
+  white-space:nowrap;
 }
-body.page-products .product-card .brand-chip--technos img{
-  max-width:102px;
-  max-height:22px;
+body.page-products .product-card .brand-chip--technos{
+  --brand-accent:#c4212b;
 }
-body.page-products .product-card .brand-chip--casio img{
-  max-width:82px;
-  max-height:18px;
+body.page-products .product-card .brand-chip--technos .brand-chip-name{
+  font-family:"Montserrat","Space Grotesk",Arial,sans-serif;
+  font-size:.74rem;
+  font-weight:800;
+  letter-spacing:.10em;
 }
-body.page-products .product-card .brand-chip--g-shock img{
-  max-width:68px;
-  max-height:26px;
+body.page-products .product-card .brand-chip--casio{
+  --brand-accent:#003296;
+  color:#003296;
 }
-body.page-products .product-card .brand-chip--citizen img{
-  max-width:92px;
-  max-height:19px;
+body.page-products .product-card .brand-chip--casio .brand-chip-name{
+  font-family:"Arial Black","Montserrat","Helvetica Neue",Arial,sans-serif;
+  font-size:.76rem;
+  font-weight:900;
+  letter-spacing:.015em;
 }
-body.page-products .product-card .brand-chip--orient img{
-  max-width:96px;
-  max-height:24px;
+body.page-products .product-card .brand-chip--g-shock{
+  --brand-accent:#e5232a;
 }
-html.reloja-dark body.page-products .product-card .brand-chip-logo{
+body.page-products .product-card .brand-chip--g-shock .brand-chip-name{
+  font-family:"Orbitron","Arial Black","Space Grotesk",sans-serif;
+  font-size:.68rem;
+  font-weight:800;
+  letter-spacing:.055em;
+}
+body.page-products .product-card .brand-chip--citizen{
+  --brand-accent:#143c72;
+}
+body.page-products .product-card .brand-chip--citizen .brand-chip-name{
+  font-family:"Helvetica Neue","Montserrat",Arial,sans-serif;
+  font-size:.73rem;
+  font-weight:700;
+  letter-spacing:.12em;
+}
+body.page-products .product-card .brand-chip--orient{
+  --brand-accent:#a3122b;
+  color:#8d1328;
+}
+body.page-products .product-card .brand-chip--orient::after{
+  content:"";
+  position:absolute;
+  right:8px;
+  bottom:4px;
+  width:18px;
+  height:1px;
+  background:#b89a58;
+  opacity:.95;
+}
+body.page-products .product-card .brand-chip--orient .brand-chip-name{
+  padding-right:12px;
+  font-family:"Cinzel",Georgia,serif;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.075em;
+}
+html.reloja-dark body.page-products .product-card .brand-chip-text{
+  background:rgba(255,255,255,.035);
   border-color:rgba(255,255,255,.18);
-  background:#fff;
+}
+html.reloja-dark body.page-products .product-card .brand-chip--casio{
+  color:#6f9cff;
+}
+html.reloja-dark body.page-products .product-card .brand-chip--orient{
+  color:#f0c7ce;
 }
 body.page-products .product-card .card-actions{
   gap:8px;

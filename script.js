@@ -257,41 +257,23 @@ function urlImagemSegura(value) {
 }
 
 
-const BRAND_WORDMARKS = Object.freeze({
-  'technos': {
-    slug: 'technos',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/9/97/Technos_logo.png'
-  },
-  'casio': {
-    slug: 'casio',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Casio_logo.svg'
-  },
-  'g-shock': {
-    slug: 'g-shock',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/8/81/GShock_logo.svg'
-  },
-  'gshock': {
-    slug: 'g-shock',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/8/81/GShock_logo.svg'
-  },
-  'citizen': {
-    slug: 'citizen',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Citizen_logo.svg'
-  },
-  'orient': {
-    slug: 'orient',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/5/54/Orient_Watch_logo.svg'
-  }
+const BRAND_STYLES = Object.freeze({
+  'technos': { slug: 'technos', label: 'TECHNOS' },
+  'casio': { slug: 'casio', label: 'CASIO' },
+  'g-shock': { slug: 'g-shock', label: 'G-SHOCK' },
+  'gshock': { slug: 'g-shock', label: 'G-SHOCK' },
+  'citizen': { slug: 'citizen', label: 'CITIZEN' },
+  'orient': { slug: 'orient', label: 'ORIENT' }
 });
 
 function renderBrandChip(marca) {
-  const label = escaparHtmlSeguro(marca);
+  const fallback = escaparHtmlSeguro(marca);
   const key = String(marca || '').trim().toLowerCase();
-  const wordmark = BRAND_WORDMARKS[key];
-  if (!wordmark) return `<span class="brand-chip">${label}</span>`;
+  const brand = BRAND_STYLES[key];
+  if (!brand) return `<span class="brand-chip">${fallback}</span>`;
 
-  return `<span class="brand-chip brand-chip-logo brand-chip--${wordmark.slug}" aria-label="${label}">
-    <img src="${wordmark.src}" alt="${label}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+  return `<span class="brand-chip brand-chip-text brand-chip--${brand.slug}" aria-label="${fallback}">
+    <span class="brand-chip-name">${brand.label}</span>
   </span>`;
 }
 
