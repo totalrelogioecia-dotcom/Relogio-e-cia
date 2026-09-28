@@ -27,7 +27,7 @@ test('vitrine padroniza fotos sem cortar o relógio', () => {
   const css = read('style.css');
 
   assert.match(css, /\.product-card \.card-photo img\{[^}]*object-fit:contain/);
-  assert.match(css, /\.product-card \.card-photo img\{[^}]*padding:24px/);
+  assert.match(css, /\.product-card \.card-photo img\{[^}]*padding:16px/);
 });
 
 test('produto informa parcelamento e segurança sem prometer juros zero', () => {
