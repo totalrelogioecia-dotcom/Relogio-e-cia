@@ -27,12 +27,13 @@ test('cada marca recebe tipografia e detalhe de cor próprios', () => {
   assert.match(css, /\.brand-chip--orient\{[\s\S]*color:#2b1813;/);
   assert.match(css, /font-family:"Orbitron"/);
   assert.match(css, /font-family:"Times New Roman",Times,serif/);
-  assert.match(css, /\.brand-chip--orient::before,[\s\S]*display:none;/);
+  assert.match(css, /\.brand-chip--orient::before\{[\s\S]*display:block;[\s\S]*background:#8d1328;/);
+  assert.match(css, /\.brand-chip--orient::after\{[\s\S]*display:none;/);
 });
 
 test('página de produtos carrega fontes e versões novas das etiquetas', () => {
   const html = read('produtos.html');
   assert.match(html, /family=Orbitron/);
-  assert.match(html, /public-ui-polish\.css\?v=20260928-orient-refine-1/);
+  assert.match(html, /public-ui-polish\.css\?v=20260928-orient-wine-line-1/);
   assert.match(html, /script\.js\?v=20260928-brand-text-1/);
 });
