@@ -7,8 +7,10 @@
    O catálogo é carregado do backend; carrinho e sessão do cliente ficam no navegador.
    ========================================================= */
 const CHAVE_CARRINHO = 'reloja_carrinho';
+const CHAVE_FAVORITOS = 'reloja_favoritos';
 const CHAVE_USUARIOS = 'reloja_usuarios';
 const CHAVE_SESSAO = 'reloja_sessao';
+const CHAVE_RETORNO_CHECKOUT = 'reloja_checkout_return';
 
 function obterCarrinho() {
   try { return JSON.parse(localStorage.getItem(CHAVE_CARRINHO)) || []; }
@@ -56,6 +58,73 @@ function atualizarBadgeCarrinho() {
   });
 }
 
+function obterFavoritos() {
+  try {
+    const ids = JSON.parse(localStorage.getItem(CHAVE_FAVORITOS)) || [];
+    return Array.isArray(ids)
+      ? [...new Set(ids.map(Number).filter(Number.isFinite))]
+      : [];
+  } catch {
+    return [];
+  }
+}
+function estaFavoritado(id) {
+  return obterFavoritos().includes(Number(id));
+}
+function atualizarBadgeFavoritos() {
+  const total = obterFavoritos().length;
+  document.querySelectorAll('.favorite-badge').forEach(b => {
+    b.textContent = total;
+    b.dataset.zero = total === 0 ? '1' : '0';
+  });
+}
+function atualizarBotoesFavoritos(root = document) {
+  root.querySelectorAll?.('[data-favorito]').forEach(btn => {
+    const id = Number(btn.dataset.favorito);
+    const ativo = estaFavoritado(id);
+    btn.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+    btn.classList.toggle('is-favorite', ativo);
+    if (btn.matches('.favorite-toggle')) {
+      btn.textContent = ativo ? '♥' : '♡';
+      btn.setAttribute('aria-label', ativo ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
+      btn.setAttribute('title', ativo ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
+    }
+  });
+}
+function salvarFavoritos(ids) {
+  const limpos = [...new Set((Array.isArray(ids) ? ids : []).map(Number).filter(Number.isFinite))];
+  if (limpos.length) localStorage.setItem(CHAVE_FAVORITOS, JSON.stringify(limpos));
+  else localStorage.removeItem(CHAVE_FAVORITOS);
+  atualizarBadgeFavoritos();
+  atualizarBotoesFavoritos();
+  try {
+    window.dispatchEvent(new CustomEvent('reloja:favoritos-atualizados', { detail: { ids: limpos } }));
+  } catch (_) {}
+}
+function alternarFavorito(id) {
+  const numero = Number(id);
+  if (!Number.isFinite(numero)) return false;
+  const favoritos = obterFavoritos();
+  const indice = favoritos.indexOf(numero);
+  if (indice >= 0) favoritos.splice(indice, 1);
+  else favoritos.push(numero);
+  salvarFavoritos(favoritos);
+  return indice < 0;
+}
+function garantirLinkFavoritos() {
+  const utility = document.querySelector('.nav-utility');
+  if (!utility || utility.querySelector('.nav-favorites-link')) return;
+  const cart = utility.querySelector('a[href*="carrinho"]');
+  const current = /(?:^|\/)favoritos\.html$/.test(location.pathname) ? ' aria-current="page"' : '';
+  const html = `<a href="favoritos.html" class="nav-icon-link nav-favorites-link"${current}>Favoritos <span class="favorite-badge" data-zero="1">0</span></a>`;
+  if (cart) cart.insertAdjacentHTML('beforebegin', html);
+  else utility.insertAdjacentHTML('beforeend', html);
+}
+function redirecionarParaContaCheckout() {
+  try { sessionStorage.setItem(CHAVE_RETORNO_CHECKOUT, 'carrinho.html?continuar=pagamento'); } catch (_) {}
+  window.location.assign('conta.html?return=checkout');
+}
+
 /* ---------- Contas de usuário (simuladas, sem backend) ---------- */
 function obterUsuarios() {
   try { return JSON.parse(localStorage.getItem(CHAVE_USUARIOS)) || []; }
@@ -99,7 +168,10 @@ function atualizarLinkConta() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  garantirLinkFavoritos();
   atualizarBadgeCarrinho();
+  atualizarBadgeFavoritos();
+  atualizarBotoesFavoritos();
   atualizarLinkConta();
 });
 
@@ -113,14 +185,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!links.querySelector('.nav-mobile-account')) {
     const accountHref = utility?.querySelector('#nav-conta-link')?.getAttribute('href') || 'conta.html';
+    const favoriteHref = utility?.querySelector('.nav-favorites-link')?.getAttribute('href') || 'favoritos.html';
     const cartHref = utility?.querySelector('a[href*="carrinho"]')?.getAttribute('href') || 'carrinho.html';
 
     links.insertAdjacentHTML('beforeend', `
       <li class="nav-mobile-only nav-mobile-account"><a href="${accountHref}">Minha conta</a></li>
+      <li class="nav-mobile-only"><a href="${favoriteHref}">Favoritos <span class="favorite-badge" data-zero="1">0</span></a></li>
       <li class="nav-mobile-only"><a href="${cartHref}">Carrinho <span class="cart-badge" data-zero="1">0</span></a></li>
       <li class="nav-mobile-only"><a href="${catalog?.getAttribute('href') || 'produtos.html'}">Ver catálogo</a></li>
     `);
     atualizarBadgeCarrinho();
+    atualizarBadgeFavoritos();
   }
 
   toggle.textContent = 'Mais';
@@ -439,6 +514,7 @@ function iniciarPaginaProdutos() {
       return `
       <article class="product-card">
         <div class="card-photo">
+          <button class="favorite-toggle" type="button" data-favorito="${p.id}" aria-pressed="${estaFavoritado(p.id) ? 'true' : 'false'}" aria-label="${estaFavoritado(p.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">${estaFavoritado(p.id) ? '♥' : '♡'}</button>
           ${primeiraFoto
             ? `<img src="${primeiraFoto}" alt="${p.nome}" loading="lazy" onerror="tratarErroFoto(this)">`
             : `<span class="card-photo-placeholder">Foto em breve</span>`}
@@ -460,6 +536,11 @@ function iniciarPaginaProdutos() {
 
     grid.querySelectorAll('[data-produto]').forEach(btn => {
       btn.addEventListener('click', () => abrirModal(parseInt(btn.dataset.produto, 10)));
+    });
+    grid.querySelectorAll('[data-favorito]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alternarFavorito(parseInt(btn.dataset.favorito, 10));
+      });
     });
     grid.querySelectorAll('[data-add-carrinho]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -503,6 +584,7 @@ function iniciarPaginaProdutos() {
       </div>
       <div class="card-actions" style="margin:0 0 12px;">
         <button class="btn btn-primary" type="button" id="modal-add-carrinho" style="flex:1; justify-content:center;">Adicionar ao carrinho</button>
+        <button class="btn btn-outline" type="button" id="modal-favorito" data-favorito="${p.id}" aria-pressed="${estaFavoritado(p.id) ? 'true' : 'false'}" style="flex:1; justify-content:center;">${estaFavoritado(p.id) ? '♥ Favoritado' : '♡ Favoritar'}</button>
       </div>
       <a class="btn btn-outline" style="width:100%; justify-content:center;"
          href="https://wa.me/555196311864?text=${encodeURIComponent('Olá! Tenho interesse no ' + p.nome + ' (Ref. ' + p.sku + ').')}"
@@ -514,6 +596,13 @@ function iniciarPaginaProdutos() {
         adicionarAoCarrinho(p.id);
         btnAdd.textContent = 'Adicionado ✓';
         setTimeout(() => { btnAdd.textContent = 'Adicionar ao carrinho'; }, 1400);
+      });
+    }
+    const btnFav = document.getElementById('modal-favorito');
+    if (btnFav) {
+      btnFav.addEventListener('click', () => {
+        const ativo = alternarFavorito(p.id);
+        btnFav.textContent = ativo ? '♥ Favoritado' : '♡ Favoritar';
       });
     }
     modalBody.querySelectorAll('.modal-thumbs button').forEach(btn => {
@@ -658,9 +747,7 @@ function iniciarPaginaCarrinho() {
     if (itens.length === 0) return;
     const sessao = sessaoAtual();
     if (!sessao) {
-      mensagem.className = 'form-error';
-      mensagem.textContent = 'Faça login ou crie uma conta para finalizar o pedido.';
-      mensagem.style.display = 'block';
+      redirecionarParaContaCheckout();
       return;
     }
     const forma = formasPagamento.querySelector('input[name="pagamento"]:checked').value;
