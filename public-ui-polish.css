@@ -286,25 +286,22 @@ body.page-products .product-card .brand-chip--citizen .brand-chip-name{
   letter-spacing:.12em;
 }
 body.page-products .product-card .brand-chip--orient{
-  --brand-accent:#a3122b;
-  color:#8d1328;
+  --brand-accent:transparent;
+  padding:7px 12px;
+  border-color:rgba(88,44,36,.24);
+  color:#2b1813;
 }
+body.page-products .product-card .brand-chip--orient::before,
 body.page-products .product-card .brand-chip--orient::after{
-  content:"";
-  position:absolute;
-  right:8px;
-  bottom:4px;
-  width:18px;
-  height:1px;
-  background:#b89a58;
-  opacity:.95;
+  display:none;
 }
 body.page-products .product-card .brand-chip--orient .brand-chip-name{
-  padding-right:12px;
-  font-family:"Cinzel",Georgia,serif;
-  font-size:.72rem;
+  font-family:"Times New Roman",Times,serif;
+  font-size:.78rem;
   font-weight:700;
-  letter-spacing:.075em;
+  letter-spacing:.028em;
+  transform:scaleX(1.035);
+  transform-origin:left center;
 }
 html.reloja-dark body.page-products .product-card .brand-chip-text{
   background:rgba(255,255,255,.035);
@@ -314,7 +311,8 @@ html.reloja-dark body.page-products .product-card .brand-chip--casio{
   color:#6f9cff;
 }
 html.reloja-dark body.page-products .product-card .brand-chip--orient{
-  color:#f0c7ce;
+  border-color:rgba(190,134,124,.30);
+  color:#ead8d3;
 }
 body.page-products .product-card .card-actions{
   gap:8px;

@@ -24,15 +24,15 @@ test('cada marca recebe tipografia e detalhe de cor próprios', () => {
   assert.match(css, /\.brand-chip--casio[\s\S]*#003296/);
   assert.match(css, /\.brand-chip--g-shock[\s\S]*#e5232a/);
   assert.match(css, /\.brand-chip--citizen[\s\S]*#143c72/);
-  assert.match(css, /\.brand-chip--orient[\s\S]*#a3122b/);
+  assert.match(css, /\.brand-chip--orient\{[\s\S]*color:#2b1813;/);
   assert.match(css, /font-family:"Orbitron"/);
-  assert.match(css, /font-family:"Cinzel"/);
+  assert.match(css, /font-family:"Times New Roman",Times,serif/);
+  assert.match(css, /\.brand-chip--orient::before,[\s\S]*display:none;/);
 });
 
 test('página de produtos carrega fontes e versões novas das etiquetas', () => {
   const html = read('produtos.html');
-  assert.match(html, /family=Cinzel/);
   assert.match(html, /family=Orbitron/);
-  assert.match(html, /public-ui-polish\.css\?v=20260928-brand-text-1/);
+  assert.match(html, /public-ui-polish\.css\?v=20260928-orient-refine-1/);
   assert.match(html, /script\.js\?v=20260928-brand-text-1/);
 });
