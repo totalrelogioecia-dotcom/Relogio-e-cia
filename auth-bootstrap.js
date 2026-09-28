@@ -176,9 +176,15 @@ if (!originalExpress.__relogioAuthPatched) {
     app.use('/api/checkout', express.json({ limit: '1mb' }), (req, res, next) => {
       try {
         const user = userFromRequest(req);
-        if (user) {
-          req.body = req.body || {};
-          const requestedAddressId = String(req.body?.shipping?.address_id || req.body?.delivery_address_id || '').trim();
+        if (!user) {
+          return res.status(401).json({
+            error: 'Entre na sua conta para finalizar a compra.',
+            code: 'auth_required'
+          });
+        }
+
+        req.body = req.body || {};
+        const requestedAddressId = String(req.body?.shipping?.address_id || req.body?.delivery_address_id || '').trim();
           const deliveryAddress = resolveUserAddress(user, requestedAddressId);
           if (requestedAddressId && !deliveryAddress) {
             return res.status(409).json({
@@ -206,12 +212,11 @@ if (!originalExpress.__relogioAuthPatched) {
             date_created: user.created_at || undefined
           };
 
-          if (!validCpf(req.body.payer?.identificacao?.number)) {
-            return res.status(409).json({
-              error: 'Para finalizar a compra, informe um CPF válido.',
-              code: 'cpf_required'
-            });
-          }
+        if (!validCpf(req.body.payer?.identificacao?.number)) {
+          return res.status(409).json({
+            error: 'Para finalizar a compra, informe um CPF válido.',
+            code: 'cpf_required'
+          });
         }
       } catch (error) {
         console.warn('Não foi possível enriquecer o checkout com a conta:', error.message);
