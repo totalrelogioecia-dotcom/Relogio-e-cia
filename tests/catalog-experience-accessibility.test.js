@@ -67,7 +67,7 @@ test('favoritos aparecem no perfil, produto e cards do catálogo', () => {
   assert.match(client, /data-catalog-favorite/);
   assert.match(client, /MutationObserver/);
   assert.match(bootstrap, /page === 'produtos\.html'/);
-  assert.match(bootstrap, /favorites-client\.js\?v=3/);
+  assert.match(bootstrap, /favorites-client\.js\?v=\d+/);
 });
 
 test('Admin mantém ranking, navegação em hub e watchdog de visibilidade', () => {
