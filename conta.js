@@ -6,6 +6,7 @@
   const TOKEN_KEY = 'reloja_auth_token';
   const SESSION_KEY = 'reloja_sessao';
   const LEGACY_USERS_KEY = 'reloja_usuarios';
+  const CHECKOUT_RETURN_KEY = 'reloja_checkout_return';
 
   const digits = v => String(v || '').replace(/\D/g, '');
   const escapeHtml = v => String(v ?? '')
@@ -59,6 +60,24 @@
   }
 
   function getBox() { return document.getElementById('account-box'); }
+
+  function checkoutReturnTarget() {
+    const requested = new URLSearchParams(location.search).get('return');
+    if (requested === 'checkout') return 'carrinho.html?continuar=pagamento';
+    try {
+      const stored = sessionStorage.getItem(CHECKOUT_RETURN_KEY) || '';
+      if (/^carrinho\.html(?:\?|$)/.test(stored)) return stored;
+    } catch (_) {}
+    return '';
+  }
+
+  function continuarCheckoutSePendente() {
+    const target = checkoutReturnTarget();
+    if (!target) return false;
+    try { sessionStorage.removeItem(CHECKOUT_RETURN_KEY); } catch (_) {}
+    location.assign(target);
+    return true;
+  }
 
   async function buscarCep() {
     const input = document.getElementById('cad-cep');
@@ -154,7 +173,9 @@
 
   function renderDeslogado() {
     const box = getBox();
+    const checkoutPendente = Boolean(checkoutReturnTarget());
     box.innerHTML = `
+      ${checkoutPendente ? '<div class="checkout-account-note"><strong>Seu carrinho está salvo.</strong><span>Entre ou crie sua conta para continuar para o pagamento sem perder os produtos escolhidos.</span></div>' : ''}
       <div class="account-tabs">
         <button type="button" class="active" data-tab="login">Entrar</button>
         <button type="button" data-tab="cadastro">Criar conta</button>
@@ -201,6 +222,7 @@
       try {
         const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, senha }) });
         saveSession(data.token, data.user);
+        if (continuarCheckoutSePendente()) return;
         renderLogado(data.user);
       } catch (e) {
         error.textContent = e.message;
@@ -260,6 +282,7 @@
         const data = await api('/api/auth/register', { method: 'POST', body: JSON.stringify(body) });
         saveSession(data.token, data.user);
         localStorage.removeItem(LEGACY_USERS_KEY);
+        if (continuarCheckoutSePendente()) return;
         renderLogado(data.user);
       } catch (e) {
         error.textContent = e.message;
@@ -312,6 +335,7 @@
       try {
         const data = await api('/api/auth/me');
         saveSession(token, data.user);
+        if (continuarCheckoutSePendente()) return;
         renderLogado(data.user);
         return;
       } catch {
