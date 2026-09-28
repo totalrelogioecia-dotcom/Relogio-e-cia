@@ -66,12 +66,14 @@ function registerFavoriteRoutes(app, { userFromRequest }) {
 
     const current = Array.isArray(users[index].favorites) ? users[index].favorites : [];
     const currentIds = new Set(favoriteIds(users[index]));
+    const availableSlots = Math.max(0, 200 - current.length);
     const additions = requested
       .filter(id => validIds.has(id) && !currentIds.has(id))
+      .slice(0, availableSlots)
       .map(productId => ({ product_id: productId, created_at: new Date().toISOString() }));
 
     if (additions.length) {
-      users[index].favorites = [...additions, ...current].slice(0, 200);
+      users[index].favorites = [...additions, ...current];
       write(USERS, users);
       await flushPersistentStore();
     }
