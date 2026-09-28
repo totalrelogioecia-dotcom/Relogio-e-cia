@@ -143,7 +143,7 @@ if (!originalExpress.__relogioAuthPatched) {
     });
 
     const legalPages = [
-      'produtos.html', 'produto.html', 'sobre.html', 'conta.html', 'trocas-estornos.html',
+      'produtos.html', 'produto.html', 'favoritos.html', 'sobre.html', 'conta.html', 'trocas-estornos.html',
       'politica-de-privacidade.html', 'termos-de-uso.html'
     ];
     for (const page of legalPages) {
