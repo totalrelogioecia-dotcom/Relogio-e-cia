@@ -6,27 +6,33 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('catálogo usa wordmarks de todas as cinco marcas', () => {
+test('catálogo usa etiquetas tipográficas para as cinco marcas sem imagens externas', () => {
   const js = read('script.js');
   for (const brand of ['technos','casio','g-shock','citizen','orient']) {
     assert.match(js, new RegExp(`'${brand}'\\s*:\\s*\\{`), brand);
   }
+  assert.match(js, /const BRAND_STYLES = Object\.freeze/);
   assert.match(js, /function renderBrandChip\(marca\)/);
-  assert.match(js, /\$\{renderBrandChip\(p\.marca\)\}/);
+  assert.match(js, /brand-chip-text brand-chip--\$\{brand\.slug\}/);
+  assert.doesNotMatch(js, /upload\.wikimedia\.org/);
+  assert.doesNotMatch(js, /brand-chip-logo/);
 });
 
-test('etiquetas preservam cores dos wordmarks sobre fundo neutro', () => {
+test('cada marca recebe tipografia e detalhe de cor próprios', () => {
   const css = read('public-ui-polish.css');
-  assert.match(css, /\.brand-chip-logo\{[\s\S]*background:#fff;/);
-  assert.match(css, /\.brand-chip--technos img/);
-  assert.match(css, /\.brand-chip--casio img/);
-  assert.match(css, /\.brand-chip--g-shock img/);
-  assert.match(css, /\.brand-chip--citizen img/);
-  assert.match(css, /\.brand-chip--orient img/);
+  assert.match(css, /\.brand-chip--technos[\s\S]*#c4212b/);
+  assert.match(css, /\.brand-chip--casio[\s\S]*#003296/);
+  assert.match(css, /\.brand-chip--g-shock[\s\S]*#e5232a/);
+  assert.match(css, /\.brand-chip--citizen[\s\S]*#143c72/);
+  assert.match(css, /\.brand-chip--orient[\s\S]*#a3122b/);
+  assert.match(css, /font-family:"Orbitron"/);
+  assert.match(css, /font-family:"Cinzel"/);
 });
 
-test('página de produtos força versão nova do JS e CSS', () => {
+test('página de produtos carrega fontes e versões novas das etiquetas', () => {
   const html = read('produtos.html');
-  assert.match(html, /public-ui-polish\.css\?v=20260926-brand-wordmarks-1/);
-  assert.match(html, /script\.js\?v=20260926-brand-wordmarks-1/);
+  assert.match(html, /family=Cinzel/);
+  assert.match(html, /family=Orbitron/);
+  assert.match(html, /public-ui-polish\.css\?v=20260928-brand-text-1/);
+  assert.match(html, /script\.js\?v=20260928-brand-text-1/);
 });
