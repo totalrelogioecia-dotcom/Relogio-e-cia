@@ -560,14 +560,19 @@ function iniciarPaginaProdutos() {
       if (!Number.isSafeInteger(id) || id <= 0) return '';
       const primeiraFoto = urlImagemSegura((p.fotos && p.fotos[0]) || p.foto);
       const productUrl = `produto.html?id=${id}`;
-      const nome = escaparHtmlSeguro(p.nome);
+      const nomeCompleto = escaparHtmlSeguro(p.nome);
+      const nome = escaparHtmlSeguro(
+        typeof window.nomeProdutoSemMarca === 'function'
+          ? window.nomeProdutoSemMarca(p.nome, p.marca)
+          : p.nome
+      );
       const marca = escaparHtmlSeguro(p.marca);
       return `
       <article class="product-card" data-product-id="${id}">
         <div class="card-photo">
           <a class="card-photo-link" href="${productUrl}">
             ${primeiraFoto
-              ? `<img src="${escaparHtmlSeguro(primeiraFoto)}" alt="${nome}" loading="lazy" onerror="tratarErroFoto(this)">`
+              ? `<img src="${escaparHtmlSeguro(primeiraFoto)}" alt="${nomeCompleto}" loading="lazy" onerror="tratarErroFoto(this)">`
               : `<span class="card-photo-placeholder">Foto em breve</span>`}
           </a>
         </div>

@@ -2,6 +2,31 @@
 (() => {
   'use strict';
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function nomeProdutoSemMarca(nome, marca) {
+    const original = String(nome ?? '').trim();
+    const marcaOriginal = String(marca ?? '').trim();
+    if (!original || !marcaOriginal) return original;
+
+    const escapeRegex = value => value.replace(/[.*+?^$(){}|[\]\\]/g, '\\$&');
+    const aliases = [marcaOriginal];
+    const normalizedBrand = marcaOriginal.toLowerCase().replace(/[\s_-]+/g, '');
+
+    if (normalizedBrand === 'gshock') aliases.push('G-Shock', 'G Shock', 'GSHOCK');
+
+    const uniqueAliases = [...new Set(aliases.map(value => String(value).trim()).filter(Boolean))]
+      .sort((a, b) => b.length - a.length)
+      .map(escapeRegex);
+
+    const pattern = new RegExp(
+      '^(?:' + uniqueAliases.join('|') + ')(?:(?:\\s*[-–—:|/]\\s*)|\\s+)(.+)$',
+      'i'
+    );
+    const match = original.match(pattern);
+    const withoutBrand = match?.[1]?.trim();
+    return withoutBrand || original;
+  }
+
+  window.nomeProdutoSemMarca = nomeProdutoSemMarca;
   function loadingMarkup(label = 'Carregando…') {
     return `<p class="ui-loading" role="status" aria-live="polite"><span class="ui-spinner" aria-hidden="true"></span><span>${escape(label)}</span></p>`;
   }
