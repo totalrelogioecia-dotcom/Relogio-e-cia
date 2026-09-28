@@ -10,7 +10,6 @@ const CHAVE_CARRINHO = 'reloja_carrinho';
 const CHAVE_FAVORITOS = 'reloja_favoritos';
 const CHAVE_USUARIOS = 'reloja_usuarios';
 const CHAVE_SESSAO = 'reloja_sessao';
-const CHAVE_RETORNO_CHECKOUT = 'reloja_checkout_return';
 
 function obterCarrinho() {
   try { return JSON.parse(localStorage.getItem(CHAVE_CARRINHO)) || []; }
@@ -121,7 +120,6 @@ function garantirLinkFavoritos() {
   else utility.insertAdjacentHTML('beforeend', html);
 }
 function redirecionarParaContaCheckout() {
-  try { sessionStorage.setItem(CHAVE_RETORNO_CHECKOUT, 'carrinho.html?continuar=pagamento'); } catch (_) {}
   window.location.assign('conta.html?return=checkout');
 }
 
