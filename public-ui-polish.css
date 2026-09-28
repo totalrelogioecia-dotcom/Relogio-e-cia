@@ -281,12 +281,15 @@ body.page-products .product-card .brand-chip--g-shock .brand-chip-name{
 }
 body.page-products .product-card .brand-chip--citizen{
   --brand-accent:#143c72;
+  color:#111;
 }
 body.page-products .product-card .brand-chip--citizen .brand-chip-name{
-  font-family:"Helvetica Neue","Montserrat",Arial,sans-serif;
-  font-size:.73rem;
+  font-family:Arial,"Helvetica Neue","Montserrat",sans-serif;
+  font-size:.78rem;
   font-weight:700;
-  letter-spacing:.12em;
+  letter-spacing:.018em;
+  transform:scaleX(1.015);
+  transform-origin:left center;
 }
 body.page-products .product-card .brand-chip--orient{
   --brand-accent:#8d1328;

@@ -23,9 +23,10 @@ test('cada marca recebe tipografia e detalhe de cor próprios', () => {
   assert.match(css, /\.brand-chip--technos[\s\S]*#c4212b/);
   assert.match(css, /\.brand-chip--casio[\s\S]*#003296/);
   assert.match(css, /\.brand-chip--g-shock[\s\S]*#e5232a/);
-  assert.match(css, /\.brand-chip--citizen[\s\S]*#143c72/);
+  assert.match(css, /\.brand-chip--citizen\{[\s\S]*#143c72[\s\S]*color:#111;/);
   assert.match(css, /\.brand-chip--orient\{[\s\S]*color:#2b1813;/);
   assert.match(css, /font-family:"Russo One"/);
+  assert.match(css, /font-family:Arial,"Helvetica Neue","Montserrat",sans-serif/);
   assert.match(css, /font-family:"Times New Roman",Times,serif/);
   assert.match(css, /\.brand-chip--orient::before\{[\s\S]*display:block;[\s\S]*background:#8d1328;/);
   assert.match(css, /\.brand-chip--orient::after\{[\s\S]*display:none;/);
@@ -34,6 +35,6 @@ test('cada marca recebe tipografia e detalhe de cor próprios', () => {
 test('página de produtos carrega fontes e versões novas das etiquetas', () => {
   const html = read('produtos.html');
   assert.match(html, /family=Russo\+One/);
-  assert.match(html, /public-ui-polish\.css\?v=20260928-gshock-font-1/);
+  assert.match(html, /public-ui-polish\.css\?v=20260928-citizen-font-1/);
   assert.match(html, /script\.js\?v=20260928-brand-text-1/);
 });
