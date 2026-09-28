@@ -140,7 +140,12 @@
   function criarCardHome(produto, marca) {
     const foto = fotoProduto(produto);
     const urlProduto = `produto.html?id=${encodeURIComponent(produto.id)}`;
-    const nome = escapeHtml(produto.nome || 'Relógio');
+    const nomeCompleto = escapeHtml(produto.nome || 'Relógio');
+    const nome = escapeHtml(
+      typeof window.nomeProdutoSemMarca === 'function'
+        ? window.nomeProdutoSemMarca(produto.nome || 'Relógio', produto.marca || marca)
+        : (produto.nome || 'Relógio')
+    );
     const sku = escapeHtml(produto.sku || '');
     const disponivel = produtoDisponivel(produto);
     const preco = typeof formatarPreco === 'function'
@@ -153,9 +158,9 @@
 
     return `
       <article class="home-watch-card" data-home-product="${Number(produto.id)}" data-stock="${Math.max(0, Number(produto.estoque) || 0)}">
-        <a class="home-watch-photo" href="${urlProduto}" aria-label="Ver detalhes de ${nome}">
+        <a class="home-watch-photo" href="${urlProduto}" aria-label="Ver detalhes de ${nomeCompleto}">
           ${foto
-            ? `<img src="${escapeHtml(foto)}" alt="${nome}" loading="lazy" onerror="tratarErroFoto(this)">`
+            ? `<img src="${escapeHtml(foto)}" alt="${nomeCompleto}" loading="lazy" onerror="tratarErroFoto(this)">`
             : '<span class="card-photo-placeholder">Foto em breve</span>'}
         </a>
         <div class="home-watch-body">
