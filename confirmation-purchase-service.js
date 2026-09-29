@@ -62,6 +62,7 @@ function customerAuthorization(productId, customer, token = '', allowedClaimId =
   const normalizedClaim = String(allowedClaimId || '').trim();
   const requests = readRequests();
   const matches = requests
+    .filter(request => request?.guest !== true)
     .filter(request => Number(request?.product?.id) === Number(productId))
     .filter(request => customerMatches(request, customer))
     .filter(request => String(request?.status || '') === 'confirmed_available')
@@ -90,6 +91,7 @@ function customerAuthorization(productId, customer, token = '', allowedClaimId =
 
 function customerPurchases(customer) {
   return readRequests()
+    .filter(request => request?.guest !== true)
     .filter(request => customerMatches(request, customer))
     .map(request => {
       const purchase = request?.purchase_authorization || null;
@@ -122,6 +124,12 @@ async function releasePurchase(requestId, options = {}) {
   if (index < 0) {
     const error = new Error('Solicitação não encontrada.');
     error.status = 404;
+    throw error;
+  }
+
+  if (requests[index].guest === true) {
+    const error = new Error('Esta consulta foi feita sem conta. Peça ao cliente que entre na conta e solicite novamente antes de liberar a compra.');
+    error.status = 409;
     throw error;
   }
 
