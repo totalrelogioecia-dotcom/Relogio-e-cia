@@ -73,6 +73,7 @@ if (!originalExpress.__relogioAuthPatched) {
       '/admin.html',
       '/carrinho.html',
       '/conta.html',
+      '/favoritos.html',
       '/enderecos.html',
       '/pagamento.html',
       '/pagamento-pix.html'
@@ -100,8 +101,8 @@ if (!originalExpress.__relogioAuthPatched) {
     function injectExperienceScripts(html, page) {
       html = injectScript(html, 'analytics-client.js?v=2');
       html = injectScript(html, 'accessibility-panel.js?v=1');
-      if (page === 'index.html' || page === 'produtos.html' || page === 'produto.html' || page === 'conta.html') {
-        html = injectScript(html, 'favorites-client.js?v=4');
+      if (page === 'index.html' || page === 'produtos.html' || page === 'produto.html' || page === 'conta.html' || page === 'favoritos.html') {
+        html = injectScript(html, 'favorites-client.js?v=5');
       }
       if (page === 'produto.html') {
         html = injectScript(html, 'product-compare.js?v=3');
@@ -165,6 +166,7 @@ if (!originalExpress.__relogioAuthPatched) {
       'produto.html',
       'sobre.html',
       'conta.html',
+      'favoritos.html',
       'enderecos.html',
       'trocas-estornos.html',
       'politica-de-privacidade.html',

@@ -27,5 +27,5 @@ test('bloco de pagamento é discreto e responsivo', () => {
 test('produto carrega versões novas do bloco de pagamento', () => {
   const html = read('produto.html');
   assert.match(html, /produto\.css\?v=20260928-payment-methods-1/);
-  assert.match(html, /produto\.js\?v=20260928-payment-methods-1/);
+  assert.match(html, /produto\.js\?v=20260929-contact-1/);
 });

@@ -27,7 +27,7 @@
     const s=document.createElement('style');s.id='favorite-client-style';s.textContent=`
       .favorite-product-button{display:inline-flex;align-items:center;justify-content:center;gap:8px}.favorite-product-button .heart{font-size:1.12em}.favorite-product-button.is-favorite{border-color:var(--red)!important;color:var(--red)!important}.favorite-product-button.is-favorite .heart{font-weight:700}
       .product-card .card-photo{position:relative!important}.catalog-favorite-button{position:absolute!important;z-index:80!important;top:10px!important;right:10px!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;margin:0!important;padding:0!important;display:grid!important;place-items:center!important;border:1px solid rgba(17,17,17,.34)!important;border-radius:0!important;background:rgba(255,255,255,.96)!important;color:#111!important;font-family:Arial,sans-serif!important;font-size:1.45rem!important;line-height:1!important;cursor:pointer!important;box-shadow:0 3px 12px rgba(0,0,0,.10)!important;pointer-events:auto!important;transition:background .16s,color .16s,border-color .16s!important}.catalog-favorite-button:hover{background:#111!important;color:#fff!important}.catalog-favorite-button.is-favorite{background:var(--red,#e31e24)!important;border-color:var(--red,#e31e24)!important;color:#fff!important}.catalog-favorite-button:focus-visible{outline:3px solid var(--red,#e31e24)!important;outline-offset:3px!important}.catalog-favorite-button[disabled]{opacity:.64!important;cursor:wait!important}
-      .account-favorites-section{margin-top:28px;padding:24px;border:1px solid var(--line);background:#fff}.account-favorites-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.account-favorites-head h2{font-family:var(--font-display);margin:0 0 5px}.account-favorites-head p{margin:0;color:var(--ink-soft)}.account-favorites-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.account-favorite-card{border:1px solid var(--line);background:var(--paper);display:grid;grid-template-rows:150px auto}.account-favorite-photo{display:grid;place-items:center;background:#fff;overflow:hidden}.account-favorite-photo img{width:100%;height:100%;object-fit:contain}.account-favorite-copy{padding:14px;display:grid;gap:7px}.account-favorite-copy span{font-size:.72rem;color:var(--ink-soft);font-family:var(--font-mono)}.account-favorite-copy strong{line-height:1.25}.account-favorite-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}.account-favorite-actions a,.account-favorite-actions button{font:inherit;font-size:.76rem;padding:7px 9px;border:1px solid var(--line-strong);background:#fff;color:inherit;text-decoration:none;cursor:pointer}.account-favorites-empty{padding:22px;border:1px dashed var(--line-strong);color:var(--ink-soft)}
+      .account-favorites-section{margin-top:28px;padding:24px;border:1px solid var(--line);background:#fff}.account-favorites-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.account-favorites-head h2{font-family:var(--font-display);margin:0 0 5px}.account-favorites-head p{margin:0;color:var(--ink-soft)}.account-favorites-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.account-favorite-card{border:1px solid var(--line);background:var(--paper);display:grid;grid-template-rows:150px auto}.account-favorite-photo{display:grid;place-items:center;background:#fff;overflow:hidden}.account-favorite-photo img{width:100%;height:100%;object-fit:contain}.account-favorite-copy{padding:14px;display:grid;gap:7px}.account-favorite-copy span{font-size:.72rem;color:var(--ink-soft);font-family:var(--font-mono)}.account-favorite-copy strong{line-height:1.25}.account-favorite-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}.account-favorite-actions a,.account-favorite-actions button{font:inherit;font-size:.76rem;padding:7px 9px;border:1px solid var(--line-strong);background:#fff;color:inherit;text-decoration:none;cursor:pointer}.account-favorites-empty{padding:22px;border:1px dashed var(--line-strong);color:var(--ink-soft)}.favorites-page-note{margin:0 0 18px;color:var(--ink-soft)}.favorites-product-link{display:inline-block;margin-top:12px;text-underline-offset:3px}
       html.reloja-dark .catalog-favorite-button{background:#17191c!important;color:#fff!important;border-color:#eee!important}html.reloja-dark .catalog-favorite-button.is-favorite{background:var(--red)!important}html.reloja-high-contrast .catalog-favorite-button{background:#fff!important;color:#000!important;border:2px solid #000!important}html.reloja-high-contrast .catalog-favorite-button.is-favorite{background:#000!important;color:#fff!important}
       @media(max-width:600px){.catalog-favorite-button{top:8px!important;right:8px!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}.account-favorites-section{padding:18px}.account-favorites-head{flex-direction:column}.account-favorites-grid{grid-template-columns:1fr 1fr}}@media(max-width:420px){.account-favorites-grid{grid-template-columns:1fr}}
     `;document.head.appendChild(s)
@@ -98,12 +98,14 @@
         else favoriteIds.add(numericId);
         saveGuestIds([...favoriteIds]);
         renderAllHearts();
+        if(location.pathname.split('/').pop()==='favoritos.html')renderFavoritesPage();
         return;
       }
       if(favoriteIds.has(numericId)){await api(`/api/favorites/${numericId}`,{method:'DELETE'});favoriteIds.delete(numericId)}
       else{await api(`/api/favorites/${numericId}`,{method:'POST',body:'{}'});favoriteIds.add(numericId)}
       renderAllHearts();
       if(location.pathname.split('/').pop()==='conta.html')renderAccountFavorites();
+      if(location.pathname.split('/').pop()==='favoritos.html')renderFavoritesPage();
     }catch(e){
       if(e.status===401){
         loggedIn=false;
@@ -112,6 +114,7 @@
         else favoriteIds.add(numericId);
         saveGuestIds([...favoriteIds]);
         renderAllHearts();
+        if(location.pathname.split('/').pop()==='favoritos.html')renderFavoritesPage();
       }else alert(e.message)
     }finally{button.disabled=false}
   }
@@ -174,6 +177,21 @@
     if(!actions||$('#favorite-product-button'))return;
     actions.classList.add('product-actions-enhanced');
     const b=document.createElement('button');b.type='button';b.id='favorite-product-button';b.dataset.favoriteId=String(id);b.className='btn btn-outline favorite-product-button';b.innerHTML='<span class="heart" aria-hidden="true">♡</span><span>Favoritar</span>';actions.appendChild(b);renderAllHearts();b.addEventListener('click',()=>toggle(id,b));
+    if(!$('#favorites-product-link')){const link=document.createElement('a');link.id='favorites-product-link';link.className='favorites-product-link';link.href='favoritos.html';link.textContent='Ver meus favoritos';actions.insertAdjacentElement('afterend',link)}
+  }
+
+  async function renderFavoritesPage(){
+    const host=$('#favorites-page-content');
+    if(!host)return;
+    host.setAttribute('aria-busy','true');
+    try{
+      const data=loggedIn?await api('/api/favorites'):null;
+      const products=loggedIn?data.products:await api('/api/products');
+      const selected=loggedIn?products:favoriteIds.size?[...favoriteIds].map(id=>products.find(p=>Number(p.id)===id)).filter(Boolean):[];
+      host.innerHTML=`<p class="favorites-page-note">${loggedIn?'Seus favoritos estão salvos na sua conta.':'Seus favoritos ficam neste navegador. <a href="conta.html">Entre na sua conta</a> para mantê-los em outros dispositivos.'}</p><p>${selected.length} relógio${selected.length===1?'':'s'} salvo${selected.length===1?'':'s'}</p>${selected.length?`<div class="account-favorites-grid">${selected.map(p=>`<article class="account-favorite-card"><a class="account-favorite-photo" href="produto.html?id=${Number(p.id)}">${p.foto?`<img src="${esc(p.foto)}" alt="${esc(p.nome)}" loading="lazy">`:'<span>Foto em breve</span>'}</a><div class="account-favorite-copy"><span>${esc(p.marca)} · Ref. ${esc(p.sku||'—')}</span><strong>${esc(typeof window.nomeProdutoSemMarca==='function'?window.nomeProdutoSemMarca(p.nome,p.marca):p.nome)}</strong><b>${money(p.preco)}</b><div class="account-favorite-actions"><a href="produto.html?id=${Number(p.id)}">Ver produto</a><button type="button" data-remove-favorite="${Number(p.id)}">Remover</button></div></div></article>`).join('')}</div>`:`<div class="account-favorites-empty">${favoriteIds.size?'Os relógios salvos não estão disponíveis no catálogo agora.':'Você ainda não salvou nenhum relógio. Use o coração nos produtos para montar sua seleção.'} <a href="produtos.html">Explorar produtos</a></div>`}`;
+      host.querySelectorAll('[data-remove-favorite]').forEach(b=>b.addEventListener('click',()=>toggle(Number(b.dataset.removeFavorite),b)));
+    }catch(e){host.innerHTML=`<div class="account-favorites-empty">Não foi possível carregar os favoritos. <button type="button" id="retry-favorites">Tentar novamente</button></div>`;$('#retry-favorites')?.addEventListener('click',renderFavoritesPage)}
+    finally{host.setAttribute('aria-busy','false')}
   }
 
   async function renderAccountFavorites(){
@@ -197,11 +215,12 @@
   function install(){
     injectStyles();
     watchCards();
-    loadFavoriteState();
+    loadFavoriteState().then(renderFavoritesPage);
     installProductButton();
     watchAccount();
     window.addEventListener('reloja:auth-changed',()=>loadFavoriteState(true).then(()=>{
       if(location.pathname.split('/').pop()==='conta.html')renderAccountFavorites();
+      if(location.pathname.split('/').pop()==='favoritos.html')renderFavoritesPage();
     }));
   }
 
