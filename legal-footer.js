@@ -373,6 +373,7 @@
         return title === 'navegação' || title === 'navegacao';
       });
       const list = navigation?.querySelector('ul');
+      ensureLink(list, 'favoritos.html', 'Favoritos');
       ensureLink(list, 'trocas-estornos.html', 'Trocas, devoluções e estornos');
       ensureLink(list, 'politica-de-privacidade.html', 'Política de Privacidade');
       ensureLink(list, 'termos-de-uso.html', 'Termos de Uso');

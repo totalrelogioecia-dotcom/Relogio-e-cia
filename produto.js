@@ -52,7 +52,7 @@
     const minimumInstallment=50;
     const installmentCount=Math.max(1,Math.min(12,Math.floor(Math.round(Number(p.preco||0)*100)/(minimumInstallment*100))));
     const installmentValue=Number(p.preco||0)/installmentCount;
-    const whatsapp=`https://wa.me/555196311864?text=${encodeURIComponent((confirmation?'Olá! Quero confirmar a disponibilidade do ':'Olá! Tenho interesse no ')+p.nome+' (Ref. '+p.sku+').')}`;
+    const whatsapp=`https://wa.me/5551996311864?text=${encodeURIComponent((confirmation?'Olá! Quero confirmar a disponibilidade do ':'Olá! Tenho interesse no ')+p.nome+' (Ref. '+p.sku+').')}`;
     const availabilityHtml=preorder
       ? `<div class="product-availability-box preorder"><strong>Sob encomenda</strong><span>Prazo de preparação: ${availability.days} dias úteis. O prazo da transportadora começa depois da preparação.</span></div>`
       : confirmation
