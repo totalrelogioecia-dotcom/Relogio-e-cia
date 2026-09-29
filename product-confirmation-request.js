@@ -113,7 +113,7 @@
     button.textContent = 'Enviando...';
 
     try {
-      const response = await fetch('/api/availability-requests', {
+      let response = await fetch('/api/availability-requests', {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
@@ -121,19 +121,20 @@
         },
         body: JSON.stringify({ product_id: productId, source: 'product_page' })
       });
-      const data = await response.json().catch(() => ({}));
-
-      if (response.status === 401) {
-        const action = await dialog({
-          kicker: 'Confirmação de disponibilidade',
-          title: 'Entre na sua conta',
-          message: 'Para registrar a solicitação, precisamos vincular este produto à sua conta.',
-          detail: 'Depois do acesso, volte a este produto e solicite a confirmação novamente.',
-          primaryLabel: 'Entrar na conta',
-          secondaryLabel: 'Continuar no produto'
+      let data = await response.json().catch(() => ({}));
+      if (data.code === 'email_required') {
+        const email = await window.RelogioAvailabilityEmail?.promptEmail();
+        if (!email) {
+          button.removeAttribute('aria-disabled');
+          button.textContent = original;
+          return;
+        }
+        response = await fetch('/api/availability-requests', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: productId, source: 'product_page', email })
         });
-        if (action === 'primary') location.href = 'conta.html';
-        return;
+        data = await response.json().catch(() => ({}));
       }
       if (!response.ok) throw new Error(data.error || 'Não foi possível registrar a solicitação.');
 
@@ -164,7 +165,9 @@
         message: data.duplicate
           ? 'Este pedido de confirmação já está no painel da Relógio e Cia.'
           : 'A Relógio e Cia recebeu seu pedido de confirmação e ele já aparece no painel da loja.',
-        detail: 'Se quiser agilizar o atendimento, você também pode falar conosco pelo WhatsApp.',
+        detail: data.request?.guest
+          ? 'A loja poderá responder ao e-mail informado. Para agilizar, você também pode falar pelo WhatsApp. Esta consulta não libera a compra.'
+          : 'Se quiser agilizar o atendimento, você também pode falar conosco pelo WhatsApp.',
         primaryLabel: 'Abrir WhatsApp',
         secondaryLabel: 'Continuar no produto'
       });

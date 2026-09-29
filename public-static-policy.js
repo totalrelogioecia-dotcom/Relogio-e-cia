@@ -5,6 +5,7 @@ const path = require('path');
 // ficar disponíveis como arquivos estáticos.
 const PUBLIC_BROWSER_SCRIPTS = new Set([
   'accessibility-panel.js',
+  'availability-email-dialog.js',
   'account-orders.js',
   'admin-coupons.js',
   'admin-customer-documents.js',

@@ -19,6 +19,28 @@ const PRODUCTS = path.join(DATA, 'products.json');
 const REQUESTS = path.join(DATA, 'availability-requests.json');
 const ORDERS = path.join(DATA, 'orders.json');
 const ADMIN_HTML = path.join(__dirname, 'admin.html');
+const guestAttempts = new Map();
+const GUEST_RATE_WINDOW_MS = 10 * 60 * 1000;
+const GUEST_RATE_LIMIT = 8;
+
+function cleanEmail(value) {
+  const email = String(value || '').trim().toLowerCase();
+  return email.length <= 180 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) ? email : '';
+}
+
+function guestRateAllowed(req) {
+  const now = Date.now();
+  for (const [ip, attempts] of guestAttempts) {
+    const recent = attempts.filter(time => now - time < GUEST_RATE_WINDOW_MS);
+    if (recent.length) guestAttempts.set(ip, recent);
+    else guestAttempts.delete(ip);
+  }
+  const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+  const attempts = guestAttempts.get(ip) || [];
+  if (attempts.length >= GUEST_RATE_LIMIT) return false;
+  guestAttempts.set(ip, [...attempts, now]);
+  return true;
+}
 
 const REQUEST_STATUSES = Object.freeze({
   pending: 'Nova solicitação',
@@ -122,6 +144,7 @@ function requestSnapshot(request) {
       email: String(request?.customer?.email || ''),
       telefone: String(request?.customer?.telefone || '')
     },
+    guest: request?.guest === true,
     source: String(request?.source || ''),
     admin_note: String(request?.admin_note || ''),
     purchase: purchase ? {
@@ -172,7 +195,7 @@ function storeCancellationSnapshot(order) {
 
 function injectAdminExtraTabs(html) {
   if (html.includes('admin-extra-tabs.js')) return html;
-  return html.replace('</body>', '<script src="admin-extra-tabs.js?v=1"></script>\n</body>');
+  return html.replace('</body>', '<script src="admin-extra-tabs.js?v=guest-email-1"></script>\n</body>');
 }
 
 function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
@@ -213,11 +236,10 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
     }
 
     const user = userFromRequest(req);
-    if (!user) {
-      return res.status(401).json({
-        error: 'Entre na sua conta para enviar a solicitação de disponibilidade.',
-        code: 'authentication_required'
-      });
+    const email = user ? cleanEmail(user.email) : cleanEmail(req.body?.email);
+    if (!email) return res.status(400).json({ error: 'Informe um e-mail válido.', code: user ? 'invalid_email' : 'email_required' });
+    if (!user && !guestRateAllowed(req)) {
+      return res.status(429).json({ error: 'Muitas solicitações em pouco tempo. Aguarde alguns minutos e tente novamente.' });
     }
 
     const productId = Number(req.body?.product_id || 0);
@@ -235,12 +257,12 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
 
     const now = new Date();
     const nowIso = now.toISOString();
-    const email = String(user.email || '').trim().toLowerCase();
     const requests = read(REQUESTS, []);
     const duplicateCutoff = now.getTime() - 24 * 60 * 60 * 1000;
     const duplicate = requests.find(item => {
       const sameCustomer = Number(item?.product?.id) === productId &&
-        String(item?.customer?.email || '').trim().toLowerCase() === email;
+        String(item?.customer?.email || '').trim().toLowerCase() === email &&
+        (item?.guest === true) === !user;
       if (!sameCustomer) return false;
       if (purchaseState(item) === 'active') return true;
       return ['pending', 'contacted'].includes(String(item?.status || '')) &&
@@ -251,7 +273,7 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
       return res.json({
         ok: true,
         duplicate: true,
-        request: requestSnapshot(duplicate),
+        request: user ? requestSnapshot(duplicate) : { id: duplicate.id, guest: true, status: duplicate.status, purchase: null },
         message: purchaseState(duplicate) === 'active'
           ? 'Sua compra já foi liberada para esta conta.'
           : 'Sua solicitação já está registrada e a loja poderá acompanhar pelo painel.'
@@ -272,11 +294,12 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
         preco: Number(product.preco || 0)
       },
       customer: {
-        user_id: String(user.id || ''),
-        nome: String(user.nome || '').trim().slice(0, 160),
+        user_id: String(user?.id || ''),
+        nome: String(user?.nome || '').trim().slice(0, 160),
         email: email.slice(0, 180),
-        telefone: phoneDigits(user)
+        telefone: user ? phoneDigits(user) : ''
       },
+      guest: !user,
       source,
       admin_note: '',
       history: [{ status: 'pending', at: nowIso }],
@@ -295,7 +318,7 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
     console.log('Solicitação de disponibilidade registrada:', { request_id: request.id, product_id: productId, customer: email });
     return res.status(201).json({
       ok: true,
-      request: requestSnapshot(request),
+      request: user ? requestSnapshot(request) : { id: request.id, guest: true, status: request.status, purchase: null },
       message: 'Solicitação enviada para a Relógio e Cia.'
     });
   });
