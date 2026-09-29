@@ -18,9 +18,9 @@ test('catálogo usa logos/wordmarks para as cinco marcas com fallback de texto',
   assert.match(js, /brand-chip-fallback/);
   assert.match(js, /Technos_logo\.png/);
   assert.match(js, /Casio_logo\.svg/);
-  assert.match(js, /GShock_logo\.svg/);
+  assert.match(js, /brand-gshock\.svg/);
   assert.match(js, /Citizen_logo\.svg/);
-  assert.match(js, /Orient_Watch_logo\.svg/);
+  assert.match(js, /brand-orient\.svg/);
 });
 
 test('tags de marca têm recipiente uniforme e adaptação mobile/dark', () => {
@@ -39,5 +39,5 @@ test('página de produtos remove fontes extras usadas só para imitar logotipos'
   assert.doesNotMatch(html, /family=Russo\+One/);
   assert.doesNotMatch(html, /family=Montserrat/);
   assert.match(html, /public-ui-polish\.css\?v=20260929-brand-logos-3/);
-  assert.match(html, /script\.js\?v=20260929-brand-logos-1/);
+  assert.match(html, /script\.js\?v=20260929-brand-logos-2/);
 });

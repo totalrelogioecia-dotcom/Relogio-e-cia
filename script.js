@@ -271,12 +271,12 @@ const BRAND_STYLES = Object.freeze({
   'g-shock': {
     slug: 'g-shock',
     label: 'G-SHOCK',
-    logo: 'https://casiocdn.com/gshock-v2/resource/images/GShock_logo.svg'
+    logo: 'assets/brand-gshock.svg'
   },
   'gshock': {
     slug: 'g-shock',
     label: 'G-SHOCK',
-    logo: 'https://casiocdn.com/gshock-v2/resource/images/GShock_logo.svg'
+    logo: 'assets/brand-gshock.svg'
   },
   'citizen': {
     slug: 'citizen',
@@ -286,7 +286,7 @@ const BRAND_STYLES = Object.freeze({
   'orient': {
     slug: 'orient',
     label: 'ORIENT',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/5/54/Orient_Watch_logo.svg'
+    logo: 'assets/brand-orient.svg'
   }
 });
 
