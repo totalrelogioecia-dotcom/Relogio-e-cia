@@ -92,7 +92,7 @@ function institutionalJsonLd(origin) {
         url: `${origin}/`,
         logo: `${origin}/assets/logo-relogio-cia-mark.svg`,
         email: 'totalrelogioecia@gmail.com',
-        telephone: '+55 51 9631-1864'
+        telephone: '+55 51 99631-1864'
       },
       {
         '@type': 'Store',
@@ -100,7 +100,7 @@ function institutionalJsonLd(origin) {
         name: 'Relógio e Cia',
         url: `${origin}/`,
         image: `${origin}/assets/loja-vitrine.webp`,
-        telephone: '+55 51 9631-1864',
+        telephone: '+55 51 99631-1864',
         email: 'totalrelogioecia@gmail.com',
         parentOrganization: { '@id': organizationId },
         address: {

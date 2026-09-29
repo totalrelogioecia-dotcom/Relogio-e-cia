@@ -4,8 +4,8 @@
   const COMPANY_CNPJ = '05.583.329/0001-46';
   const INSTAGRAM_URL = 'https://www.instagram.com/relogio.ecia/';
   const INSTAGRAM_HANDLE = '@relogio.ecia';
-  const WHATSAPP_NUMBER = '555196311864';
-  const WHATSAPP_LABEL = '(51) 9631-1864';
+  const WHATSAPP_NUMBER = '5551996311864';
+  const WHATSAPP_LABEL = '(51) 99631-1864';
   const LANDLINE_HREF = 'tel:+555137377267';
   const LANDLINE_LABEL = '(51) 3737-7267';
   const CONTRAST_STORAGE_KEY = 'reloja_high_contrast';
@@ -246,9 +246,9 @@
 
   function normalizeTelephoneLinks() {
     document.querySelectorAll('a[href^="tel:"]').forEach(link => {
-      if (String(link.getAttribute('href') || '') === 'tel:+555196311864') {
+      if (String(link.getAttribute('href') || '') === 'tel:+5551996311864') {
         link.href = LANDLINE_HREF;
-        if (String(link.textContent || '').includes('9631-1864')) link.textContent = LANDLINE_LABEL;
+        if (String(link.textContent || '').includes('99631-1864')) link.textContent = LANDLINE_LABEL;
       }
     });
   }

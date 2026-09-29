@@ -9,7 +9,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 test('abertura reúne carrossel, mensagem comercial, relógio e números da loja', () => {
   const html = read('index.html');
   assert.match(html, /class="home-selection home-intro"/);
-  assert.match(html, /Relógios de marcas <span class="accent-word">confiáveis<\/span>, prontos para entrega\./);
+  assert.match(html, /Relógios de marcas <span class="accent-word">confiáveis<\/span>\./);
   assert.match(html, /class="home-intro-media"[\s\S]*id="home-carousel"/);
   assert.match(html, /class="home-intro-signature"[\s\S]*id="analog-clock-brasilia"[\s\S]*class="hero-stats"/);
   assert.ok(html.indexOf('id="home-selection"') < html.indexOf('id="marcas"'));

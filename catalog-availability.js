@@ -13,7 +13,7 @@
   function product(id){
     try{return typeof PRODUTOS!=='undefined'?PRODUTOS.find(p=>Number(p.id)===Number(id)):null}catch{return null}
   }
-  function whatsapp(p){return`https://wa.me/555196311864?text=${encodeURIComponent('Olá! Quero confirmar a disponibilidade do '+p.nome+' (Ref. '+p.sku+').')}`}
+  function whatsapp(p){return`https://wa.me/5551996311864?text=${encodeURIComponent('Olá! Quero confirmar a disponibilidade do '+p.nome+' (Ref. '+p.sku+').')}`}
   function dialog(options){return window.relojaDialog?.open(options)||Promise.resolve('dismiss')}
   function releaseFor(id){const item=released.get(Number(id));return item?.purchase?.active?item:null}
   function shortDate(value){const d=new Date(value||0);return Number.isNaN(d.getTime())?'':d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
