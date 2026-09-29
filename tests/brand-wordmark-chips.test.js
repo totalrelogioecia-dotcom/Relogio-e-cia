@@ -6,36 +6,38 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('catálogo usa etiquetas tipográficas para as cinco marcas sem imagens externas', () => {
+test('catálogo usa logos/wordmarks para as cinco marcas com fallback de texto', () => {
   const js = read('script.js');
   for (const brand of ['technos','casio','g-shock','citizen','orient']) {
     assert.match(js, new RegExp(`'${brand}'\\s*:\\s*\\{`), brand);
   }
   assert.match(js, /const BRAND_STYLES = Object\.freeze/);
   assert.match(js, /function renderBrandChip\(marca\)/);
-  assert.match(js, /brand-chip-text brand-chip--\$\{brand\.slug\}/);
-  assert.doesNotMatch(js, /upload\.wikimedia\.org/);
-  assert.doesNotMatch(js, /brand-chip-logo/);
+  assert.match(js, /brand-chip brand-chip-logo brand-chip--\$\{brand\.slug\}/);
+  assert.match(js, /brand-chip-logo__image/);
+  assert.match(js, /brand-chip-fallback/);
+  assert.match(js, /Technos_logo\.png/);
+  assert.match(js, /Casio_logo\.svg/);
+  assert.match(js, /GShock_logo\.svg/);
+  assert.match(js, /Citizen_logo\.svg/);
+  assert.match(js, /Orient_Watch_logo\.svg/);
 });
 
-test('cada marca recebe tipografia e detalhe de cor próprios', () => {
+test('tags de marca têm recipiente uniforme e adaptação mobile/dark', () => {
   const css = read('public-ui-polish.css');
-  assert.match(css, /\.brand-chip--technos[\s\S]*#c4212b/);
-  assert.match(css, /\.brand-chip--casio[\s\S]*#003296/);
-  assert.match(css, /\.brand-chip--g-shock[\s\S]*#e5232a/);
-  assert.match(css, /\.brand-chip--citizen\{[\s\S]*#143c72[\s\S]*color:#111;/);
-  assert.match(css, /\.brand-chip--citizen \.brand-chip-name\{[\s\S]*font-family:"Times New Roman",Times,serif;[\s\S]*font-size:\.84rem;/);
-  assert.match(css, /\.brand-chip--orient\{[\s\S]*color:#2b1813;/);
-  assert.match(css, /font-family:"Russo One"/);
-  assert.match(css, /font-family:"Times New Roman",Times,serif/);
-  assert.match(css, /\.brand-chip--orient \.brand-chip-name\{[\s\S]*-webkit-text-stroke:\.18px currentColor;/);
-  assert.match(css, /\.brand-chip--orient::before\{[\s\S]*display:block;[\s\S]*background:#8d1328;/);
-  assert.match(css, /\.brand-chip--orient::after\{[\s\S]*display:none;/);
+  assert.match(css, /\.brand-chip-logo\{[\s\S]*width:122px;[\s\S]*height:44px;/);
+  assert.match(css, /\.brand-chip-logo::before\{[\s\S]*width:3px;[\s\S]*background:var\(--red\);/);
+  assert.match(css, /\.brand-chip-logo__image\{[\s\S]*max-width:96px;[\s\S]*max-height:22px;/);
+  assert.match(css, /@media\(max-width:640px\)[\s\S]*width:110px;[\s\S]*height:38px;/);
+  assert.match(css, /html\.reloja-dark[\s\S]*\.brand-chip-logo\{[\s\S]*background:#f7f7f5;/);
+  assert.doesNotMatch(css, /font-family:"Russo One"/);
+  assert.doesNotMatch(css, /font-family:"Montserrat"/);
 });
 
-test('página de produtos carrega fontes e versões novas das etiquetas', () => {
+test('página de produtos remove fontes extras usadas só para imitar logotipos', () => {
   const html = read('produtos.html');
-  assert.match(html, /family=Russo\+One/);
-  assert.match(html, /public-ui-polish\.css\?v=20260928-orient-weight-1/);
-  assert.match(html, /script\.js\?v=20260928-product-names-1/);
+  assert.doesNotMatch(html, /family=Russo\+One/);
+  assert.doesNotMatch(html, /family=Montserrat/);
+  assert.match(html, /public-ui-polish\.css\?v=20260929-brand-logos-1/);
+  assert.match(html, /script\.js\?v=20260929-brand-logos-1/);
 });

@@ -258,12 +258,36 @@ function urlImagemSegura(value) {
 
 
 const BRAND_STYLES = Object.freeze({
-  'technos': { slug: 'technos', label: 'TECHNOS' },
-  'casio': { slug: 'casio', label: 'CASIO' },
-  'g-shock': { slug: 'g-shock', label: 'G-SHOCK' },
-  'gshock': { slug: 'g-shock', label: 'G-SHOCK' },
-  'citizen': { slug: 'citizen', label: 'CITIZEN' },
-  'orient': { slug: 'orient', label: 'ORIENT' }
+  'technos': {
+    slug: 'technos',
+    label: 'TECHNOS',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/9/97/Technos_logo.png'
+  },
+  'casio': {
+    slug: 'casio',
+    label: 'CASIO',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Casio_logo.svg'
+  },
+  'g-shock': {
+    slug: 'g-shock',
+    label: 'G-SHOCK',
+    logo: 'https://casiocdn.com/gshock-v2/resource/images/GShock_logo.svg'
+  },
+  'gshock': {
+    slug: 'g-shock',
+    label: 'G-SHOCK',
+    logo: 'https://casiocdn.com/gshock-v2/resource/images/GShock_logo.svg'
+  },
+  'citizen': {
+    slug: 'citizen',
+    label: 'CITIZEN',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Citizen_logo.svg'
+  },
+  'orient': {
+    slug: 'orient',
+    label: 'ORIENT',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/5/54/Orient_Watch_logo.svg'
+  }
 });
 
 function renderBrandChip(marca) {
@@ -272,10 +296,18 @@ function renderBrandChip(marca) {
   const brand = BRAND_STYLES[key];
   if (!brand) return `<span class="brand-chip">${fallback}</span>`;
 
-  return `<span class="brand-chip brand-chip-text brand-chip--${brand.slug}" aria-label="${fallback}">
-    <span class="brand-chip-name">${brand.label}</span>
+  return `<span class="brand-chip brand-chip-logo brand-chip--${brand.slug}" aria-label="${fallback}">
+    <img class="brand-chip-logo__image" src="${brand.logo}" alt="" decoding="async" referrerpolicy="no-referrer">
+    <span class="brand-chip-fallback">${brand.label}</span>
   </span>`;
 }
+
+document.addEventListener('error', event => {
+  const logo = event.target;
+  if (!(logo instanceof HTMLImageElement) || !logo.classList.contains('brand-chip-logo__image')) return;
+  logo.hidden = true;
+  logo.closest('.brand-chip-logo')?.classList.add('brand-chip--logo-error');
+}, true);
 
 /* ---------- Utilitário: fallback quando uma foto não carrega ---------- */
 function tratarErroFoto(img) {

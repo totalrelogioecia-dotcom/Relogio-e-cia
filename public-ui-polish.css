@@ -220,118 +220,82 @@ body.page-products .product-card .card-photo{
 body.page-products .product-card .brand-chip{
   border-radius:5px;
 }
-body.page-products .product-card .brand-chip-text{
-  --brand-accent:var(--red);
+body.page-products .product-card .brand-chip-logo{
   position:relative;
-  width:max-content;
+  width:122px;
+  height:44px;
   max-width:100%;
-  min-height:34px;
+  box-sizing:border-box;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  padding:7px 12px 7px 14px;
+  padding:8px 12px 8px 14px;
   border:1px solid var(--line);
-  border-radius:5px;
-  background:var(--bg);
-  color:var(--ink);
+  border-radius:8px;
+  background:#fff;
+  color:#111;
   overflow:hidden;
 }
-body.page-products .product-card .brand-chip-text::before{
+body.page-products .product-card .brand-chip-logo::before{
   content:"";
   position:absolute;
   inset:0 auto 0 0;
   width:3px;
-  background:var(--brand-accent);
+  background:var(--red);
 }
-body.page-products .product-card .brand-chip-name{
+body.page-products .product-card .brand-chip-logo__image{
   display:block;
+  width:auto;
+  height:auto;
+  max-width:96px;
+  max-height:22px;
+  object-fit:contain;
+}
+body.page-products .product-card .brand-chip--technos .brand-chip-logo__image{
+  max-width:98px;
+}
+body.page-products .product-card .brand-chip--g-shock .brand-chip-logo__image{
+  max-width:96px;
+  max-height:24px;
+}
+body.page-products .product-card .brand-chip--orient .brand-chip-logo__image{
+  max-width:94px;
+  max-height:25px;
+}
+body.page-products .product-card .brand-chip-fallback{
+  display:none;
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  font-weight:600;
   line-height:1;
+  letter-spacing:.06em;
   white-space:nowrap;
 }
-body.page-products .product-card .brand-chip--technos{
-  --brand-accent:#c4212b;
+body.page-products .product-card .brand-chip--logo-error .brand-chip-fallback{
+  display:block;
 }
-body.page-products .product-card .brand-chip--technos .brand-chip-name{
-  font-family:"Montserrat","Space Grotesk",Arial,sans-serif;
-  font-size:.74rem;
-  font-weight:800;
-  letter-spacing:.10em;
-}
-body.page-products .product-card .brand-chip--casio{
-  --brand-accent:#003296;
-  color:#003296;
-}
-body.page-products .product-card .brand-chip--casio .brand-chip-name{
-  font-family:"Arial Black","Montserrat","Helvetica Neue",Arial,sans-serif;
-  font-size:.76rem;
-  font-weight:900;
-  letter-spacing:.015em;
-}
-body.page-products .product-card .brand-chip--g-shock{
-  --brand-accent:#e5232a;
-}
-body.page-products .product-card .brand-chip--g-shock .brand-chip-name{
-  font-family:"Russo One","Arial Black","Space Grotesk",sans-serif;
-  font-size:.76rem;
-  font-weight:400;
-  letter-spacing:-.01em;
-  transform:scaleX(1.035);
-  transform-origin:left center;
-  -webkit-text-stroke:.32px currentColor;
-}
-body.page-products .product-card .brand-chip--citizen{
-  --brand-accent:#143c72;
-  padding:7px 12px 7px 14px;
+html.reloja-dark body.page-products .product-card .brand-chip-logo{
+  background:#f7f7f5;
+  border-color:rgba(255,255,255,.22);
   color:#111;
 }
-body.page-products .product-card .brand-chip--citizen::before{
-  width:2px;
-  background:#143c72;
-}
-body.page-products .product-card .brand-chip--citizen .brand-chip-name{
-  font-family:"Times New Roman",Times,serif;
-  font-size:.84rem;
-  font-weight:700;
-  line-height:.95;
-  letter-spacing:-.018em;
-  transform:scaleX(1.03);
-  transform-origin:left center;
-}
-body.page-products .product-card .brand-chip--orient{
-  --brand-accent:#8d1328;
-  padding:7px 12px 7px 14px;
-  border-color:rgba(88,44,36,.24);
-  color:#2b1813;
-}
-body.page-products .product-card .brand-chip--orient::before{
-  display:block;
-  background:#8d1328;
-}
-body.page-products .product-card .brand-chip--orient::after{
-  display:none;
-}
-body.page-products .product-card .brand-chip--orient .brand-chip-name{
-  font-family:"Times New Roman",Times,serif;
-  font-size:.78rem;
-  font-weight:700;
-  letter-spacing:.028em;
-  transform:scaleX(1.035);
-  transform-origin:left center;
-  -webkit-text-stroke:.18px currentColor;
-}
-html.reloja-dark body.page-products .product-card .brand-chip-text{
-  background:rgba(255,255,255,.035);
-  border-color:rgba(255,255,255,.18);
-}
-html.reloja-dark body.page-products .product-card .brand-chip--casio{
-  color:#6f9cff;
-}
-html.reloja-dark body.page-products .product-card .brand-chip--citizen{
-  color:#f2f2f2;
-}
-html.reloja-dark body.page-products .product-card .brand-chip--orient{
-  border-color:rgba(190,134,124,.30);
-  color:#ead8d3;
+@media(max-width:640px){
+  body.page-products .product-card .brand-chip-logo{
+    width:110px;
+    height:38px;
+    padding:6px 10px 6px 12px;
+    border-radius:7px;
+  }
+  body.page-products .product-card .brand-chip-logo__image{
+    max-width:88px;
+    max-height:20px;
+  }
+  body.page-products .product-card .brand-chip--g-shock .brand-chip-logo__image{
+    max-height:22px;
+  }
+  body.page-products .product-card .brand-chip--orient .brand-chip-logo__image{
+    max-height:22px;
+  }
 }
 body.page-products .product-card .card-actions{
   gap:8px;
