@@ -15,7 +15,7 @@ test('páginas públicas carregam a camada final de consistência visual', () =>
   for (const page of pages) {
     assert.match(read(page), /public-ui-polish\.css\?v=20260926-mobile-polish-1/, page);
   }
-  assert.match(read('produtos.html'), /public-ui-polish\.css\?v=20260929-brand-logos-2/, 'produtos.html');
+  assert.match(read('produtos.html'), /public-ui-polish\.css\?v=20260929-brand-logos-3/, 'produtos.html');
 });
 
 test('catálogo usa escopo visual próprio', () => {

@@ -25,10 +25,10 @@ test('catálogo usa logos/wordmarks para as cinco marcas com fallback de texto',
 
 test('tags de marca têm recipiente uniforme e adaptação mobile/dark', () => {
   const css = read('public-ui-polish.css');
-  assert.match(css, /\.brand-chip-logo\{[\s\S]*width:104px;[\s\S]*height:36px;/);
-  assert.match(css, /\.brand-chip-logo::before\{[\s\S]*width:3px;[\s\S]*background:var\(--red\);/);
-  assert.match(css, /\.brand-chip-logo__image\{[\s\S]*max-width:82px;[\s\S]*max-height:18px;/);
-  assert.match(css, /@media\(max-width:640px\)[\s\S]*width:96px;[\s\S]*height:34px;/);
+  assert.match(css, /\.brand-chip-logo\{[\s\S]*width:96px;[\s\S]*height:34px;/);
+  assert.match(css, /\.brand-chip-logo::before\{[\s\S]*width:2px;[\s\S]*background:var\(--red\);/);
+  assert.match(css, /\.brand-chip-logo__image\{[\s\S]*max-width:76px;[\s\S]*max-height:17px;/);
+  assert.match(css, /@media\(max-width:640px\)[\s\S]*width:90px;[\s\S]*height:32px;/);
   assert.match(css, /html\.reloja-dark[\s\S]*\.brand-chip-logo\{[\s\S]*background:#f7f7f5;/);
   assert.doesNotMatch(css, /font-family:"Russo One"/);
   assert.doesNotMatch(css, /font-family:"Montserrat"/);
@@ -38,6 +38,6 @@ test('página de produtos remove fontes extras usadas só para imitar logotipos'
   const html = read('produtos.html');
   assert.doesNotMatch(html, /family=Russo\+One/);
   assert.doesNotMatch(html, /family=Montserrat/);
-  assert.match(html, /public-ui-polish\.css\?v=20260929-brand-logos-2/);
+  assert.match(html, /public-ui-polish\.css\?v=20260929-brand-logos-3/);
   assert.match(html, /script\.js\?v=20260929-brand-logos-1/);
 });

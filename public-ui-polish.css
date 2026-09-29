@@ -222,16 +222,16 @@ body.page-products .product-card .brand-chip{
 }
 body.page-products .product-card .brand-chip-logo{
   position:relative;
-  width:104px;
-  height:36px;
+  width:96px;
+  height:34px;
   max-width:100%;
   box-sizing:border-box;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  padding:5px 9px 5px 11px;
+  padding:5px 8px 5px 10px;
   border:1px solid var(--line);
-  border-radius:8px;
+  border-radius:6px;
   background:#fff;
   color:#111;
   overflow:hidden;
@@ -240,35 +240,35 @@ body.page-products .product-card .brand-chip-logo::before{
   content:"";
   position:absolute;
   inset:0 auto 0 0;
-  width:3px;
+  width:2px;
   background:var(--red);
 }
 body.page-products .product-card .brand-chip-logo__image{
   display:block;
   width:auto;
   height:auto;
-  max-width:82px;
-  max-height:18px;
+  max-width:76px;
+  max-height:17px;
   object-fit:contain;
 }
 body.page-products .product-card .brand-chip--technos .brand-chip-logo__image{
-  max-width:84px;
+  max-width:78px;
 }
 body.page-products .product-card .brand-chip--g-shock .brand-chip-logo__image{
-  max-width:82px;
-  max-height:20px;
+  max-width:76px;
+  max-height:18px;
 }
 body.page-products .product-card .brand-chip--orient .brand-chip-logo__image{
-  max-width:80px;
-  max-height:20px;
+  max-width:74px;
+  max-height:18px;
 }
 body.page-products .product-card .brand-chip-fallback{
   display:none;
   font-family:var(--font-mono);
-  font-size:.72rem;
+  font-size:.68rem;
   font-weight:600;
   line-height:1;
-  letter-spacing:.06em;
+  letter-spacing:.05em;
   white-space:nowrap;
 }
 body.page-products .product-card .brand-chip--logo-error .brand-chip-fallback{
@@ -281,22 +281,21 @@ html.reloja-dark body.page-products .product-card .brand-chip-logo{
 }
 @media(max-width:640px){
   body.page-products .product-card .brand-chip-logo{
-    width:96px;
-    height:34px;
-    padding:6px 10px 6px 12px;
-    border-radius:7px;
+    width:90px;
+    height:32px;
+    padding:4px 7px 4px 9px;
+    border-radius:6px;
   }
   body.page-products .product-card .brand-chip-logo__image{
-    max-width:76px;
+    max-width:70px;
+    max-height:16px;
+  }
+  body.page-products .product-card .brand-chip--g-shock .brand-chip-logo__image,
+  body.page-products .product-card .brand-chip--orient .brand-chip-logo__image{
     max-height:17px;
   }
-  body.page-products .product-card .brand-chip--g-shock .brand-chip-logo__image{
-    max-height:19px;
-  }
-  body.page-products .product-card .brand-chip--orient .brand-chip-logo__image{
-    max-height:22px;
-  }
 }
+
 body.page-products .product-card .card-actions{
   gap:8px;
 }
