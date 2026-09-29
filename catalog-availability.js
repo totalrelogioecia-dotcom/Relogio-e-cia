@@ -116,8 +116,10 @@
       });
       let data=await response.json().catch(()=>({}));
       if(data.code==='email_required'){
+        btn.disabled=false;btn.textContent=original;
         const email=await window.RelogioAvailabilityEmail?.promptEmail();
-        if(!email){btn.disabled=false;btn.textContent=original;return}
+        if(!email)return;
+        btn.disabled=true;btn.textContent='Enviando...';
         response=await fetch('/api/availability-requests',{
           method:'POST',credentials:'same-origin',
           headers:{'Content-Type':'application/json'},
