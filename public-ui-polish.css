@@ -117,7 +117,7 @@
 .site-search-input-wrap{
   min-height:54px;
   border:1px solid var(--line-strong);
-  border-radius:8px;
+  border-radius:7px;
   background:var(--bg);
   transition:border-color .18s ease,box-shadow .18s ease;
 }
@@ -222,14 +222,14 @@ body.page-products .product-card .brand-chip{
 }
 body.page-products .product-card .brand-chip-logo{
   position:relative;
-  width:122px;
-  height:44px;
+  width:104px;
+  height:36px;
   max-width:100%;
   box-sizing:border-box;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  padding:8px 12px 8px 14px;
+  padding:5px 9px 5px 11px;
   border:1px solid var(--line);
   border-radius:8px;
   background:#fff;
@@ -247,20 +247,20 @@ body.page-products .product-card .brand-chip-logo__image{
   display:block;
   width:auto;
   height:auto;
-  max-width:96px;
-  max-height:22px;
+  max-width:82px;
+  max-height:18px;
   object-fit:contain;
 }
 body.page-products .product-card .brand-chip--technos .brand-chip-logo__image{
-  max-width:98px;
+  max-width:84px;
 }
 body.page-products .product-card .brand-chip--g-shock .brand-chip-logo__image{
-  max-width:96px;
-  max-height:24px;
+  max-width:82px;
+  max-height:20px;
 }
 body.page-products .product-card .brand-chip--orient .brand-chip-logo__image{
-  max-width:94px;
-  max-height:25px;
+  max-width:80px;
+  max-height:20px;
 }
 body.page-products .product-card .brand-chip-fallback{
   display:none;
@@ -281,17 +281,17 @@ html.reloja-dark body.page-products .product-card .brand-chip-logo{
 }
 @media(max-width:640px){
   body.page-products .product-card .brand-chip-logo{
-    width:110px;
-    height:38px;
+    width:96px;
+    height:34px;
     padding:6px 10px 6px 12px;
     border-radius:7px;
   }
   body.page-products .product-card .brand-chip-logo__image{
-    max-width:88px;
-    max-height:20px;
+    max-width:76px;
+    max-height:17px;
   }
   body.page-products .product-card .brand-chip--g-shock .brand-chip-logo__image{
-    max-height:22px;
+    max-height:19px;
   }
   body.page-products .product-card .brand-chip--orient .brand-chip-logo__image{
     max-height:22px;
