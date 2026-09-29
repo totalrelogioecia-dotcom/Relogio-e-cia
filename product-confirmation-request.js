@@ -123,12 +123,12 @@
       });
       let data = await response.json().catch(() => ({}));
       if (data.code === 'email_required') {
+        button.removeAttribute('aria-disabled');
+        button.textContent = original;
         const email = await window.RelogioAvailabilityEmail?.promptEmail();
-        if (!email) {
-          button.removeAttribute('aria-disabled');
-          button.textContent = original;
-          return;
-        }
+        if (!email) return;
+        button.setAttribute('aria-disabled', 'true');
+        button.textContent = 'Enviando...';
         response = await fetch('/api/availability-requests', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
