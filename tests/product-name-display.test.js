@@ -32,7 +32,7 @@ test('dados originais continuam intactos para SEO, alt e integrações', () => {
   assert.match(catalog, /alt="\$\{nomeCompleto\}"/);
 });
 
-test('páginas principais carregam versões novas dos scripts', () => {
+test('páginas principais carregam versões atuais dos scripts', () => {
   assert.match(read('index.html'), /site-ui\.js\?v=20260928-product-names-1/);
   assert.match(read('index.html'), /home-enhancements\.js\?v=20260928-product-names-1/);
   assert.match(read('produtos.html'), /script\.js\?v=20260929-brand-logos-1/);
