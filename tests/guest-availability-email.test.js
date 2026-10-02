@@ -5,7 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const express = require('express');
 
-test('visitante consulta por e-mail sem receber liberação de compra', async t => {
+test('visitante consulta por e-mail, recebe link e vincula a confirmação ao entrar', async t => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'relogio-consulta-email-'));
   const previous = process.env.DATA_DIR;
   process.env.DATA_DIR = dir;
@@ -55,18 +55,43 @@ test('visitante consulta por e-mail sem receber liberação de compra', async t 
   assert.equal(duplicateData.request.id, firstData.request.id);
   assert.equal(duplicateData.request.customer, undefined);
 
-  await assert.rejects(() => releasePurchase(firstData.request.id), error => error.status === 409);
+  const released = await releasePurchase(firstData.request.id);
+  const token = released.purchase_authorization.token;
+  assert.ok(token);
   assert.equal(customerPurchases({ id: 'u1', email: 'cliente@example.com' }).length, 0);
 
-  const account = await post({}, true);
-  assert.equal(account.status, 201);
-  const accountData = await account.json();
-  assert.equal(accountData.request.guest, false);
-  assert.notEqual(accountData.request.id, firstData.request.id);
+  const publicLink = await fetch(base + `/api/availability-requests/confirmation?product_id=7&token=${encodeURIComponent(token)}`);
+  assert.equal(publicLink.status, 200);
+  const publicData = await publicLink.json();
+  assert.equal(publicData.confirmation.active, true);
+  assert.equal(publicData.confirmation.product_id, 7);
+  assert.equal(publicData.confirmation.quantity, 1);
+  assert.equal(publicData.confirmation.email, undefined);
+
+  const unauthenticatedClaim = await fetch(base + '/api/availability-requests/claim', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ product_id: 7, token })
+  });
+  assert.equal(unauthenticatedClaim.status, 401);
+
+  const claimed = await fetch(base + '/api/availability-requests/claim', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-test-account': '1' },
+    body: JSON.stringify({ product_id: 7, token })
+  });
+  assert.equal(claimed.status, 200);
+  const claimedData = await claimed.json();
+  assert.equal(claimedData.request.id, firstData.request.id);
+  assert.equal(claimedData.request.guest, false);
+  assert.equal(claimedData.request.purchase.active, true);
+
+  const purchases = customerPurchases({ id: 'u1', email: 'cliente@example.com' });
+  assert.equal(purchases.length, 1);
+  assert.equal(purchases[0].request_id, firstData.request.id);
 
   const records = JSON.parse(fs.readFileSync(path.join(dir, 'availability-requests.json'), 'utf8'));
-  assert.equal(records.length, 2);
+  assert.equal(records.length, 1);
   assert.equal(records[0].customer.email, 'cliente@example.com');
-  assert.equal(records[0].customer.user_id, '');
-  assert.equal(records[1].customer.user_id, 'u1');
+  assert.equal(records[0].customer.user_id, 'u1');
 });
