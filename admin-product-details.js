@@ -21,7 +21,7 @@
           <select id="pd-disponibilidade">
             <option value="pronta_entrega">Pronta entrega</option>
             <option value="sob_encomenda">Sob encomenda</option>
-            <option value="mediante_confirmacao">Pedido mediante confirmação</option>
+            <option value="mediante_confirmacao">Disponibilidade sob consulta</option>
           </select>
         </div>
         <div class="form-field" id="pd-prazo-wrap">
