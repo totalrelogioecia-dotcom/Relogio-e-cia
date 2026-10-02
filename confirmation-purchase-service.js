@@ -127,12 +127,6 @@ async function releasePurchase(requestId, options = {}) {
     throw error;
   }
 
-  if (requests[index].guest === true) {
-    const error = new Error('Esta consulta foi feita sem conta. Peça ao cliente que entre na conta e solicite novamente antes de liberar a compra.');
-    error.status = 409;
-    throw error;
-  }
-
   const existingState = purchaseState(requests[index]);
   if (existingState.reason === 'claimed') {
     const error = new Error('Este cliente já iniciou a compra. Aguarde o resultado do pagamento.');
