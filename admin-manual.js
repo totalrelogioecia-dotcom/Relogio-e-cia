@@ -20,13 +20,13 @@
         'Abra Produtos e clique em “+ Novo produto”.',
         'Preencha Nome, Marca, Categoria, SKU / Referência, Preço e Estoque.',
         'Escreva a descrição e adicione as fotos. O editor aceita até 8 imagens; também existe alternativa por URLs, uma por linha.',
-        'Em Disponibilidade, escolha Pronta entrega, Sob encomenda ou Pedido mediante confirmação. Para Sob encomenda, informe o prazo de preparação; o painel aplica mínimo de 15 dias úteis.',
+        'Em Disponibilidade, escolha Pronta entrega, Sob encomenda ou Disponibilidade sob consulta. Para Sob encomenda, informe o prazo de preparação; o painel aplica mínimo de 15 dias úteis.',
         'Preencha a ficha técnica apenas nos campos aplicáveis: movimento, materiais, cor, diâmetro, resistência à água, vidro, garantia e conteúdo da embalagem.',
         'Revise a configuração de frete do produto quando os campos de envio estiverem disponíveis.',
         'Marque “Produto visível na loja” somente quando o cadastro estiver pronto e clique em “Salvar produto”.',
         'Para localizar um item depois, use Pesquisa de estoque por referência, nome ou marca; também é possível filtrar itens em estoque, sem estoque e ocultos.'
       ],
-      notes:['Pronta entrega usa o estoque físico cadastrado.','Pedido mediante confirmação impede o pagamento antes do contato/liberação da loja.','Campos vazios da ficha técnica não aparecem para o cliente.']
+      notes:['Pronta entrega usa o estoque físico cadastrado.','Disponibilidade sob consulta impede o pagamento até a loja confirmar e liberar aquele cliente. A liberação individual não torna o produto disponível para todos.','Campos vazios da ficha técnica não aparecem para o cliente.']
     },
     {
       id:'pedidos', icon:'▤', title:'Pedidos', tab:'pedidos', tags:'pedido pagamento cliente estoque atualizar',
@@ -79,16 +79,18 @@
       notes:['Se a NF-e já tiver sido emitida, observe o aviso fiscal exibido pelo painel e trate o cancelamento fiscal no processo adequado da empresa.','Não prometa estorno concluído ao cliente enquanto o painel não confirmar o reembolso.']
     },
     {
-      id:'confirmacoes', icon:'✓', title:'Confirmações de disponibilidade', tab:'confirmacoes', tags:'confirmar disponibilidade liberar compra revogar autorização solicitação',
-      intro:'Use esta área para solicitações de produtos que dependem de confirmação da loja.',
+      id:'confirmacoes', icon:'✓', title:'Confirmações de disponibilidade', tab:'confirmacoes', tags:'confirmar disponibilidade liberar compra revogar autorização solicitação link visitante sem conta',
+      intro:'Use esta área para produtos com Disponibilidade sob consulta. A confirmação é individual e não libera o produto para todos.',
       steps:[
         'Abra Confirmações e localize a solicitação do cliente.',
-        'Revise produto, quantidade e informações registradas antes de alterar o status.',
-        'Atualize a solicitação conforme o atendimento realizado.',
-        'Quando a opção estiver disponível para seu nível de acesso, use a ação de liberar compra somente após confirmar a disponibilidade real.',
-        'Se a autorização deixar de ser válida, use a ação de revogar a liberação.'
+        'Confira o produto e confirme a disponibilidade real antes de liberar a compra.',
+        'Informe a quantidade e a validade da confirmação. O padrão é 48 horas.',
+        'Clique em “Confirmar e liberar compra”. O painel cria um link exclusivo para aquela solicitação.',
+        'Envie o link ao cliente usando “Copiar link”, WhatsApp quando houver telefone ou o e-mail registrado.',
+        'Se a consulta foi feita sem conta, o cliente pode abrir o link normalmente. Para continuar a compra, ele entra ou cria a conta e a confirmação é vinculada a essa conta; não precisa fazer uma nova solicitação.',
+        'O produto continua como Disponibilidade sob consulta para as outras pessoas. Se a autorização deixar de ser válida, use “Revogar”.'
       ],
-      notes:['A liberação de compra é uma ação gerencial; o próprio painel restringe essa ação conforme o nível de acesso.']
+      notes:['Somente Gerente ou Proprietário pode liberar ou revogar a compra.','Não altere o produto para Pronta entrega apenas para atender uma confirmação individual.']
     },
     {
       id:'pos-venda', icon:'↩', title:'Pós-venda', tab:'trocas', tags:'troca devolução garantia protocolo status solicitação',
