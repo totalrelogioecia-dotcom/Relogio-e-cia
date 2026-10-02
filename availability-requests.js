@@ -163,6 +163,28 @@ function requestSnapshot(request) {
   };
 }
 
+function publicConfirmationSnapshot(request) {
+  const purchase = request?.purchase_authorization || null;
+  const state = purchaseState(request);
+  return {
+    active: state === 'active',
+    state,
+    product_id: Number(request?.product?.id || 0),
+    quantity: Math.max(1, Number(purchase?.quantity || 1)),
+    expires_at: purchase?.expires_at || null
+  };
+}
+
+function requestMatchesUser(request, user) {
+  if (!request || !user) return false;
+  const requestUserId = String(request?.customer?.user_id || '').trim();
+  const userId = String(user?.id || user?.user_id || '').trim();
+  if (requestUserId && userId && requestUserId === userId) return true;
+  const requestEmail = cleanEmail(request?.customer?.email);
+  const userEmail = cleanEmail(user?.email);
+  return Boolean(requestEmail && userEmail && requestEmail === userEmail);
+}
+
 function storeCancellationSnapshot(order) {
   const cancellation = order?.store_cancellation || {};
   return {
@@ -195,7 +217,7 @@ function storeCancellationSnapshot(order) {
 
 function injectAdminExtraTabs(html) {
   if (html.includes('admin-extra-tabs.js')) return html;
-  return html.replace('</body>', '<script src="admin-extra-tabs.js?v=guest-email-1"></script>\n</body>');
+  return html.replace('</body>', '<script src="admin-extra-tabs.js?v=guest-link-1"></script>\n</body>');
 }
 
 function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
@@ -211,6 +233,91 @@ function registerAvailabilityRequestRoutes(app, { userFromRequest } = {}) {
   app.use('/api/availability-requests', express.json({ limit: '32kb' }));
   app.use('/api/admin/availability-requests', express.json({ limit: '32kb' }));
   app.use('/data/availability-requests.json', (req, res) => res.status(404).end());
+
+  app.get('/api/availability-requests/confirmation', (req, res) => {
+    const productId = Number(req.query?.product_id || 0);
+    const token = String(req.query?.token || '').trim();
+    if (!productId || token.length < 20 || token.length > 200) {
+      return res.status(400).json({ error: 'Link de confirmação inválido.', code: 'invalid_confirmation_link' });
+    }
+
+    const request = read(REQUESTS, []).find(item =>
+      Number(item?.product?.id) === productId &&
+      safeEqual(item?.purchase_authorization?.token, token)
+    );
+    if (!request || purchaseState(request) !== 'active') {
+      return res.status(404).json({ error: 'Esta confirmação não está mais disponível.', code: 'confirmation_not_available' });
+    }
+
+    res.set('Cache-Control', 'no-store');
+    return res.json({ confirmation: publicConfirmationSnapshot(request) });
+  });
+
+  app.post('/api/availability-requests/claim', async (req, res) => {
+    if (typeof userFromRequest !== 'function') {
+      return res.status(503).json({ error: 'Vinculação da confirmação temporariamente indisponível.' });
+    }
+    const user = userFromRequest(req);
+    if (!user) {
+      return res.status(401).json({
+        error: 'Entre ou crie sua conta para continuar a compra.',
+        code: 'authentication_required'
+      });
+    }
+
+    const productId = Number(req.body?.product_id || 0);
+    const token = String(req.body?.token || '').trim();
+    if (!productId || token.length < 20 || token.length > 200) {
+      return res.status(400).json({ error: 'Link de confirmação inválido.', code: 'invalid_confirmation_link' });
+    }
+
+    const requests = read(REQUESTS, []);
+    const index = requests.findIndex(item =>
+      Number(item?.product?.id) === productId &&
+      safeEqual(item?.purchase_authorization?.token, token)
+    );
+    if (index < 0 || purchaseState(requests[index]) !== 'active') {
+      return res.status(404).json({ error: 'Esta confirmação não está mais disponível.', code: 'confirmation_not_available' });
+    }
+
+    const current = requests[index];
+    if (current.guest !== true) {
+      if (!requestMatchesUser(current, user)) {
+        return res.status(403).json({
+          error: 'Esta confirmação já está vinculada a outra conta.',
+          code: 'confirmation_bound_to_other_account'
+        });
+      }
+      return res.json({ ok: true, request: requestSnapshot(current), already_bound: true });
+    }
+
+    const nowIso = new Date().toISOString();
+    requests[index] = {
+      ...current,
+      guest: false,
+      customer: {
+        ...current.customer,
+        user_id: String(user?.id || user?.user_id || ''),
+        nome: String(user?.nome || current?.customer?.nome || '').trim().slice(0, 160),
+        email: cleanEmail(user?.email) || cleanEmail(current?.customer?.email),
+        telefone: phoneDigits(user) || String(current?.customer?.telefone || '')
+      },
+      updated_at: nowIso
+    };
+
+    try {
+      await persistRequests(requests);
+    } catch (error) {
+      console.error('Falha ao vincular confirmação à conta:', { request_id: current.id, message: error.message });
+      return res.status(500).json({ error: 'Não foi possível vincular a confirmação à sua conta. Tente novamente.' });
+    }
+
+    return res.json({
+      ok: true,
+      request: requestSnapshot(requests[index]),
+      message: 'Confirmação vinculada à sua conta.'
+    });
+  });
 
   app.get('/api/availability-requests/mine', (req, res) => {
     if (typeof userFromRequest !== 'function') {
