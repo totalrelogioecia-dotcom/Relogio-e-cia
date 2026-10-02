@@ -54,7 +54,7 @@
           hasConfirmation=true;
           note.innerHTML=release?.purchase?.active
             ? `<strong>Confirmação necessária</strong> · a liberação permite ${allowed} unidade(s), mas o carrinho contém ${quantity(item)}.`
-            : '<strong>Pedido mediante confirmação</strong> · confirme a disponibilidade com a loja antes do pagamento.';
+            : '<strong>Disponibilidade sob consulta</strong> · confirme a disponibilidade com a loja antes do pagamento.';
         }
       }
       const infoBox=row.querySelector('.cart-item-info');if(infoBox)infoBox.appendChild(note);else row.appendChild(note);
@@ -63,7 +63,7 @@
     let box=document.getElementById('cart-availability-summary');
     if(!box){box=document.createElement('div');box.id='cart-availability-summary';box.className='cart-availability-summary';const priceWarning=document.getElementById('cart-price-warning');summary.insertBefore(box,priceWarning||summary.children[1]||null)}
     if(hasConfirmation){
-      box.style.display='block';box.innerHTML='<strong>Confirmação necessária</strong>Há item mediante confirmação sem uma liberação válida para esta conta. O pagamento continuará bloqueado até a loja confirmar a disponibilidade.';
+      box.style.display='block';box.innerHTML='<strong>Confirmação necessária</strong>Há item com disponibilidade sob consulta sem uma liberação válida para esta conta. O pagamento continuará bloqueado até a loja confirmar a disponibilidade.';
     }else if(releasedConfirmationCount){
       box.style.display='block';box.innerHTML='<strong>Disponibilidade confirmada</strong>A loja liberou a compra do item confirmado para a sua conta. Você pode finalizar normalmente enquanto a liberação estiver válida.';
     }else if(preorderDays.length){
@@ -84,7 +84,7 @@
   document.addEventListener('click',event=>{
     const button=event.target.closest('#btn-finalizar');if(!button||!hasConfirmation)return;
     event.preventDefault();event.stopImmediatePropagation();
-    showCheckoutMessage('Este pedido ainda contém um produto mediante confirmação sem liberação válida. Aguarde a confirmação da loja antes do pagamento.');
+    showCheckoutMessage('Este pedido ainda contém um produto com disponibilidade sob consulta sem liberação válida. Aguarde a confirmação da loja antes do pagamento.');
   },true);
   async function init(){
     try{
