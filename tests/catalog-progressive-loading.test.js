@@ -30,7 +30,7 @@ test('recomendações priorizam pronta-entrega e informam a situação', () => {
   assert.match(source, /availabilityRank/);
   assert.match(source, /Pronta-entrega/);
   assert.match(source, /Sob encomenda/);
-  assert.match(source, /Pedido mediante confirmação/);
+  assert.match(source, /Disponibilidade sob consulta/);
   assert.match(source, /Indisponível/);
   assert.match(source, /related-availability/);
 });
@@ -38,7 +38,7 @@ test('recomendações priorizam pronta-entrega e informam a situação', () => {
 test('confirmação envia solicitação e deixa WhatsApp como ação separada', () => {
   const product = read('produto.js');
   const request = read('product-confirmation-request.js');
-  assert.match(product, /solicitação é enviada ao painel da loja/i);
+  assert.match(product, /Envie a solicitação para a loja confirmar a disponibilidade/i);
   assert.match(product, /Falar no WhatsApp/);
   assert.match(request, /Solicitação enviada ✓/);
   assert.match(request, /removeAttribute\('href'\)/);
