@@ -77,7 +77,7 @@
           btn.disabled=false;
           if(!/adicionado/i.test(btn.textContent||''))btn.textContent='Adicionar liberado';
         }else{
-          compactStatus(note,card,'confirmation','Pedido mediante confirmação','Envie a solicitação para a loja antes do pagamento.');
+          compactStatus(note,card,'confirmation','Disponibilidade sob consulta','Envie a solicitação para a loja antes do pagamento.');
           btn.disabled=false;btn.dataset.confirmAvailability='1';
           btn.textContent=btn.dataset.confirmRequestSent==='1'?'Enviado ✓ · WhatsApp':'Consultar disponibilidade';
         }

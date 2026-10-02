@@ -13,7 +13,7 @@
       const days=Math.max(15,Number(details.prazo_preparacao_dias_uteis)||15);
       return{state:'preorder',label:'Sob encomenda',detail:`${days} dias úteis`,rank:1};
     }
-    if(raw==='mediante_confirmacao')return{state:'confirmation',label:'Pedido mediante confirmação',detail:'Consulte a loja',rank:2};
+    if(raw==='mediante_confirmacao')return{state:'confirmation',label:'Disponibilidade sob consulta',detail:'Consulte a loja',rank:2};
     if(Number(product?.estoque||0)>0)return{state:'ready',label:'Pronta-entrega',detail:'Disponível agora',rank:0};
     return{state:'unavailable',label:'Indisponível',detail:'Sem unidade disponível',rank:3};
   }

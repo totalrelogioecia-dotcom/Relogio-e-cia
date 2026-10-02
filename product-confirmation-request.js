@@ -2,7 +2,9 @@
 (function () {
   'use strict';
   const dialog = options => window.relojaDialog?.open(options) || Promise.resolve('dismiss');
-  const productId = Number(new URLSearchParams(location.search).get('id') || 0);
+  const params = new URLSearchParams(location.search);
+  const productId = Number(params.get('id') || 0);
+  const confirmationToken = String(params.get('confirmacao') || '').trim();
   let activeRelease = null;
   let checkingRelease = false;
 
@@ -19,6 +21,11 @@
     return Number.isNaN(parsed.getTime()) ? '' : parsed.toLocaleString('pt-BR');
   }
 
+  function accountReturnUrl() {
+    const target = `produto.html?id=${encodeURIComponent(productId)}&confirmacao=${encodeURIComponent(confirmationToken)}`;
+    return `conta.html?voltar=${encodeURIComponent(target)}`;
+  }
+
   async function loadRelease() {
     if (!productId || checkingRelease) return activeRelease;
     checkingRelease = true;
@@ -28,17 +35,63 @@
         cache: 'no-store',
         headers: { Accept: 'application/json' }
       });
-      if (!response.ok) {
+      if (response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const candidates = (Array.isArray(data.items) ? data.items : []).filter(item => item?.purchase?.active);
+        activeRelease = confirmationToken
+          ? candidates.find(item => String(item?.purchase?.token || '') === confirmationToken) || null
+          : candidates[0] || null;
+        if (activeRelease) return activeRelease;
+      }
+
+      if (!confirmationToken) {
         activeRelease = null;
         return null;
       }
-      const data = await response.json().catch(() => ({}));
-      const requestedToken = String(new URLSearchParams(location.search).get('confirmacao') || '').trim();
-      const candidates = (Array.isArray(data.items) ? data.items : []).filter(item => item?.purchase?.active);
-      activeRelease = requestedToken
-        ? candidates.find(item => String(item?.purchase?.token || '') === requestedToken) || null
-        : candidates[0] || null;
-      return activeRelease;
+
+      const publicResponse = await fetch(
+        `/api/availability-requests/confirmation?product_id=${encodeURIComponent(productId)}&token=${encodeURIComponent(confirmationToken)}`,
+        { cache: 'no-store', headers: { Accept: 'application/json' } }
+      );
+      if (!publicResponse.ok) {
+        activeRelease = null;
+        return null;
+      }
+      const publicData = await publicResponse.json().catch(() => ({}));
+      const confirmation = publicData.confirmation;
+      if (!confirmation?.active) {
+        activeRelease = null;
+        return null;
+      }
+
+      const claimResponse = await fetch('/api/availability-requests/claim', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId, token: confirmationToken })
+      });
+      const claimData = await claimResponse.json().catch(() => ({}));
+      if (claimResponse.ok && claimData.request?.purchase?.active) {
+        activeRelease = claimData.request;
+        return activeRelease;
+      }
+
+      if (claimResponse.status === 401 || claimResponse.status === 403) {
+        activeRelease = {
+          product_id: productId,
+          purchase: {
+            active: true,
+            quantity: Math.max(1, Number(confirmation.quantity) || 1),
+            expires_at: confirmation.expires_at || null,
+            token: confirmationToken
+          },
+          link_only: true,
+          bound_elsewhere: claimResponse.status === 403
+        };
+        return activeRelease;
+      }
+
+      throw new Error(claimData.error || 'Não foi possível validar a confirmação.');
     } catch {
       activeRelease = null;
       return null;
@@ -75,13 +128,45 @@
     const expiry = formattedExpiry(activeRelease.purchase.expires_at);
     box.classList.remove('confirmation');
     box.classList.add('confirmation-released');
-    box.innerHTML = `<strong>Disponibilidade confirmada</strong><span>Compra liberada somente para a sua conta${expiry ? ` até ${expiry}` : ''}. Quantidade liberada: ${Math.max(1, Number(activeRelease.purchase.quantity) || 1)} unidade(s).</span>`;
 
     const actions = buy.querySelector('.product-actions-main');
     const current = actions?.querySelector('.btn-primary');
     if (!actions || !current) return true;
-    if (current.dataset.confirmPurchaseReady === '1') return true;
 
+    if (activeRelease.link_only) {
+      box.innerHTML = activeRelease.bound_elsewhere
+        ? '<strong>Disponibilidade confirmada</strong><span>Este link já está vinculado a outra conta. Entre com a conta que recebeu a confirmação para continuar.</span>'
+        : `<strong>Disponibilidade confirmada</strong><span>Esta confirmação é exclusiva deste link${expiry ? ` até ${expiry}` : ''}. Entre ou crie sua conta para continuar a compra. O produto continua sob consulta para outras pessoas.</span>`;
+
+      if (current.dataset.confirmLinkReady === '1') return true;
+      if (activeRelease.bound_elsewhere) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = current.className;
+        button.dataset.confirmLinkReady = '1';
+        button.textContent = 'Usar a conta vinculada';
+        button.addEventListener('click', () => dialog({
+          kicker: 'Conta diferente',
+          title: 'Entre com a conta vinculada a este link',
+          message: 'Esta confirmação já foi associada a outra conta.',
+          detail: 'Abra sua Conta, saia da conta atual e entre novamente com a conta que recebeu a confirmação.',
+          primaryLabel: 'Entendi'
+        }));
+        current.replaceWith(button);
+      } else {
+        const link = document.createElement('a');
+        link.className = current.className;
+        link.dataset.confirmLinkReady = '1';
+        link.href = accountReturnUrl();
+        link.textContent = 'Entrar ou criar conta';
+        current.replaceWith(link);
+      }
+      return true;
+    }
+
+    box.innerHTML = `<strong>Disponibilidade confirmada</strong><span>Compra liberada somente para a sua conta${expiry ? ` até ${expiry}` : ''}. Quantidade liberada: ${Math.max(1, Number(activeRelease.purchase.quantity) || 1)} unidade(s).</span>`;
+
+    if (current.dataset.confirmPurchaseReady === '1') return true;
     const button = document.createElement('button');
     button.type = 'button';
     button.className = current.className;
@@ -166,7 +251,7 @@
           ? 'Este pedido de confirmação já está no painel da Relógio e Cia.'
           : 'A Relógio e Cia recebeu seu pedido de confirmação e ele já aparece no painel da loja.',
         detail: data.request?.guest
-          ? 'A loja poderá responder ao e-mail informado. Para agilizar, você também pode falar pelo WhatsApp. Esta consulta não libera a compra.'
+          ? 'A loja poderá enviar um link exclusivo se confirmar a disponibilidade. Você poderá abrir o link sem conta e entrar ou criar a conta apenas para continuar a compra.'
           : 'Se quiser agilizar o atendimento, você também pode falar conosco pelo WhatsApp.',
         primaryLabel: 'Abrir WhatsApp',
         secondaryLabel: 'Continuar no produto'

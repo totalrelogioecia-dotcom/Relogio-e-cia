@@ -119,7 +119,7 @@
       const panel = document.createElement('div');
       panel.id = 'tab-confirmacoes';
       panel.style.display = 'none';
-      panel.innerHTML = `<div class="admin-toolbar"><div class="admin-extra-toolbar-copy"><h2>Pedidos mediante confirmação</h2><p class="admin-muted">Confirme a disponibilidade com o fornecedor e libere a compra somente para a conta do cliente. A liberação padrão vale 48 horas e não torna o produto comprável para outras pessoas.</p></div><button id="refresh-confirmations" class="btn btn-outline" type="button">Atualizar</button></div><div id="confirmations-list" class="admin-table-wrap"></div>`;
+      panel.innerHTML = `<div class="admin-toolbar"><div class="admin-extra-toolbar-copy"><h2>Disponibilidade sob consulta</h2><p class="admin-muted">Confirme a disponibilidade real e gere uma liberação individual. Se o cliente consultou sem conta, o mesmo link permite abrir a confirmação e entrar ou criar a conta para continuar. O produto não é liberado para outras pessoas.</p></div><button id="refresh-confirmations" class="btn btn-outline" type="button">Atualizar</button></div><div id="confirmations-list" class="admin-table-wrap"></div>`;
       dashboard.appendChild(panel);
     }
 
@@ -229,21 +229,21 @@
   function purchaseCell(item) {
     const purchase = item.purchase;
     const canManagePurchase = canManagePurchaseAuthorization();
-    if (item.guest) {
-      return '<div class="confirmation-purchase-box"><strong>Consulta por e-mail</strong><small>Responda ao cliente pelo e-mail informado. Para liberar compra, ele deve entrar na conta e enviar uma nova solicitação.</small></div>';
-    }
     if (!purchase) {
+      const guestHelp = item.guest
+        ? 'O cliente consultou sem conta. Depois de confirmar, gere o link exclusivo; ele poderá abrir o link e entrar ou criar a conta para continuar.'
+        : 'Depois de confirmar com o fornecedor, libere a compra individual.';
       if (!canManagePurchase) {
-        return `<div class="confirmation-purchase-box"><strong>Aguardando confirmação</strong><small>Acompanhe o contato e salve o status ou a observação. Somente Gerente ou Proprietário pode liberar a compra.</small></div>`;
+        return `<div class="confirmation-purchase-box"><strong>Aguardando confirmação</strong><small>${esc(guestHelp)} Somente Gerente ou Proprietário pode liberar a compra.</small></div>`;
       }
-      return `<div class="confirmation-purchase-box"><strong>Aguardando confirmação</strong><small>Depois de confirmar com o fornecedor, libere a compra individual.</small><div class="confirmation-release-fields"><label>Qtd.<input data-release-quantity type="number" min="1" max="9" value="1"></label><label>Validade (h)<input data-release-hours type="number" min="1" max="168" value="48"></label></div><button type="button" class="btn btn-primary" data-release-purchase="${esc(item.id)}">Confirmar e liberar compra</button></div>`;
+      return `<div class="confirmation-purchase-box"><strong>Aguardando confirmação</strong><small>${esc(guestHelp)}</small><div class="confirmation-release-fields"><label>Qtd.<input data-release-quantity type="number" min="1" max="9" value="1"></label><label>Validade (h)<input data-release-hours type="number" min="1" max="168" value="48"></label></div><button type="button" class="btn btn-primary" data-release-purchase="${esc(item.id)}">Confirmar e liberar compra</button></div>`;
     }
 
     const state = String(purchase.state || 'not_released');
     const label = PURCHASE_LABELS[state] || state;
     const link = absolutePurchaseLink(item);
     if (state === 'active') {
-      const waMessage = `Olá, ${item.customer?.nome || ''}! Confirmamos a disponibilidade de ${item.product?.nome || 'seu produto'}. Sua compra foi liberada até ${date(purchase.expires_at)}. Finalize por este link: ${link}`;
+      const waMessage = `Olá, ${item.customer?.nome || ''}! Confirmamos a disponibilidade de ${item.product?.nome || 'seu produto'}. A confirmação é exclusiva para você e vale até ${date(purchase.expires_at)}. Abra este link para continuar: ${link}`;
       const wa = whatsappLink(item.customer?.telefone, waMessage);
       const revokeAction = canManagePurchase
         ? `<button type="button" class="btn btn-outline" data-revoke-purchase="${esc(item.id)}">Revogar</button>`
