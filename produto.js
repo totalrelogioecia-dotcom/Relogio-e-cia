@@ -56,7 +56,7 @@
     const availabilityHtml=preorder
       ? `<div class="product-availability-box preorder"><strong>Sob encomenda</strong><span>Prazo de preparação: ${availability.days} dias úteis. O prazo da transportadora começa depois da preparação.</span></div>`
       : confirmation
-        ? `<div class="product-availability-box confirmation"><strong>Pedido mediante confirmação</strong><span>Ao confirmar, a solicitação é enviada ao painel da loja. Para acelerar o atendimento, fale conosco pelo WhatsApp.</span></div>`
+        ? `<div class="product-availability-box confirmation"><strong>Disponibilidade sob consulta</strong><span>Envie a solicitação para a loja confirmar a disponibilidade. Se houver liberação, você receberá um link exclusivo para continuar a compra.</span></div>`
         : `<div class="product-stock ${stock>0?'ok':'out'}">${stock>0?`${stock} unidade${stock===1?'':'s'} em estoque`:'Esse produto encontra-se indisponível.'}</div>`;
 
     root.innerHTML=`
