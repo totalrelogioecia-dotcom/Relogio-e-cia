@@ -25,15 +25,18 @@ test('módulos da confirmação individual têm sintaxe válida', () => {
   });
 });
 
-test('admin libera e revoga compra individual sem alterar disponibilidade global', () => {
+test('admin libera e revoga compra individual, inclusive quando a consulta começou sem conta', () => {
   const routes = read('availability-requests.js');
   const service = read('confirmation-purchase-service.js');
   assert.match(routes, /\/api\/admin\/availability-requests\/:id\/release-purchase/);
   assert.match(routes, /\/api\/admin\/availability-requests\/:id\/revoke-purchase/);
   assert.match(routes, /\/api\/availability-requests\/mine/);
+  assert.match(routes, /\/api\/availability-requests\/confirmation/);
+  assert.match(routes, /\/api\/availability-requests\/claim/);
   assert.match(service, /DEFAULT_RELEASE_HOURS\s*=\s*48/);
   assert.match(service, /purchase_authorization/);
   assert.match(service, /customerMatches/);
+  assert.doesNotMatch(service, /Esta consulta foi feita sem conta/);
   assert.doesNotMatch(service, /product-details\.json/);
 });
 
@@ -55,10 +58,25 @@ test('interface distingue solicitação de compra já liberada', () => {
   const product = read('product-confirmation-request.js');
   assert.match(admin, /Confirmar e liberar compra/);
   assert.match(admin, /Copiar link/);
+  assert.doesNotMatch(admin, /deve entrar na conta e enviar uma nova solicitação/);
   assert.match(catalog, /Disponibilidade confirmada/);
   assert.match(cart, /compra liberada para sua conta/);
   assert.match(product, /confirmation-released/);
+  assert.match(product, /Entrar ou criar conta/);
   assert.match(product, /Adicionar ao carrinho/);
+});
+
+test('link exclusivo de visitante é validado antes do login e vinculado à conta depois', () => {
+  const routes = read('availability-requests.js');
+  const product = read('product-confirmation-request.js');
+  assert.match(routes, /publicConfirmationSnapshot/);
+  assert.match(routes, /requestMatchesUser/);
+  assert.match(routes, /guest:\s*false/);
+  assert.match(routes, /Confirmação vinculada à sua conta/);
+  assert.match(product, /confirmationToken/);
+  assert.match(product, /accountReturnUrl/);
+  assert.match(product, /\/api\/availability-requests\/claim/);
+  assert.match(product, /O produto continua sob consulta para outras pessoas/);
 });
 
 test('pagamento aprovado encerra somente confirmação vinculada ao cliente e produto', () => {
