@@ -99,6 +99,10 @@ if (!originalExpress.__relogioAuthPatched) {
     }
 
     function injectExperienceScripts(html, page) {
+      if (!html.includes('site-search.css')) {
+        html = html.replace('</head>', '<link rel="stylesheet" href="site-search.css">\n</head>');
+      }
+      html = injectScript(html, 'site-search.js?v=20261003-shared-header-1');
       html = injectScript(html, 'analytics-client.js?v=2');
       html = injectScript(html, 'accessibility-panel.js?v=1');
       if (page === 'index.html' || page === 'produtos.html' || page === 'produto.html' || page === 'conta.html' || page === 'favoritos.html') {

@@ -69,33 +69,48 @@
     const style = document.createElement('style');
     style.id = 'shipping-address-styles';
     style.textContent = `
-      .shipping-address-picker{margin:0 0 14px;padding:14px;border:1px solid rgba(0,0,0,.14);background:#faf9f6}
+      .shipping-address-picker{margin:0 0 14px;padding:14px;border:1px solid var(--line-strong);background:var(--bg-soft)}
       .shipping-address-picker label{display:block;font-family:var(--font-mono);font-size:.67rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-      .shipping-address-picker select{width:100%;min-height:42px;border:1px solid #111;background:#fff;padding:0 11px;font-family:var(--font-body);font-size:.84rem}
+      .shipping-address-picker select{width:100%;min-height:42px;border:1px solid var(--ink);background:var(--bg);color:var(--ink);padding:0 11px;font-family:var(--font-body);font-size:.84rem}
       .shipping-address-current{margin:8px 0 0;color:var(--ink-soft);font-size:.72rem;line-height:1.45}
       .shipping-address-manage{display:inline-block;margin-top:8px;font-family:var(--font-mono);font-size:.66rem;color:var(--red);text-underline-offset:3px}
+      .shipping-address-retry{margin-top:10px}
       @media(max-width:640px){.shipping-address-picker{padding:12px}.shipping-address-picker select{font-size:16px}}
     `;
     document.head.appendChild(style);
   }
 
   function ensurePicker() {
+    const existing = document.getElementById('shipping-address-picker');
+    if (existing) return existing;
     const shippingBox = document.getElementById('shipping-box');
     const form = shippingBox?.querySelector('.shipping-form');
     const slot = document.getElementById('shipping-address-slot');
-    if (!shippingBox || !form || document.getElementById('shipping-address-picker')) return;
+    if (!shippingBox || !form) return null;
     ensureStyles();
     const box = document.createElement('div');
     box.id = 'shipping-address-picker';
     box.className = 'shipping-address-picker';
-    box.innerHTML = `
-      <label for="shipping-address-select">Endereço de entrega</label>
-      <select id="shipping-address-select"></select>
-      <p id="shipping-address-current" class="shipping-address-current"></p>
-      <a href="enderecos.html" class="shipping-address-manage">Gerenciar endereços</a>`;
+    box.setAttribute('aria-live', 'polite');
     if (slot) slot.appendChild(box);
     else shippingBox.insertBefore(box, form);
-    document.getElementById('shipping-address-select').addEventListener('change', event => selectAddress(event.target.value, true));
+    return box;
+  }
+
+  function showAddressState(state) {
+    const box = ensurePicker();
+    if (!box) return;
+    box.setAttribute('aria-busy', String(state === 'loading'));
+    if (state === 'guest') {
+      box.innerHTML = '<p class="shipping-address-current">Entre ou crie sua conta para cadastrar um endereço de entrega e finalizar o pedido. Você já pode calcular o frete pelo CEP.</p><a href="conta.html?voltar=carrinho.html" class="shipping-address-manage">Entrar ou criar conta</a>';
+    } else if (state === 'empty') {
+      box.innerHTML = '<p class="shipping-address-current">Cadastre um endereço de entrega antes de finalizar a compra. Você já pode calcular o frete pelo CEP.</p><a href="enderecos.html" class="shipping-address-manage">Cadastrar endereço</a>';
+    } else if (state === 'error') {
+      box.innerHTML = '<p class="shipping-address-current">Não foi possível carregar seus endereços. Tente novamente. Você pode calcular o frete pelo CEP.</p><button type="button" class="btn btn-outline shipping-address-retry">Tentar novamente</button>';
+      box.querySelector('.shipping-address-retry').addEventListener('click', loadAddresses);
+    } else {
+      box.innerHTML = '<p class="shipping-address-current" role="status">Carregando endereços...</p>';
+    }
   }
 
   function selectedAddress() {
@@ -145,16 +160,22 @@
   }
 
   function renderPicker() {
-    ensurePicker();
-    const select = document.getElementById('shipping-address-select');
-    if (!select) return;
+    const box = ensurePicker();
+    if (!box) return;
+    box.setAttribute('aria-busy', 'false');
     if (!addresses.length) {
       publishAddress(null);
-      document.getElementById('shipping-address-picker').innerHTML = '<p class="shipping-address-current">Cadastre um endereço de entrega na sua conta antes de finalizar a compra.</p><a href="conta.html" class="shipping-address-manage">Cadastrar endereço</a>';
+      showAddressState('empty');
       return;
     }
 
-    select.replaceChildren();
+    box.innerHTML = `
+      <label for="shipping-address-select">Endereço de entrega</label>
+      <select id="shipping-address-select"></select>
+      <p id="shipping-address-current" class="shipping-address-current"></p>
+      <a href="enderecos.html" class="shipping-address-manage">Gerenciar endereços</a>`;
+    const select = document.getElementById('shipping-address-select');
+    select.addEventListener('change', event => selectAddress(event.target.value, true));
     addresses.forEach(address => {
       const suffix = address.principal ? ' · principal' : '';
       const option = document.createElement('option');
@@ -169,6 +190,7 @@
   }
 
   async function loadAddresses() {
+    showAddressState('loading');
     try {
       const response = await fetch('/api/auth/addresses', {
         headers: authHeaders(),
@@ -176,14 +198,19 @@
         cache: 'no-store'
       });
       if (!response.ok) {
-        publishAddress(sessionAddress());
-        return;
+        if (response.status === 401) {
+          publishAddress(sessionAddress());
+          showAddressState('guest');
+          return;
+        }
+        throw new Error('Não foi possível carregar os endereços.');
       }
       const data = await response.json();
       addresses = Array.isArray(data.addresses) ? data.addresses : [];
       renderPicker();
     } catch {
       publishAddress(sessionAddress());
+      showAddressState('error');
     }
   }
 

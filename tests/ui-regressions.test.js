@@ -42,13 +42,10 @@ test('produto informa parcelamento e segurança sem prometer juros zero', () => 
   assert.doesNotMatch(script, /12x[^\n<]*sem juros/i);
 });
 
-test('home não permite adicionar produto sem estoque ao carrinho', () => {
+test('home usa a disponibilidade compartilhada antes de permitir adicionar ao carrinho', () => {
   const script = read('home-enhancements.js');
-
-  assert.match(script, /function produtoDisponivel/);
-  assert.match(script, /Number\(produto\?\.estoque \|\| 0\) > 0/);
-  assert.match(script, />Indisponível<\/button>/);
-  assert.match(script, /disabled aria-disabled="true"/);
-  assert.match(script, /!produtoDisponivel\(produto\)/);
-  assert.match(script, /data-home-add/);
+  assert.match(script, /await window\.RelogioCatalogAvailability\.prepare\(\)/);
+  assert.match(script, /window\.RelogioCatalogAvailability\.decorate\(\)/);
+  assert.match(script, /button\.disabled \|\| button\.dataset\.confirmAvailability === '1'/);
+  assert.match(script, /data-add-carrinho="\$\{Number\(produto\.id\)\}" disabled/);
 });
