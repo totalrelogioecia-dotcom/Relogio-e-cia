@@ -2,7 +2,7 @@
    RELÓGIO E CIA — melhorias exclusivas da página inicial
    - Relógio sincronizado pela zona America/Sao_Paulo.
    - Mostruários expansíveis com carrossel de relógios por marca.
-   - Produtos sem estoque permanecem visíveis, mas não podem ser adicionados.
+   - Disponibilidade e solicitações seguem a mesma regra do catálogo.
    ========================================================= */
 (() => {
   'use strict';
@@ -133,10 +133,6 @@
     return categoria.includes('relog');
   }
 
-  function produtoDisponivel(produto) {
-    return produto?.ativo !== false && Number(produto?.estoque || 0) > 0;
-  }
-
   function criarCardHome(produto, marca) {
     const foto = fotoProduto(produto);
     const urlProduto = `produto.html?id=${encodeURIComponent(produto.id)}`;
@@ -147,14 +143,11 @@
         : (produto.nome || 'Relógio')
     );
     const sku = escapeHtml(produto.sku || '');
-    const disponivel = produtoDisponivel(produto);
     const preco = typeof formatarPreco === 'function'
       ? formatarPreco(Number(produto.preco || 0))
       : Number(produto.preco || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-    const acao = disponivel
-      ? `<button class="btn btn-primary" type="button" data-home-add="${Number(produto.id)}">Adicionar</button>`
-      : '<button class="btn btn-primary" type="button" disabled aria-disabled="true" title="Produto sem estoque">Indisponível</button>';
+    const acao = `<button class="btn btn-primary" type="button" data-add-carrinho="${Number(produto.id)}" disabled>Carregando disponibilidade...</button>`;
 
     return `
       <article class="home-watch-card" data-home-product="${Number(produto.id)}" data-stock="${Math.max(0, Number(produto.estoque) || 0)}">
@@ -239,7 +232,6 @@
             </div>
             <div class="brand-showcase-viewport">
               <div class="brand-showcase-track">
-                ${produtos.map(produto => criarCardHome(produto, marca)).join('')}
               </div>
             </div>`;
         }
@@ -247,6 +239,9 @@
         row.insertAdjacentElement('afterend', painel);
 
         const viewport = painel.querySelector('.brand-showcase-viewport');
+        const track = painel.querySelector('.brand-showcase-track');
+        let carregamento = null;
+        let carregado = false;
         const botaoAnterior = painel.querySelector('[data-carousel-prev]');
         const botaoProximo = painel.querySelector('[data-carousel-next]');
         const comportamentoRolagem = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -300,21 +295,45 @@
         });
         window.addEventListener('resize', atualizarBotoesCarrossel, { passive: true });
 
-        painel.querySelectorAll('[data-home-add]').forEach(button => {
-          button.addEventListener('click', () => {
-            const id = Number(button.dataset.homeAdd);
-            const produto = PRODUTOS.find(item => Number(item.id) === id);
-            if (!Number.isFinite(id) || !produtoDisponivel(produto) || typeof adicionarAoCarrinho !== 'function') return;
+        function carregarMostruario() {
+          if (!track || carregado || carregamento) return carregamento;
+          track.setAttribute('aria-busy', 'true');
+          track.innerHTML = '<p class="brand-showcase-empty" role="status">Carregando relógios...</p>';
+          carregamento = (async () => {
+            try {
+              await window.RelogioCatalogAvailability.prepare();
+              track.innerHTML = produtos.map(produto => criarCardHome(produto, marca)).join('');
+              window.RelogioCatalogAvailability.decorate();
+              carregado = true;
+              window.requestAnimationFrame(atualizarBotoesCarrossel);
+            } catch {
+              track.innerHTML = '<div class="brand-showcase-empty" role="status"><p>Não foi possível carregar os relógios.</p><button type="button" class="btn btn-outline" data-showcase-retry>Tentar novamente</button></div>';
+            } finally {
+              track.setAttribute('aria-busy', 'false');
+              carregamento = null;
+            }
+          })();
+          return carregamento;
+        }
 
-            adicionarAoCarrinho(id);
-            const original = button.textContent;
-            button.textContent = 'Adicionado ✓';
-            button.classList.add('is-added');
-            window.setTimeout(() => {
-              button.textContent = original;
-              button.classList.remove('is-added');
-            }, 1600);
-          });
+        painel.addEventListener('click', event => {
+          if (event.target.closest('[data-showcase-retry]')) {
+            carregarMostruario();
+            return;
+          }
+          const button = event.target.closest('[data-add-carrinho]');
+          if (!button || button.disabled || button.dataset.confirmAvailability === '1') return;
+          const id = Number(button.dataset.addCarrinho);
+          if (!Number.isSafeInteger(id) || typeof adicionarAoCarrinho !== 'function') return;
+
+          adicionarAoCarrinho(id);
+          const original = button.textContent;
+          button.textContent = 'Adicionado ✓';
+          button.classList.add('is-added');
+          window.setTimeout(() => {
+            button.textContent = original;
+            button.classList.remove('is-added');
+          }, 1600);
         });
 
         row.addEventListener('click', event => {
@@ -331,6 +350,7 @@
           row.setAttribute('aria-expanded', 'true');
           painelAberto = painel;
           rowAberta = row;
+          carregarMostruario();
           window.requestAnimationFrame(atualizarBotoesCarrossel);
 
           window.setTimeout(() => {

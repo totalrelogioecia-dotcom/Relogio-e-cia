@@ -216,5 +216,9 @@
     });
   }
 
-  document.addEventListener('DOMContentLoaded', initSearch);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSearch, { once: true });
+  } else {
+    initSearch();
+  }
 })();

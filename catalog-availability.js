@@ -1,8 +1,9 @@
-/* RELÓGIO E CIA — disponibilidade no catálogo */
+/* RELÓGIO E CIA — disponibilidade compartilhada entre catálogo e home */
 (function(){
   'use strict';
   let details={};
   let released=new Map();
+  let preparePromise=null;
   function info(p){
     if(!p)return{type:'pronta_entrega',days:0};
     const d=details[String(p.id)]||{};
@@ -60,9 +61,9 @@
     ensureStyle();
     document.querySelectorAll('[data-add-carrinho]').forEach(btn=>{
       const p=product(btn.dataset.addCarrinho);if(!p)return;
-      const card=btn.closest('.product-card');if(!card)return;
+      const card=btn.closest('.product-card, .home-watch-card');if(!card)return;
       const a=info(p);let note=card.querySelector('.catalog-availability');
-      if(!note){note=document.createElement('div');note.className='catalog-availability';const actions=card.querySelector('.card-actions');if(actions)card.insertBefore(note,actions);else card.appendChild(note)}
+      if(!note){note=document.createElement('div');note.className='catalog-availability';const actions=card.querySelector('.card-actions, .home-watch-actions');if(actions)actions.parentNode.insertBefore(note,actions);else card.appendChild(note)}
       btn.removeAttribute('data-confirm-availability');
       if(a.type==='sob_encomenda'){
         btn.removeAttribute('data-confirm-request-sent');
@@ -101,6 +102,21 @@
       released=new Map((Array.isArray(data.items)?data.items:[]).filter(item=>item?.purchase?.active).map(item=>[Number(item.product_id),item]));
     }catch{}
   }
+  function prepare(){
+    if(!preparePromise){
+      preparePromise=Promise.all([
+        fetch('/api/product-details',{cache:'no-store'}).then(async response=>{
+          if(!response.ok)throw new Error('Não foi possível carregar a disponibilidade.');
+          const data=await response.json();
+          if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('Disponibilidade inválida.');
+          details=data;
+        }),
+        loadReleases()
+      ]).catch(error=>{preparePromise=null;throw error});
+    }
+    return preparePromise;
+  }
+  window.RelogioCatalogAvailability={prepare,decorate};
   async function requestConfirmation(p,btn){
     if(btn.dataset.confirmRequestSent==='1'){
       window.open(whatsapp(p),'_blank','noopener');
@@ -165,12 +181,13 @@
     requestConfirmation(p,btn);
   },true);
   async function init(){
+    const grid=document.getElementById('product-grid')||document.querySelector('.product-grid');
+    // Na home, os dados só são solicitados ao abrir o primeiro mostruário.
+    if(!grid)return;
     try{
-      const [d]=await Promise.all([fetch('/api/product-details',{cache:'no-store'}),loadReleases()]);
-      if(d.ok)details=await d.json();
+      await prepare();
     }catch{}
     decorate();
-    const grid=document.getElementById('product-grid')||document.querySelector('.product-grid');
     if(grid)new MutationObserver(()=>setTimeout(decorate,0)).observe(grid,{childList:true,subtree:true});
     setTimeout(decorate,500);
   }
