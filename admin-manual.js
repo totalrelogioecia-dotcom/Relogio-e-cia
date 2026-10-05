@@ -135,14 +135,14 @@
       steps:[
         'Abra Carrossel da Home e use “+ Adicionar slide”. O limite atual é de 5 slides.',
         'Dê um Nome do post para organização interna do Admin.',
-        'Cadastre a imagem principal. O padrão recomendado é 1920 × 600 px no computador e 1000 × 1000 px no celular.',
-        'Quando houver versões específicas, adicione também imagens para modo escuro e para celular.',
+        'Cadastre a imagem principal. O padrão recomendado é 1920 × 1440 px (4:3) no computador e 1000 × 1000 px (1:1) no celular.',
+        'Para novas artes, prepare quatro versões: computador claro, computador escuro, celular claro e celular escuro.',
         'Preencha texto alternativo e link quando o banner precisar levar o visitante para outra página.',
         'Organize a ordem, ative/desative os posts e revise as configurações exibidas pelo editor.',
         'Clique em “Salvar carrossel”. Nada novo é publicado antes de salvar.',
         'Use “Ver a home” para conferir o resultado.'
       ],
-      notes:['As versões mobile e escuras são opcionais; quando faltam, o site usa a imagem clara disponível.','Use JPG, PNG ou WebP.']
+      notes:['Mantenha os relógios inteiros na região central, com margem de 25% em cada lateral e 15% no topo e na base. Reserve o canto inferior esquerdo para o título e o botão do site.','A área visível varia conforme a tela. Confira o enquadramento no computador e no celular antes de aprovar a arte.','As versões mobile e escuras são opcionais no cadastro; quando faltam, o site usa a imagem clara disponível.','Use JPG, PNG ou WebP.']
     },
     {
       id:'usuarios', icon:'♙', title:'Usuários do Admin', tab:'usuarios-admin', owner:true, tags:'usuario proprietário gerente atendimento senha permissão bloquear excluir',

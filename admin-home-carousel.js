@@ -25,7 +25,8 @@
     if (!panel()) {
       const p = document.createElement('section'); p.id = 'tab-home-carousel'; p.className = 'admin-module-panel'; p.style.display = 'none';
       p.innerHTML = `<div class="admin-toolbar admin-module-toolbar"><div><h2>Carrossel da home</h2><p class="carousel-editor-help">Exclusivo do proprietário. Até 5 fotos; nenhuma imagem é publicada antes de salvar.</p></div><a class="btn btn-outline" href="index.html" target="_blank" rel="noopener">Ver a home</a></div>
-        <p class="carousel-editor-help">Para cada slide, você pode cadastrar quatro versões: computador claro e escuro (recomendado 1920 × 600 px) e celular claro e escuro (recomendado 1000 × 1000 px). As versões escuras e de celular são opcionais; quando faltarem, o site usa automaticamente a foto clara disponível. Use JPG, PNG ou WebP.</p>
+        <p class="carousel-editor-help">Para cada slide, prepare quatro versões: computador claro e escuro (1920 × 1440 px, proporção 4:3) e celular claro e escuro (1000 × 1000 px, proporção 1:1). As versões escuras e de celular são opcionais no cadastro; quando faltarem, o site usa automaticamente a foto clara disponível. Use JPG, PNG ou WebP.</p>
+        <p class="carousel-editor-help"><strong>Enquadramento seguro:</strong> mantenha os relógios inteiros na região central, com margem de 25% em cada lateral e 15% no topo e na base. Reserve o canto inferior esquerdo para o título e o botão do site. A área visível varia conforme a tela; confira o resultado no computador e no celular.</p>
         <div class="carousel-editor-settings"><label><input type="checkbox" id="carousel-autoplay"> Troca automática</label><label for="carousel-interval">Intervalo <select id="carousel-interval">${[6,7,8,9,10,11,12].map(n => `<option value="${n}">${n} segundos</option>`).join('')}</select></label></div>
         <div id="carousel-editor-list" class="carousel-editor-list"></div>
         <div class="carousel-editor-actions"><button type="button" class="btn btn-outline" id="carousel-add">+ Adicionar slide</button><div><button type="button" class="btn btn-outline" id="carousel-reload">Recarregar</button> <button type="button" class="btn btn-primary" id="carousel-save">Salvar carrossel</button></div></div>
@@ -78,10 +79,10 @@
         <div class="carousel-editor-body" id="${esc(s.id)}-body" ${open ? '' : 'hidden'}>
           <div class="carousel-editor-name-row"><label for="${s.id}-admin-name">Nome do post <small>Somente para organização no painel</small></label><input id="${s.id}-admin-name" maxlength="80" value="${esc(s.admin_name || '')}" data-field="admin_name" placeholder="Ex.: G-Shock — Built to Resist"></div>
           <div class="carousel-editor-grid">${[
-            ['image','Computador · modo claro','1920 × 600 px',false],
-            ['mobile_image','Celular · modo claro (opcional)','1000 × 1000 px',false],
-            ['dark_image','Computador · modo escuro (opcional)','1920 × 600 px',true],
-            ['dark_mobile_image','Celular · modo escuro (opcional)','1000 × 1000 px',true]
+            ['image','Computador · modo claro','1920 × 1440 px · 4:3',false],
+            ['mobile_image','Celular · modo claro (opcional)','1000 × 1000 px · 1:1',false],
+            ['dark_image','Computador · modo escuro (opcional)','1920 × 1440 px · 4:3',true],
+            ['dark_mobile_image','Celular · modo escuro (opcional)','1000 × 1000 px · 1:1',true]
           ].map(([key,label,size,dark]) => `<div class="carousel-editor-photo"><label for="${s.id}-${key}">${label}<small>${size}</small></label><input id="${s.id}-${key}" type="file" accept="image/jpeg,image/png,image/webp" data-photo="${key}" ${key!=='image' && !s.image ? 'disabled' : ''}><div class="carousel-editor-preview${dark ? ' is-dark' : ''}">${s[key] ? `<img src="${esc(s[key])}" alt="Prévia: ${label.toLowerCase()}">` : 'Sem foto'}</div>${s[key] ? `<button type="button" class="btn btn-outline" data-clear="${key}">Retirar foto</button>` : ''}</div>`).join('')}</div>
           <div class="carousel-editor-grid"><div><label for="${s.id}-alt">Descrição da foto (acessibilidade)</label><input id="${s.id}-alt" maxlength="180" value="${esc(s.alt)}" data-field="alt" placeholder="Ex.: três relógios G-Shock sobre fundo claro"></div><div><label for="${s.id}-href">Destino ao clicar (opcional)</label><input id="${s.id}-href" maxlength="300" value="${esc(s.href)}" data-field="href" placeholder="produtos.html?marca=G-Shock"></div></div>
           <div class="carousel-editor-footer"><label><input type="checkbox" data-enabled ${s.enabled ? 'checked' : ''}> Ativar este post quando houver foto principal</label><button type="button" class="btn btn-outline carousel-editor-remove" data-remove>Remover post</button></div>
